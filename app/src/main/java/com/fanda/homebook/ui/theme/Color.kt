@@ -3,12 +3,12 @@ package com.fanda.homebook.ui.theme
 import androidx.compose.ui.graphics.Color
 
 
-val primaryLight = Color(0xFF1F6A4E)
-val onPrimaryLight = Color(0xFFFFFFFF)
+val primaryLight = Color.Gray       // 自定义了颜色，主色为灰色
+val onPrimaryLight = Color(0xFF000000)       // 自定义了颜色，用于顶部标题的中间文本
 val primaryContainerLight = Color(0xFFA8F2CE)
 val onPrimaryContainerLight = Color(0xFF005138)
-val secondaryLight = Color(0xFF4D6357)
-val onSecondaryLight = Color(0xFFFFFFFF)
+val secondaryLight = Color(0xFF333333)
+val onSecondaryLight = Color(0xFF333333)    // 自定义了颜色，用于顶部标题的右边文本
 val secondaryContainerLight = Color(0xFFCFE9D9)
 val onSecondaryContainerLight = Color(0xFF354B40)
 val tertiaryLight = Color(0xFF3D6373)

@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,12 +23,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -37,38 +43,58 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.fanda.homebook.quick.QuickHomePage
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.route.bottomTabRoutes
 
-private data class BottomTabEntity(val route: String, @DrawableRes val icon: Int, @DrawableRes val iconSelected: Int, var selected: Boolean = false)
+private data class BottomTabEntity(
+    val route: String,
+    @DrawableRes val icon: Int,
+    @DrawableRes val iconSelected: Int,
+    var selected: Boolean = false
+)
+
 
 /*
 * 应用入口
 * */
-@Composable fun HomeBookApp() {
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeBookApp() {
+
     // 获取导航控制器
     val navController: NavHostController = rememberNavController()
-    // 获取路由状态
-    val currentRoute by navController.currentBackStackEntryAsState()
+    // 获取当选选中的Tab
+    val selectedTab =
+        rememberSelectedTab(navController = navController, tabRoutes = bottomTabRoutes)
 
     Scaffold(bottomBar = {
-        CustomBottomBar(navHostController = navController, currentRoute = currentRoute?.destination?.route ?: RoutePath.BOOK.route)
+        CustomBottomBar(navHostController = navController, selectedTab = selectedTab)
     }) { padding ->
         // 页面容器
         NavHost(
-            navController = navController, startDestination = RoutePath.BOOK.route, modifier = Modifier.padding(padding)
+            navController = navController,
+            startDestination = RoutePath.BOOK.route,
+            modifier = Modifier.padding(padding)
         ) {
             // 账本页面
             composable(RoutePath.BOOK.route) {
-                Text(text = "账本页面")
+                Text(
+                    "账本页面",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
+                )
             }
             // 看板页面
             composable(RoutePath.DASHBOARD.route) {
@@ -76,7 +102,7 @@ private data class BottomTabEntity(val route: String, @DrawableRes val icon: Int
             }
             // 记一笔页面
             composable(RoutePath.QUICK_ADD.route) {
-                Text(text = "记一笔页面")
+                QuickHomePage(modifier = Modifier.fillMaxSize(), navController)
             }
             // 衣橱页面
             composable(RoutePath.CLOSET.route) {
@@ -94,15 +120,29 @@ private data class BottomTabEntity(val route: String, @DrawableRes val icon: Int
 /*
 * 底部导航栏
 * */
-@Composable private fun CustomBottomBar(navHostController: NavHostController, currentRoute: String, modifier: Modifier = Modifier) {
+@Composable
+private fun CustomBottomBar(
+    navHostController: NavHostController,
+    selectedTab: String,
+    modifier: Modifier = Modifier
+) {
 
 
     val leftTabs = listOf(
-        BottomTabEntity(RoutePath.BOOK.route, R.mipmap.icon_book, R.mipmap.icon_book_selected), BottomTabEntity(RoutePath.DASHBOARD.route, R.mipmap.icon_dashboard, R.mipmap.icon_dashboard_selected)
+        BottomTabEntity(RoutePath.BOOK.route, R.mipmap.icon_book, R.mipmap.icon_book_selected),
+        BottomTabEntity(
+            RoutePath.DASHBOARD.route,
+            R.mipmap.icon_dashboard,
+            R.mipmap.icon_dashboard_selected
+        )
     )
 
     val rightTabs = listOf(
-        BottomTabEntity(RoutePath.CLOSET.route, R.mipmap.icon_closet, R.mipmap.icon_closet_selected), BottomTabEntity(RoutePath.STOCK.route, R.mipmap.icon_stock, R.mipmap.icon_stock_selected)
+        BottomTabEntity(
+            RoutePath.CLOSET.route,
+            R.mipmap.icon_closet,
+            R.mipmap.icon_closet_selected
+        ), BottomTabEntity(RoutePath.STOCK.route, R.mipmap.icon_stock, R.mipmap.icon_stock_selected)
     )
 
     val interactionSource = remember { MutableInteractionSource() }
@@ -110,7 +150,9 @@ private data class BottomTabEntity(val route: String, @DrawableRes val icon: Int
 
     // 点击时的缩放值
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.8f else 1f, animationSpec = tween(durationMillis = 150), label = ""
+        targetValue = if (isPressed) 0.8f else 1f,
+        animationSpec = tween(durationMillis = 150),
+        label = ""
     )
 
     Box(modifier = modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
@@ -119,19 +161,24 @@ private data class BottomTabEntity(val route: String, @DrawableRes val icon: Int
             modifier = modifier
                 .fillMaxWidth()
                 .height(64.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors()
+                .copy(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, color = Color.White)
         ) {
-            Row(horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxSize()
+            ) {
                 leftTabs.forEach { tab ->
-                    BottomBarItem(tab = tab, isSelected = tab.route == currentRoute, onClick = {
+                    BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
                         navHostController.navigate(tab.route) {
                             // 避免多次创建相同的页面入栈
                             launchSingleTop = true
                             // 保存页面的信息
                             restoreState = true
                         }
-                    })
+                    }, modifier = Modifier.weight(1f))
                 }
 
                 Image(
@@ -140,21 +187,25 @@ private data class BottomTabEntity(val route: String, @DrawableRes val icon: Int
                     modifier = Modifier
                         .size(56.dp)
                         .scale(scale)
-                        .clickable(interactionSource = interactionSource, indication = null, onClick = {
-                            navHostController.navigate(RoutePath.QUICK_ADD.route)
-                        })
+                        .weight(1f)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = {
+                                navHostController.navigate(RoutePath.QUICK_ADD.route)
+                            })
 
                 )
 
                 rightTabs.forEach { tab ->
-                    BottomBarItem(tab = tab, isSelected = tab.route == currentRoute, onClick = {
+                    BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
                         navHostController.navigate(tab.route) {
                             // 避免多次创建相同的页面入栈
                             launchSingleTop = true
                             // 保存页面的信息
                             restoreState = true
                         }
-                    })
+                    }, modifier = Modifier.weight(1f))
                 }
 
 
@@ -163,21 +214,68 @@ private data class BottomTabEntity(val route: String, @DrawableRes val icon: Int
     }
 }
 
-@Composable private fun BottomBarItem(tab: BottomTabEntity, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+@Composable
+private fun BottomBarItem(
+    tab: BottomTabEntity,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
-            .size(28.dp)
+            .size(56.dp)
             .clip(CircleShape)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() }, indication = rememberRipple( // 圆形涟漪效果
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple( // 圆形涟漪效果
                     bounded = true, radius = 28.dp / 2, color = Color.Gray
-                ), onClick = onClick
+                ),
+                onClick = onClick
             ), contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = if (isSelected) tab.iconSelected else tab.icon), contentDescription = tab.route
+            painter = painterResource(id = if (isSelected) tab.iconSelected else tab.icon),
+            contentDescription = tab.route,
+            modifier = Modifier
+                .size(28.dp)
+//                .then(
+//                    if (isSelected) {
+//                        Modifier.shadow(4.dp, CircleShape, clip = false)
+//                    } else {
+//                        Modifier
+//                    }
+//                )
         )
     }
+}
+
+/**
+ * 记住当前选中的底部 Tab。
+ *
+ * 仅当导航到 [tabRoutes] 中的页面时，才会更新选中状态。
+ * 非 Tab 页面（如 "create", "detail/123"）不会影响选中状态。
+ *
+ * @param navController 导航控制器
+ * @param tabRoutes 所有 Tab 对应的路由集合（必须是顶层 route，不含参数）
+ * @param defaultTab 默认选中的 Tab（通常为首页）
+ */
+@Composable
+private fun rememberSelectedTab(
+    navController: NavController,
+    tabRoutes: Set<RoutePath>,
+    defaultTab: RoutePath = RoutePath.BOOK
+): String {
+    val currentEntry by navController.currentBackStackEntryAsState()
+    val currentRoute =
+        currentEntry?.destination?.route?.split("/")?.firstOrNull() ?: defaultTab.route
+    var selectedTab by remember { mutableStateOf(defaultTab.route) }
+    // 当前路由变化时，仅 Tab 页面才更新 selectedTab
+    LaunchedEffect(currentRoute) {
+        if (currentRoute in tabRoutes.map { it.route }) {
+            selectedTab = currentRoute
+        }
+    }
+    return selectedTab
 }
 
 
