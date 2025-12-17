@@ -60,40 +60,33 @@ import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabRoutes
 
 private data class BottomTabEntity(
-    val route: String,
-    @DrawableRes val icon: Int,
-    @DrawableRes val iconSelected: Int,
-    var selected: Boolean = false
+    val route: String, @DrawableRes val icon: Int, @DrawableRes val iconSelected: Int, var selected: Boolean = false
 )
 
 
 /*
 * 应用入口
 * */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeBookApp() {
+@Composable fun HomeBookApp() {
 
     // 获取导航控制器
     val navController: NavHostController = rememberNavController()
     // 获取当选选中的Tab
-    val selectedTab =
-        rememberSelectedTab(navController = navController, tabRoutes = bottomTabRoutes)
+    val (selectedTab, isTabRoute) = rememberSelectedTab(navController = navController, tabRoutes = bottomTabRoutes)
 
     Scaffold(bottomBar = {
-        CustomBottomBar(navHostController = navController, selectedTab = selectedTab)
+        if (isTabRoute) {
+            CustomBottomBar(navHostController = navController, selectedTab = selectedTab)
+        }
     }) { padding ->
         // 页面容器
         NavHost(
-            navController = navController,
-            startDestination = RoutePath.BOOK.route,
-            modifier = Modifier.padding(padding)
+            navController = navController, startDestination = RoutePath.BOOK.route, modifier = Modifier.padding(padding)
         ) {
             // 账本页面
             composable(RoutePath.BOOK.route) {
                 Text(
-                    "账本页面",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
+                    "账本页面", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
                 )
             }
             // 看板页面
@@ -120,28 +113,20 @@ fun HomeBookApp() {
 /*
 * 底部导航栏
 * */
-@Composable
-private fun CustomBottomBar(
-    navHostController: NavHostController,
-    selectedTab: String,
-    modifier: Modifier = Modifier
+@Composable private fun CustomBottomBar(
+    navHostController: NavHostController, selectedTab: String, modifier: Modifier = Modifier
 ) {
 
 
     val leftTabs = listOf(
-        BottomTabEntity(RoutePath.BOOK.route, R.mipmap.icon_book, R.mipmap.icon_book_selected),
-        BottomTabEntity(
-            RoutePath.DASHBOARD.route,
-            R.mipmap.icon_dashboard,
-            R.mipmap.icon_dashboard_selected
+        BottomTabEntity(RoutePath.BOOK.route, R.mipmap.icon_book, R.mipmap.icon_book_selected), BottomTabEntity(
+            RoutePath.DASHBOARD.route, R.mipmap.icon_dashboard, R.mipmap.icon_dashboard_selected
         )
     )
 
     val rightTabs = listOf(
         BottomTabEntity(
-            RoutePath.CLOSET.route,
-            R.mipmap.icon_closet,
-            R.mipmap.icon_closet_selected
+            RoutePath.CLOSET.route, R.mipmap.icon_closet, R.mipmap.icon_closet_selected
         ), BottomTabEntity(RoutePath.STOCK.route, R.mipmap.icon_stock, R.mipmap.icon_stock_selected)
     )
 
@@ -150,9 +135,7 @@ private fun CustomBottomBar(
 
     // 点击时的缩放值
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.8f else 1f,
-        animationSpec = tween(durationMillis = 150),
-        label = ""
+        targetValue = if (isPressed) 0.8f else 1f, animationSpec = tween(durationMillis = 150), label = ""
     )
 
     Box(modifier = modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
@@ -161,14 +144,11 @@ private fun CustomBottomBar(
             modifier = modifier
                 .fillMaxWidth()
                 .height(64.dp),
-            colors = CardDefaults.cardColors()
-                .copy(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
             border = BorderStroke(1.dp, color = Color.White)
         ) {
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize()
+                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()
             ) {
                 leftTabs.forEach { tab ->
                     BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
@@ -188,12 +168,9 @@ private fun CustomBottomBar(
                         .size(56.dp)
                         .scale(scale)
                         .weight(1f)
-                        .clickable(
-                            interactionSource = interactionSource,
-                            indication = null,
-                            onClick = {
-                                navHostController.navigate(RoutePath.QUICK_ADD.route)
-                            })
+                        .clickable(interactionSource = interactionSource, indication = null, onClick = {
+                            navHostController.navigate(RoutePath.QUICK_ADD.route)
+                        })
 
                 )
 
@@ -214,37 +191,21 @@ private fun CustomBottomBar(
     }
 }
 
-@Composable
-private fun BottomBarItem(
-    tab: BottomTabEntity,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+@Composable private fun BottomBarItem(
+    tab: BottomTabEntity, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .size(56.dp)
             .clip(CircleShape)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple( // 圆形涟漪效果
+                interactionSource = remember { MutableInteractionSource() }, indication = rememberRipple( // 圆形涟漪效果
                     bounded = true, radius = 28.dp / 2, color = Color.Gray
-                ),
-                onClick = onClick
+                ), onClick = onClick
             ), contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = if (isSelected) tab.iconSelected else tab.icon),
-            contentDescription = tab.route,
-            modifier = Modifier
-                .size(28.dp)
-//                .then(
-//                    if (isSelected) {
-//                        Modifier.shadow(4.dp, CircleShape, clip = false)
-//                    } else {
-//                        Modifier
-//                    }
-//                )
+            painter = painterResource(id = if (isSelected) tab.iconSelected else tab.icon), contentDescription = tab.route, modifier = Modifier.size(28.dp)
         )
     }
 }
@@ -259,23 +220,21 @@ private fun BottomBarItem(
  * @param tabRoutes 所有 Tab 对应的路由集合（必须是顶层 route，不含参数）
  * @param defaultTab 默认选中的 Tab（通常为首页）
  */
-@Composable
-private fun rememberSelectedTab(
-    navController: NavController,
-    tabRoutes: Set<RoutePath>,
-    defaultTab: RoutePath = RoutePath.BOOK
-): String {
+@Composable private fun rememberSelectedTab(
+    navController: NavController, tabRoutes: Set<RoutePath>, defaultTab: RoutePath = RoutePath.BOOK
+): Pair<String, Boolean> {
     val currentEntry by navController.currentBackStackEntryAsState()
-    val currentRoute =
-        currentEntry?.destination?.route?.split("/")?.firstOrNull() ?: defaultTab.route
+    val currentRoute = currentEntry?.destination?.route?.split("/")?.firstOrNull() ?: defaultTab.route
     var selectedTab by remember { mutableStateOf(defaultTab.route) }
+    var isTabRoute by remember { mutableStateOf(true) }
+    isTabRoute = currentRoute in tabRoutes.map { it.route }
     // 当前路由变化时，仅 Tab 页面才更新 selectedTab
-    LaunchedEffect(currentRoute) {
-        if (currentRoute in tabRoutes.map { it.route }) {
-            selectedTab = currentRoute
-        }
+//    LaunchedEffect(currentRoute) {
+    if (currentRoute in tabRoutes.map { it.route }) {
+        selectedTab = currentRoute
     }
-    return selectedTab
+//    }
+    return Pair(selectedTab, isTabRoute)
 }
 
 
