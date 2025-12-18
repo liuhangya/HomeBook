@@ -48,7 +48,9 @@ import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.components.CustomTopAppBar
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
+import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.SelectableRoundedButton
+import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.quick.ui.EditAmountField
 import com.fanda.homebook.quick.ui.SelectCategoryGrid
 import com.fanda.homebook.quick.ui.TopTypeSelector
@@ -66,6 +68,8 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
 
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var showDateSelect by remember { mutableStateOf(false) }
+    var showSyncCloset by remember { mutableStateOf(false) }
+    var inputText by remember { mutableStateOf("") }
 
     Scaffold(modifier = modifier, topBar = {
         CustomTopAppBar(title = "记一笔", onBackClick = {
@@ -107,9 +111,120 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
                     Spacer(modifier = Modifier.height(12.dp))
                     SelectCategoryGrid()
                     Spacer(modifier = Modifier.height(12.dp))
+                    GradientRoundedBoxWithStroke {
+                        ItemOptionMenu(
+                            title = "备注",
+                            showRightArrow = false,
+                            showTextField = true,
+                            modifier = Modifier
+                                .height(64.dp)
+                                .padding(horizontal = 20.dp),
+                            inputText = inputText,
+                            onValueChange = {
+                                inputText = it
+                            }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    GradientRoundedBoxWithStroke {
+                        ItemOptionMenu(
+                            title = "付款方式",
+                            rightText = "微信",
+                            modifier = Modifier
+                                .height(64.dp)
+                                .padding(start = 20.dp, end = 10.dp)
+                        ) {
+                            Log.d("QuickHomePage", "点击了付款方式")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    GradientRoundedBoxWithStroke {
+                        Column {
+                            ItemOptionMenu(
+                                title = "同步至衣橱",
+                                showSwitch = true,
+                                showRightArrow = false,
+                                showDivider = showSyncCloset,
+                                checked = showSyncCloset,
+                                dividerPadding = 5.dp,
+                                modifier = Modifier.padding(
+                                    20.dp,
+                                    10.dp,
+                                    22.dp,
+                                    if (showSyncCloset )22.dp else 10.dp
+                                ),
+                                onCheckedChange = {
+                                    Log.d("QuickHomePage", "同步至衣橱：$it")
+                                    showSyncCloset = it
+                                },
+                            )
+                            if (showSyncCloset){
+                                ItemOptionMenu(
+                                    title = "归属",
+                                    showText = true,
+                                    rightText = "嘟嘟",
+                                    showDivider =  true,
+                                    modifier = Modifier.padding(
+                                        20.dp,
+                                        0.dp,
+                                        10.dp,
+                                        20.dp
+                                    )
+                                ) {
+                                    Log.d("QuickHomePage", "点击了归属")
+                                }
+                                ItemOptionMenu(
+                                    title = "季节",
+                                    showText = true,
+                                    rightText = "春秋",
+                                    showDivider =  true,
+                                    modifier = Modifier.padding(
+                                        20.dp,
+                                        0.dp,
+                                        10.dp,
+                                        20.dp
+                                    )
+                                ) {
+                                    Log.d("QuickHomePage", "点击了归属")
+                                }
+                                ItemOptionMenu(
+                                    title = "品牌",
+                                    showText = true,
+                                    rightText = "耐克",
+                                    showDivider =  true,
+                                    modifier = Modifier.padding(
+                                        20.dp,
+                                        0.dp,
+                                        10.dp,
+                                        20.dp
+                                    )
+                                ) {
+                                    Log.d("QuickHomePage", "点击了归属")
+                                }
+                                ItemOptionMenu(
+                                    title = "尺码",
+                                    showText = true,
+                                    rightText = "S",
+                                    showDivider =  true,
+                                    modifier = Modifier.padding(
+                                        20.dp,
+                                        0.dp,
+                                        10.dp,
+                                        20.dp
+                                    )
+                                ) {
+                                    Log.d("QuickHomePage", "点击了归属")
+                                }
+                            }
+
+                        }
+
+                    }
                 }
             }
         }
+
+
 
         if (showDateSelect) {
             // 日期选择器
@@ -124,98 +239,6 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerModal(
-    onDateSelected: (Long?) -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val datePickerState = rememberDatePickerState()
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = {
-                onDateSelected(datePickerState.selectedDateMillis)
-            }) {
-                Text("确定")
-            }
-        }, dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }, modifier = modifier
-    ) {
-        Surface(color = Color.White) {
-            DatePicker(state = datePickerState)
-
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomDatePickerModal(
-    onDateSelected: (Long?) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val datePickerState = rememberDatePickerState()
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnClickOutside = true,
-            usePlatformDefaultWidth = false
-        )
-    ) {
-        GradientRoundedBoxWithStroke(
-            colors = listOf(colorResource(R.color.color_E3EBF5), Color.White), cornerRadius = 12.dp,
-            strokeColor = Color.White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                DatePicker(
-                    state = datePickerState, colors = DatePickerDefaults.colors().copy(
-                        selectedDayContentColor = Color.White,
-                        selectedDayContainerColor = Color.Black,
-                        selectedYearContainerColor = Color.Black,
-                        selectedYearContentColor = Color.White,
-                        containerColor = colorResource(R.color.color_E3EBF5)
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors()
-                            .copy(containerColor = colorResource(R.color.color_E1E9F3))
-                    ) {
-                        Text("取消", color = Color.Black)
-                    }
-                    Spacer(modifier = Modifier.width(20.dp))
-                    FilledTonalButton(
-                        onClick = {
-                            onDateSelected(datePickerState.selectedDateMillis)
-                            onDismiss()
-                        }, colors = ButtonDefaults.filledTonalButtonColors().copy(
-                            containerColor = Color.Black,
-                        )
-                    ) {
-                        Text("确定", color = Color.White)
-                    }
-                }
-            }
-        }
-    }
-}
 
 fun convertMillisToDate(millis: Long): String {
     val formatter = SimpleDateFormat("MM月dd日", Locale.getDefault())

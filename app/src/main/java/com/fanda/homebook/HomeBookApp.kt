@@ -81,7 +81,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route
             ) {
                 composable(RoutePath.BookHome.route) {
-                    Text("账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp))
+                    Text("账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp), modifier = Modifier.fillMaxSize())
                     // 示例：跳转详情
 //                    Button(onClick = {
 //                        navController.navigate(RoutePath.BookDetail("123").route)
@@ -103,7 +103,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route
             ) {
                 composable(RoutePath.DashboardHome.route) {
-                    Text("看板首页")
+                    Text("看板首页", modifier = Modifier.fillMaxSize())
 //                    Button(onClick = {
 //                        navController.navigate(RoutePath.DashboardSettings.route)
 //                    }) {
@@ -123,7 +123,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route
             ) {
                 composable(RoutePath.ClosetHome.route) {
-                    Text("衣橱页面")
+                    Text("衣橱页面", modifier = Modifier.fillMaxSize())
                 }
             }
 
@@ -132,7 +132,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route
             ) {
                 composable(RoutePath.StockHome.route) {
-                    Text("囤货页面")
+                    Text("囤货页面", modifier = Modifier.fillMaxSize())
                 }
             }
 
