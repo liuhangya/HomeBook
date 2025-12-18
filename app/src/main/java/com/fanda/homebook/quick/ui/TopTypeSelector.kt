@@ -14,7 +14,7 @@ import com.fanda.homebook.R
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.entity.TransactionType
 
-@Composable fun TopTypeSelector(modifier: Modifier = Modifier) {
+@Composable fun TopTypeSelector(modifier: Modifier = Modifier,onDateClick: () -> Unit = {},date: String ) {
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier
@@ -24,7 +24,7 @@ import com.fanda.homebook.entity.TransactionType
         SelectableRoundedButton(text = "不计入收支", selected = selectedType == TransactionType.EXCLUDED, onClick = { selectedType = TransactionType.EXCLUDED })
         Spacer(modifier = Modifier.weight(1f))
         SelectableRoundedButton(
-            text = "10月9日", selected = false, onClick = {}, imageRes = R.mipmap.icon_down
+            text = date, selected = false, onClick = onDateClick, imageRes = R.mipmap.icon_down
         )
     }
 }

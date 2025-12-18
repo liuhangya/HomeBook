@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -70,7 +71,7 @@ data class BottomTabEntity(
             modifier = modifier
                 .fillMaxWidth()
                 .height(64.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors().copy(containerColor = colorResource(R.color.color_99FFFFFF)),
             border = BorderStroke(1.dp, color = Color.White)
         ) {
             Row(
