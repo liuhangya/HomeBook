@@ -26,13 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 
-@Composable
-fun SelectableRoundedButton(
+@Composable fun SelectableRoundedButton(
     text: String,
     selected: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-    modifier: Modifier = Modifier,
     cornerSize: Dp = 4.dp,
     fontSize: TextUnit = 14.sp,
     selectedBackgroundColor: Color = Color.Black,
@@ -41,7 +40,7 @@ fun SelectableRoundedButton(
     unselectedContentColor: Color = Color.Black,
     @DrawableRes imageRes: Int? = null
 ) {
-    // Surface 默认会确保其 可点击区域 ≥ 48dp
+    // 给 Box 裁剪成圆角矩形并添加点击事件
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(cornerSize))
@@ -52,29 +51,21 @@ fun SelectableRoundedButton(
         contentAlignment = Alignment.Center,
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(contentPadding)
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.padding(contentPadding)
         ) {
             Text(
-                text = text,
-                fontSize = fontSize,
-                color = if (selected) selectedContentColor else unselectedContentColor,
-                style = TextStyle.Default,  // 用默认样式，才不会有字体的间距
-                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-                modifier = modifier
+                text = text, fontSize = fontSize, color = if (selected) selectedContentColor else unselectedContentColor, style = TextStyle.Default,  // 用默认样式，才不会有字体的间距
+                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal, modifier = modifier
             )
             if (imageRes != null) {
                 Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = null,
-                    modifier = Modifier.padding(start = 4.dp)
+                    painter = painterResource(id = imageRes), contentDescription = null, modifier = Modifier.padding(start = 4.dp)
                 )
             }
         }
     }
 
-    // Surface 默认会确保其 可点击区域 ≥ 48dp
+    // Surface 默认会确保其 可点击区域至少 ≥ 48dp ，小控件不要用这种方式实现，不然间距不对
 //    Surface(
 //        onClick = onClick,
 //        modifier = modifier,

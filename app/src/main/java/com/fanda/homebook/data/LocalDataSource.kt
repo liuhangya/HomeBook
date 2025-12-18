@@ -1,7 +1,7 @@
-package com.fanda.homebook.quick.data
+package com.fanda.homebook.data
 
-import com.fanda.homebook.quick.ExpenseCategory
 import com.fanda.homebook.R
+import com.fanda.homebook.entity.ExpenseCategory
 
 object LocalDataSource {
     val expenseCategoryData = listOf(

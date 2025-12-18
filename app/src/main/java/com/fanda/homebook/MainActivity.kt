@@ -15,13 +15,13 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // 让内容显示在导航栏后面
+        // 让内容显示在底部导航栏后面
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        // 设置底部导航栏透明
         window.navigationBarColor =  Color.Transparent.toArgb()
         setContent {
             HomeBookTheme {

@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,7 +39,7 @@ fun CustomTopAppBar(
     modifier: Modifier = Modifier,
     // ← 左侧：返回图标（可选）
     showBackButton: Boolean = true,
-    backIconPainter: Painter? = null, // 例如: painterResource(id = R.drawable.ic_back)
+    backIconPainter: Painter? = null,
     onBackClick: (() -> Unit)? = null,
 
     // → 右侧：支持文本 或 Image 图标（二选一，优先显示图标）
@@ -144,7 +142,6 @@ fun CustomTopAppBar(
                         }
                     )
                 }
-
             } else {
                 Spacer(modifier = Modifier.width(48.dp))
             }

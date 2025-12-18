@@ -1,239 +1,172 @@
 package com.fanda.homebook
 
-import android.widget.ImageButton
-import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.fanda.homebook.components.CustomBottomBar
 import com.fanda.homebook.quick.QuickHomePage
 import com.fanda.homebook.route.RoutePath
-import com.fanda.homebook.route.bottomTabRoutes
-
-private data class BottomTabEntity(
-    val route: String, @DrawableRes val icon: Int, @DrawableRes val iconSelected: Int, var selected: Boolean = false
-)
+import com.fanda.homebook.route.bottomTabGraphs
+import com.fanda.homebook.route.tabRootRoutes
 
 
 /*
 * 应用入口
 * */
 @Composable fun HomeBookApp() {
-
+    val context = LocalContext.current
     // 获取导航控制器
     val navController: NavHostController = rememberNavController()
-    // 获取当选选中的Tab
-    val (selectedTab, isTabRoute) = rememberSelectedTab(navController = navController, tabRoutes = bottomTabRoutes)
+    //  记录上次的返回时间
+    var lastBackPressed by remember { mutableLongStateOf(0L) }
+    // 记录当前选中的 Tab 和是否在 tab 的一级页面
+    val (selectedTab, isTabRoute) = rememberSelectedTab(navController)
+
+    // 拦截返回键
+    BackHandler(enabled = isTabRoute) {
+        val now = System.currentTimeMillis()
+        if (now - lastBackPressed < 2000) {
+            (context as? Activity)?.finishAffinity()
+        } else {
+            lastBackPressed = now
+            Toast.makeText(context, "再按一次退出应用", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(bottomBar = {
+        // 一级页面才显示底部导航栏
         if (isTabRoute) {
-            CustomBottomBar(navHostController = navController, selectedTab = selectedTab)
+            CustomBottomBar(navHostController = navController, selectedTab = selectedTab, onTabClick = {
+                navController.navigate(it.route) {
+                    // 避免多次创建相同的页面入栈
+                    launchSingleTop = true
+                    // 保存页面的信息
+                    restoreState = true
+                    // 移除之前栈中的页面，很重要，达到 tab 嵌套栈独立的效果，tab 之间的栈页面不会混乱
+                    popUpTo(navController.graph.id) { saveState = true }
+                }
+            }, onQuickAddClick = {
+                navController.navigate(RoutePath.QuickAdd.route)
+            })
         }
     }) { padding ->
         // 页面容器
         NavHost(
-            navController = navController, startDestination = RoutePath.BOOK.route, modifier = Modifier.padding(padding)
+            navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.padding(padding)
         ) {
-            // 账本页面
-            composable(RoutePath.BOOK.route) {
-                Text(
-                    "账本页面", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp)
-                )
+            // ====== 账本 Tab 嵌套 Graph ======
+            navigation(
+                startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route
+            ) {
+                composable(RoutePath.BookHome.route) {
+                    Text("账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp))
+                    // 示例：跳转详情
+//                    Button(onClick = {
+//                        navController.navigate(RoutePath.BookDetail("123").route)
+//                    }) {
+//                        Text("打开账本详情")
+//                    }
+                }
+//                composable("book_detail/{id}") { backStackEntry ->
+//                    val id = backStackEntry.arguments?.getString("id") ?: "unknown"
+//                    Text("账本详情: $id")
+//                    Button(onClick = { navController.popBackStack() }) {
+//                        Text("返回")
+//                    }
+//                }
             }
-            // 看板页面
-            composable(RoutePath.DASHBOARD.route) {
-                Text(text = "看板页面")
+
+            // ====== 看板 Tab 嵌套 Graph ======
+            navigation(
+                startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route
+            ) {
+                composable(RoutePath.DashboardHome.route) {
+                    Text("看板首页")
+//                    Button(onClick = {
+//                        navController.navigate(RoutePath.DashboardSettings.route)
+//                    }) {
+//                        Text("进入设置")
+//                    }
+                }
+//                composable(RoutePath.DashboardSettings.route) {
+//                    Text("看板设置")
+//                    Button(onClick = { navController.popBackStack() }) {
+//                        Text("返回")
+//                    }
+//                }
             }
-            // 记一笔页面
-            composable(RoutePath.QUICK_ADD.route) {
+
+            // ====== 衣橱 Tab ======
+            navigation(
+                startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route
+            ) {
+                composable(RoutePath.ClosetHome.route) {
+                    Text("衣橱页面")
+                }
+            }
+
+            // ====== 囤货 Tab ======
+            navigation(
+                startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route
+            ) {
+                composable(RoutePath.StockHome.route) {
+                    Text("囤货页面")
+                }
+            }
+
+            // ====== 全局页面（不属于任何 Tab）======
+            composable(RoutePath.QuickAdd.route) {
                 QuickHomePage(modifier = Modifier.fillMaxSize(), navController)
             }
-            // 衣橱页面
-            composable(RoutePath.CLOSET.route) {
-                Text(text = "衣橱页面")
-            }
-            // 囤货页面
-            composable(RoutePath.STOCK.route) {
-                Text(text = "囤货页面")
-            }
 
         }
-    }
-}
-
-/*
-* 底部导航栏
-* */
-@Composable private fun CustomBottomBar(
-    navHostController: NavHostController, selectedTab: String, modifier: Modifier = Modifier
-) {
-
-
-    val leftTabs = listOf(
-        BottomTabEntity(RoutePath.BOOK.route, R.mipmap.icon_book, R.mipmap.icon_book_selected), BottomTabEntity(
-            RoutePath.DASHBOARD.route, R.mipmap.icon_dashboard, R.mipmap.icon_dashboard_selected
-        )
-    )
-
-    val rightTabs = listOf(
-        BottomTabEntity(
-            RoutePath.CLOSET.route, R.mipmap.icon_closet, R.mipmap.icon_closet_selected
-        ), BottomTabEntity(RoutePath.STOCK.route, R.mipmap.icon_stock, R.mipmap.icon_stock_selected)
-    )
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    // 点击时的缩放值
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.8f else 1f, animationSpec = tween(durationMillis = 150), label = ""
-    )
-
-    Box(modifier = modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
-        Card(
-            shape = MaterialTheme.shapes.large,
-            modifier = modifier
-                .fillMaxWidth()
-                .height(64.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, color = Color.White)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()
-            ) {
-                leftTabs.forEach { tab ->
-                    BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
-                        navHostController.navigate(tab.route) {
-                            // 避免多次创建相同的页面入栈
-                            launchSingleTop = true
-                            // 保存页面的信息
-                            restoreState = true
-                        }
-                    }, modifier = Modifier.weight(1f))
-                }
-
-                Image(
-                    painter = painterResource(id = R.mipmap.icon_quick_add),
-                    contentDescription = "记一笔",
-                    modifier = Modifier
-                        .size(56.dp)
-                        .scale(scale)
-                        .weight(1f)
-                        .clickable(interactionSource = interactionSource, indication = null, onClick = {
-                            navHostController.navigate(RoutePath.QUICK_ADD.route)
-                        })
-
-                )
-
-                rightTabs.forEach { tab ->
-                    BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
-                        navHostController.navigate(tab.route) {
-                            // 避免多次创建相同的页面入栈
-                            launchSingleTop = true
-                            // 保存页面的信息
-                            restoreState = true
-                        }
-                    }, modifier = Modifier.weight(1f))
-                }
-
-
-            }
-        }
-    }
-}
-
-@Composable private fun BottomBarItem(
-    tab: BottomTabEntity, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() }, indication = rememberRipple( // 圆形涟漪效果
-                    bounded = true, radius = 28.dp / 2, color = Color.Gray
-                ), onClick = onClick
-            ), contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = if (isSelected) tab.iconSelected else tab.icon), contentDescription = tab.route, modifier = Modifier.size(28.dp)
-        )
     }
 }
 
 /**
  * 记住当前选中的底部 Tab。
  *
- * 仅当导航到 [tabRoutes] 中的页面时，才会更新选中状态。
- * 非 Tab 页面（如 "create", "detail/123"）不会影响选中状态。
- *
  * @param navController 导航控制器
- * @param tabRoutes 所有 Tab 对应的路由集合（必须是顶层 route，不含参数）
  * @param defaultTab 默认选中的 Tab（通常为首页）
  */
 @Composable private fun rememberSelectedTab(
-    navController: NavController, tabRoutes: Set<RoutePath>, defaultTab: RoutePath = RoutePath.BOOK
+    navController: NavController, defaultTab: String = RoutePath.BookGraph.route
 ): Pair<String, Boolean> {
+    Log.d("HomeBookApp", "11111")
     val currentEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentEntry?.destination?.route?.split("/")?.firstOrNull() ?: defaultTab.route
-    var selectedTab by remember { mutableStateOf(defaultTab.route) }
+    val currentRoute = currentEntry?.destination?.route ?: ""
+    val routePrefix = currentRoute.split("/").firstOrNull() ?: defaultTab
+    var selectedTab by remember { mutableStateOf(defaultTab) }
     var isTabRoute by remember { mutableStateOf(true) }
-    isTabRoute = currentRoute in tabRoutes.map { it.route }
-    // 当前路由变化时，仅 Tab 页面才更新 selectedTab
-//    LaunchedEffect(currentRoute) {
-    if (currentRoute in tabRoutes.map { it.route }) {
-        selectedTab = currentRoute
+    // 如果子路由不属于 tab 页面任一个【根据路由前缀判断】，保持之前选中的 tab 状态，为了独立处理 quick add 路由的情况
+    if (routePrefix in bottomTabGraphs) {
+        selectedTab = routePrefix
     }
-//    }
+    isTabRoute = currentRoute in tabRootRoutes
+    Log.d("HomeBookApp", "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute")
+
     return Pair(selectedTab, isTabRoute)
 }
 

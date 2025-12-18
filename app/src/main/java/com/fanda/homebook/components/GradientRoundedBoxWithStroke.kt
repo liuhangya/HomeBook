@@ -24,28 +24,22 @@ import com.fanda.homebook.R
  * @param modifier 修饰符
  * @param content 内容（可选）
  */
-@Composable
-fun GradientRoundedBoxWithStroke(
-    colors: List<Color> = listOf(colorResource(R.color.color_66ffffff), colorResource(R.color.color_33ffffff)),
+@Composable fun GradientRoundedBoxWithStroke(
     modifier: Modifier = Modifier,
+    colors: List<Color> = listOf(colorResource(R.color.color_66ffffff), colorResource(R.color.color_33ffffff)),
     cornerRadius: Dp = 16.dp,
     strokeColor: Color = colorResource(R.color.color_66ffffff),
     strokeWidth: Dp = 1.dp,
     content: @Composable () -> Unit = {}
 ) {
     require(colors.size >= 2) { "渐变至少需要两种颜色" }
-
     val shape = RoundedCornerShape(cornerRadius)
-    val brush = Brush.verticalGradient(colors = colors)
-
     Box(
         modifier = modifier
             .clip(shape) // 裁剪内容，防止溢出圆角
-            .background(brush)
+            .background(Brush.verticalGradient(colors = colors)) // 垂直渐变色
             .border(
-                width = strokeWidth,
-                color = strokeColor,
-                shape = shape
+                width = strokeWidth, color = strokeColor, shape = shape
             )
     ) {
         content()
