@@ -52,6 +52,7 @@ import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.quick.ui.EditAmountField
+import com.fanda.homebook.quick.ui.EditClosetScreen
 import com.fanda.homebook.quick.ui.SelectCategoryGrid
 import com.fanda.homebook.quick.ui.TopTypeSelector
 import com.fanda.homebook.ui.theme.HomeBookTheme
@@ -68,7 +69,7 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
 
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var showDateSelect by remember { mutableStateOf(false) }
-    var showSyncCloset by remember { mutableStateOf(false) }
+    var showSyncCloset by remember { mutableStateOf(true) }
     var inputText by remember { mutableStateOf("") }
 
     Scaffold(modifier = modifier, topBar = {
@@ -85,10 +86,7 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                    detectTapGestures(
-                        onTap = { focusManager.clearFocus() },
-                        onDoubleTap = { focusManager.clearFocus() },
-                        onLongPress = { focusManager.clearFocus() })
+                    detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
                 }
                 .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
@@ -138,88 +136,9 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    GradientRoundedBoxWithStroke {
-                        Column {
-                            ItemOptionMenu(
-                                title = "同步至衣橱",
-                                showSwitch = true,
-                                showRightArrow = false,
-                                showDivider = showSyncCloset,
-                                checked = showSyncCloset,
-                                dividerPadding = 5.dp,
-                                modifier = Modifier.padding(
-                                    20.dp,
-                                    10.dp,
-                                    22.dp,
-                                    if (showSyncCloset )22.dp else 10.dp
-                                ),
-                                onCheckedChange = {
-                                    Log.d("QuickHomePage", "同步至衣橱：$it")
-                                    showSyncCloset = it
-                                },
-                            )
-                            if (showSyncCloset){
-                                ItemOptionMenu(
-                                    title = "归属",
-                                    showText = true,
-                                    rightText = "嘟嘟",
-                                    showDivider =  true,
-                                    modifier = Modifier.padding(
-                                        20.dp,
-                                        0.dp,
-                                        10.dp,
-                                        20.dp
-                                    )
-                                ) {
-                                    Log.d("QuickHomePage", "点击了归属")
-                                }
-                                ItemOptionMenu(
-                                    title = "季节",
-                                    showText = true,
-                                    rightText = "春秋",
-                                    showDivider =  true,
-                                    modifier = Modifier.padding(
-                                        20.dp,
-                                        0.dp,
-                                        10.dp,
-                                        20.dp
-                                    )
-                                ) {
-                                    Log.d("QuickHomePage", "点击了归属")
-                                }
-                                ItemOptionMenu(
-                                    title = "品牌",
-                                    showText = true,
-                                    rightText = "耐克",
-                                    showDivider =  true,
-                                    modifier = Modifier.padding(
-                                        20.dp,
-                                        0.dp,
-                                        10.dp,
-                                        20.dp
-                                    )
-                                ) {
-                                    Log.d("QuickHomePage", "点击了归属")
-                                }
-                                ItemOptionMenu(
-                                    title = "尺码",
-                                    showText = true,
-                                    rightText = "S",
-                                    showDivider =  true,
-                                    modifier = Modifier.padding(
-                                        20.dp,
-                                        0.dp,
-                                        10.dp,
-                                        20.dp
-                                    )
-                                ) {
-                                    Log.d("QuickHomePage", "点击了归属")
-                                }
-                            }
-
-                        }
-
-                    }
+                    EditClosetScreen(showSyncCloset = showSyncCloset, onCheckedChange = {
+                        showSyncCloset = it
+                    })
                 }
             }
         }
