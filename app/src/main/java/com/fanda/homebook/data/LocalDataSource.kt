@@ -20,5 +20,21 @@ object LocalDataSource {
         ExpenseCategory("医疗", R.mipmap.icon_health),
         ExpenseCategory("娱乐", R.mipmap.icon_play),
     )
+
+    val payWayData = listOf(
+        "微信",
+        "支付宝",
+        "现金",
+        "淘宝",
+        "京东",
+        "唯品会",
+        "阿里",
+        "小红书",
+        "拼多多",
+        "云闪付",
+        "银行卡",
+        "信用卡",
+        "医宝",
+    )
 }
 

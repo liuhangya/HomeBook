@@ -91,7 +91,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
             if (showText) {
                 Text(
-                    style = TextStyle.Default, text = rightText, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                    style = TextStyle.Default, text = rightText, color = colorResource(R.color.color_333333), fontSize = 16.sp, modifier = Modifier.padding(end = if (showRightArrow) 0.dp else 10.dp)
                 )
             }
 
@@ -108,7 +108,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         // 占位文本
                         if (inputText.isEmpty()) {
                             Text(
-                                text = "请输入", color = Color.Gray, textAlign = TextAlign.End
+                                text = "请输入", color = colorResource(R.color.color_83878C), textAlign = TextAlign.End
                             )
                         }
                         // 输入框内容
@@ -150,7 +150,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 @Composable @Preview(showBackground = true) fun ItemOptionMenuPreview() {
     HomeBookTheme {
         ItemOptionMenu(
-            "付款方式", modifier = Modifier.padding(16.dp), showTextField = false, showRightArrow = true, showColor = true, inputText = "山姆", inputColor = Color.Red
+            "付款方式", modifier = Modifier.padding(16.dp), showRightArrow = true, showTextField = false,  showColor = false, showText = true, inputText = "山姆", rightText = "测试", inputColor = Color.Red
         )
     }
 }

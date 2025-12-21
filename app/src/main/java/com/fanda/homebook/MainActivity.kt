@@ -1,8 +1,11 @@
 package com.fanda.homebook
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.WindowInsets
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,11 +21,16 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         // 让内容显示在底部导航栏后面
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        // 设置底部导航栏透明
-        window.navigationBarColor =  Color.Transparent.toArgb()
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        // 关键：让系统状态栏始终透明
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                Color.Transparent.toArgb(),
+                darkScrim = Color.Transparent.toArgb()
+            ),
+        )
         setContent {
             HomeBookTheme {
                 Surface(
@@ -33,10 +41,13 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }
 
 
-@Preview(showBackground = true) @Composable fun GreetingPreview() {
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
     HomeBookTheme {
 
     }

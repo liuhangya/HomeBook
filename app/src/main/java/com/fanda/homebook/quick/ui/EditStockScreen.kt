@@ -40,9 +40,9 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
 
 @Composable
-fun EditClosetScreen(
+fun EditStockScreen(
     modifier: Modifier = Modifier,
-    showSyncCloset: Boolean,
+    showSyncStock: Boolean,
     bottomComment: String,
     onCheckedChange: (Boolean) -> Unit,
     onBottomCommentChange: (String) -> Unit
@@ -53,70 +53,63 @@ fun EditClosetScreen(
     GradientRoundedBoxWithStroke(modifier = modifier) {
         Column {
             ItemOptionMenu(
-                title = "同步至衣橱",
+                title = "同步至囤货",
                 showSwitch = true,
                 showRightArrow = false,
-                showDivider = showSyncCloset,
-                checked = showSyncCloset,
+                showDivider = showSyncStock,
+                checked = showSyncStock,
                 dividerPadding = 5.dp,
                 modifier = Modifier.padding(
-                    20.dp, 10.dp, 10.dp, if (showSyncCloset) 22.dp else 10.dp
+                    20.dp, 10.dp, 10.dp, if (showSyncStock) 22.dp else 10.dp
                 ),
                 onCheckedChange = {
                     Log.d("QuickHomePage", "同步至衣橱：$it")
                     onCheckedChange(it)
                 },
             )
-            if (showSyncCloset) {
+            if (showSyncStock) {
                 ItemOptionMenu(
-                    title = "归属",
+                    title = "名称",
                     showText = true,
+                    showRightArrow = false,
                     rightText = "嘟嘟",
                     showDivider = true,
                     modifier = itemPadding
                 ) {
                     Log.d("QuickHomePage", "点击了归属")
                 }
-                SelectTypeWidget(
-                    title = "分类",
-                    firstType = "上装",
-                    secondType = "短袖",
-                    modifier = itemPadding
-                ) {
-                    Log.d("QuickHomePage", "点击了分类")
-                }
 
-                ItemOptionMenu(
-                    title = "颜色",
-                    showColor = true,
-                    inputColor = Color.Red,
-                    showDivider = true,
-                    modifier = itemPadding
-                ) {
-                    Log.d("QuickHomePage", "点击了付款方式")
-                }
-                ItemOptionMenu(
-                    title = "季节",
-                    showText = true,
-                    rightText = "春秋",
-                    showDivider = true,
-                    modifier = itemPadding
-                ) {
-                    Log.d("QuickHomePage", "点击了归属")
-                }
                 ItemOptionMenu(
                     title = "品牌",
                     showText = true,
-                    rightText = "耐克",
+                    rightText = "潘婷",
                     showDivider = true,
                     modifier = itemPadding
                 ) {
                     Log.d("QuickHomePage", "点击了归属")
                 }
                 ItemOptionMenu(
-                    title = "尺码",
+                    title = "货架",
                     showText = true,
-                    rightText = "S",
+                    rightText = "梳妆台",
+                    showDivider = true,
+                    modifier = itemPadding
+                ) {
+                    Log.d("QuickHomePage", "点击了归属")
+                }
+                ItemOptionMenu(
+                    title = "类别",
+                    showText = true,
+                    rightText = "护发",
+                    showDivider = true,
+                    modifier = itemPadding
+                ) {
+                    Log.d("QuickHomePage", "点击了归属")
+                }
+                ItemOptionMenu(
+                    title = "使用时段",
+                    showText = true,
+                    rightText = "全天",
                     showDivider = true,
                     modifier = itemPadding
                 ) {
@@ -179,69 +172,10 @@ private fun EditCommentsWidget(
 
 
 @Composable
-private fun SelectTypeWidget(
-    modifier: Modifier = Modifier,
-    title: String,
-    firstType: String,
-    secondType: String,
-    onClick: (() -> Unit)? = null
-) {
-    Column(
-        verticalArrangement = Arrangement.Center, modifier = modifier
-            .fillMaxWidth()
-            .clickable(
-                // 去掉默认的点击效果
-                interactionSource = remember { MutableInteractionSource() }, indication = null
-            ) {
-                onClick?.invoke()
-            }) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                style = TextStyle.Default,
-                text = title,
-                color = Color.Black,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.weight(1f))
-
-            if (firstType.isNotEmpty() && secondType.isNotEmpty()) {
-                Text(
-                    style = TextStyle.Default,
-                    text = firstType,
-                    color = colorResource(R.color.color_333333),
-                    fontSize = 16.sp
-                )
-                Image(
-                    painter = painterResource(R.mipmap.icon_right),
-                    contentDescription = null,
-                    colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
-                )
-                Text(
-                    style = TextStyle.Default,
-                    text = secondType,
-                    color = colorResource(R.color.color_333333),
-                    fontSize = 16.sp
-                )
-                Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
-            }
-        }
-        Spacer(modifier = Modifier.padding(top = 20.dp))
-        HorizontalDivider(
-            thickness = 0.5.dp,
-            color = colorResource(R.color.color_D9E1EB),
-            modifier = Modifier.padding(end = 10.dp)
-        )
-    }
-}
-
-@Composable
 @Preview(showBackground = true)
-fun EditClosetScreenPreview() {
+fun EditStockScreenPreview() {
     HomeBookTheme {
-        EditClosetScreen(showSyncCloset = true,bottomComment = "", onCheckedChange = {
+        EditStockScreen(showSyncStock = true,bottomComment = "", onCheckedChange = {
         }, onBottomCommentChange = {})
     }
 }
