@@ -84,6 +84,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         checkedThumbColor = Color.White,
                         checkedTrackColor = Color.Black,
                         uncheckedThumbColor = Color.White,
+                        uncheckedBorderColor = Color.Transparent,
                         uncheckedTrackColor = colorResource(R.color.color_CBD4E0),
                     )
                 )

@@ -1,5 +1,6 @@
 package com.fanda.homebook.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -117,6 +118,9 @@ import kotlinx.coroutines.launch
 @Composable fun CustomBottomSheet(
     visible: Boolean, onDismiss: () -> Unit, content: @Composable () -> Unit
 ) {
+    if (visible){
+        BackHandler { onDismiss() }
+    }
     // 全屏容器（始终存在，用于布局）
     Box(modifier = Modifier.fillMaxSize()) {
         // ✅ 背景 scrim：只做淡入淡出

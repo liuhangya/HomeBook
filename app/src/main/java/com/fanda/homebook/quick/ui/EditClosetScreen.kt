@@ -46,9 +46,13 @@ fun EditClosetScreen(
     modifier: Modifier = Modifier,
     closetCategory: String = "",
     closetSubCategory: String ="",
+    product: String ="",
+    color: Long = -1,
     onCheckedChange: (Boolean) -> Unit,
     onBottomCommentChange: (String) -> Unit,
-    onClosetCategoryClick : (() -> Unit)
+    onClosetCategoryClick : (() -> Unit),
+    onProductClick : (() -> Unit),
+    onColorClick : (() -> Unit),
 ) {
     val itemPadding = Modifier.padding(
         20.dp, 0.dp, 10.dp, 20.dp
@@ -91,12 +95,11 @@ fun EditClosetScreen(
                 ItemOptionMenu(
                     title = "颜色",
                     showColor = true,
-                    inputColor = Color.Red,
+                    inputColor = Color(color),
                     showDivider = true,
-                    modifier = itemPadding
-                ) {
-                    Log.d("QuickHomePage", "点击了付款方式")
-                }
+                    modifier = itemPadding,
+                    onClick = onColorClick
+                )
                 ItemOptionMenu(
                     title = "季节",
                     showText = true,
@@ -109,12 +112,11 @@ fun EditClosetScreen(
                 ItemOptionMenu(
                     title = "品牌",
                     showText = true,
-                    rightText = "耐克",
+                    rightText = product,
                     showDivider = true,
-                    modifier = itemPadding
-                ) {
-                    Log.d("QuickHomePage", "点击了归属")
-                }
+                    modifier = itemPadding,
+                    onClick = onProductClick
+                )
                 ItemOptionMenu(
                     title = "尺码",
                     showText = true,
@@ -244,6 +246,6 @@ private fun SelectTypeWidget(
 fun EditClosetScreenPreview() {
     HomeBookTheme {
         EditClosetScreen(showSyncCloset = true,bottomComment = "", onCheckedChange = {
-        }, onBottomCommentChange = {}, onClosetCategoryClick =  {})
+        }, onBottomCommentChange = {}, onClosetCategoryClick =  {}, onProductClick = {}, onColorClick = {})
     }
 }

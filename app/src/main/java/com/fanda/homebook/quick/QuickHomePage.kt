@@ -1,59 +1,44 @@
 package com.fanda.homebook.quick
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
-import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.components.CustomTopAppBar
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
+import com.fanda.homebook.quick.sheet.ColorType
+import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
 import com.fanda.homebook.quick.sheet.PayWayBottomSheet
+import com.fanda.homebook.quick.sheet.ProductTypeBottomSheet
 import com.fanda.homebook.quick.sheet.SelectedCategory
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.quick.ui.EditAmountField
@@ -73,6 +58,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var showDateSelect by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showProductBottomSheet by remember { mutableStateOf(false) }
+    var showColorBottomSheet by remember { mutableStateOf(false) }
     var showClosetCategoryBottomSheet by remember { mutableStateOf(false) }
     var showSyncCloset by remember { mutableStateOf(true) }
     var showSyncStock by remember { mutableStateOf(false) }
@@ -80,6 +67,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     var bottomStockComment by remember { mutableStateOf("") }
     var inputText by remember { mutableStateOf("") }
     var payWay by remember { mutableStateOf("微信") }
+    var product by remember { mutableStateOf("") }
+    var color by remember { mutableStateOf(ColorType("",0x00000000)) }
 
     var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
 
@@ -158,6 +147,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         bottomComment = bottomClosetComment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
+                        product = product,
+                        color = color.color,
                         onCheckedChange = {
                             showSyncCloset = it
                             showSyncStock = !it
@@ -167,6 +158,10 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         },
                         onClosetCategoryClick = {
                             showClosetCategoryBottomSheet = true
+                        }, onProductClick = {
+                            showProductBottomSheet = true
+                        }, onColorClick = {
+                            showColorBottomSheet = true
                         })
                     Spacer(modifier = Modifier.height(12.dp))
                     EditStockScreen(showSyncStock = showSyncStock, bottomComment = bottomStockComment, onCheckedChange = {
@@ -196,6 +191,18 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         showBottomSheet = false
     }, onConfirm = {
         payWay = it
+    })
+
+    ProductTypeBottomSheet(product = product, showBottomSheet = showProductBottomSheet, onDismiss = {
+        showProductBottomSheet = false
+    }, onConfirm = {
+        product = it
+    })
+
+    ColorTypeBottomSheet(color = color, showBottomSheet = showColorBottomSheet, onDismiss = {
+        showColorBottomSheet = false
+    }, onConfirm = {
+        color = it
     })
 
     ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData, currentCategory = currentClosetCategory, showBottomSheet = showClosetCategoryBottomSheet, onDismiss = {

@@ -178,7 +178,7 @@ fun ExpandableCategoryItem(
                     )
                 }
             }
-            LazyColumn() {
+            LazyColumn(contentPadding = PaddingValues(bottom = 10.dp)) {
                 items(categories, key = { it.id }) { category ->
                     ExpandableCategoryItem(
                         category = category,
