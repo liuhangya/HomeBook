@@ -2,6 +2,8 @@ package com.fanda.homebook.data
 
 import com.fanda.homebook.R
 import com.fanda.homebook.entity.ExpenseCategory
+import com.fanda.homebook.quick.sheet.Category
+import com.fanda.homebook.quick.sheet.SubCategory
 
 object LocalDataSource {
     val expenseCategoryData = listOf(
@@ -35,6 +37,23 @@ object LocalDataSource {
         "银行卡",
         "信用卡",
         "医宝",
+    )
+
+    val closetCategoryData = listOf(
+        Category("1", "水果", listOf(
+            SubCategory("1-1", "苹果"),
+            SubCategory("1-2", "香蕉"),
+            SubCategory("1-3", "橙子")
+        )),
+        Category("2", "蔬菜", listOf(
+            SubCategory("2-1", "白菜"),
+            SubCategory("2-2", "胡萝卜"),
+            SubCategory("2-3", "土豆")
+        )),
+        Category("3", "肉类", listOf(
+            SubCategory("3-1", "猪肉"),
+            SubCategory("3-2", "牛肉")
+        ))
     )
 }
 

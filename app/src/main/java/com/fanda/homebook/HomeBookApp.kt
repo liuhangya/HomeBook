@@ -4,8 +4,10 @@ import android.app.Activity
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -70,8 +72,8 @@ import com.fanda.homebook.route.tabRootRoutes
             }, onQuickAddClick = {
                 navController.navigate(RoutePath.QuickAdd.route)
             })
-        }
-    }) { padding ->
+        } // 设置沉浸式导航栏
+    }, contentWindowInsets = WindowInsets(0, 0, 0, 0)) { padding ->
         // 页面容器
         NavHost(
             navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.padding(padding)
@@ -81,7 +83,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route
             ) {
                 composable(RoutePath.BookHome.route) {
-                    Text("账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp), modifier = Modifier.fillMaxSize())
+                    Text("账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp), modifier = Modifier.fillMaxSize().statusBarsPadding())
                     // 示例：跳转详情
 //                    Button(onClick = {
 //                        navController.navigate(RoutePath.BookDetail("123").route)
@@ -103,7 +105,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route
             ) {
                 composable(RoutePath.DashboardHome.route) {
-                    Text("看板首页", modifier = Modifier.fillMaxSize())
+                    Text("看板首页", modifier = Modifier.fillMaxSize().statusBarsPadding())
 //                    Button(onClick = {
 //                        navController.navigate(RoutePath.DashboardSettings.route)
 //                    }) {
@@ -123,7 +125,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route
             ) {
                 composable(RoutePath.ClosetHome.route) {
-                    Text("衣橱页面", modifier = Modifier.fillMaxSize())
+                    Text("衣橱页面", modifier = Modifier.fillMaxSize().statusBarsPadding())
                 }
             }
 
@@ -132,7 +134,7 @@ import com.fanda.homebook.route.tabRootRoutes
                 startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route
             ) {
                 composable(RoutePath.StockHome.route) {
-                    Text("囤货页面", modifier = Modifier.fillMaxSize())
+                    Text("囤货页面", modifier = Modifier.fillMaxSize().statusBarsPadding())
                 }
             }
 

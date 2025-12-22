@@ -1,5 +1,9 @@
 package com.fanda.homebook.tools
 
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 // ✅ 校验函数：只允许 "123", "12.34", ".5", "0.1" 等格式
 fun isValidDecimalInput(text: String): Boolean {
     if (text.isEmpty()) return true
@@ -15,4 +19,10 @@ fun isValidDecimalInput(text: String): Boolean {
 
     // 检查每个字符是否为数字或小数点
     return text.all { it.isDigit() || it == '.' }
+}
+
+
+fun convertMillisToDate(millis: Long): String {
+    val formatter = SimpleDateFormat("MM月dd日", Locale.getDefault())
+    return formatter.format(Date(millis))
 }

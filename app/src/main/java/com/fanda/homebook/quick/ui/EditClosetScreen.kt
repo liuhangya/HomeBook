@@ -41,11 +41,14 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
 @Composable
 fun EditClosetScreen(
-    modifier: Modifier = Modifier,
     showSyncCloset: Boolean,
     bottomComment: String,
+    modifier: Modifier = Modifier,
+    closetCategory: String = "",
+    closetSubCategory: String ="",
     onCheckedChange: (Boolean) -> Unit,
-    onBottomCommentChange: (String) -> Unit
+    onBottomCommentChange: (String) -> Unit,
+    onClosetCategoryClick : (() -> Unit)
 ) {
     val itemPadding = Modifier.padding(
         20.dp, 0.dp, 10.dp, 20.dp
@@ -79,12 +82,11 @@ fun EditClosetScreen(
                 }
                 SelectTypeWidget(
                     title = "分类",
-                    firstType = "上装",
-                    secondType = "短袖",
-                    modifier = itemPadding
-                ) {
-                    Log.d("QuickHomePage", "点击了分类")
-                }
+                    firstType = closetCategory,
+                    secondType = closetSubCategory,
+                    modifier = itemPadding,
+                    onClick = onClosetCategoryClick
+                )
 
                 ItemOptionMenu(
                     title = "颜色",
@@ -180,10 +182,10 @@ private fun EditCommentsWidget(
 
 @Composable
 private fun SelectTypeWidget(
-    modifier: Modifier = Modifier,
     title: String,
     firstType: String,
     secondType: String,
+    modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
     Column(
@@ -242,6 +244,6 @@ private fun SelectTypeWidget(
 fun EditClosetScreenPreview() {
     HomeBookTheme {
         EditClosetScreen(showSyncCloset = true,bottomComment = "", onCheckedChange = {
-        }, onBottomCommentChange = {})
+        }, onBottomCommentChange = {}, onClosetCategoryClick =  {})
     }
 }
