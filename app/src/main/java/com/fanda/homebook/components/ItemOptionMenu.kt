@@ -118,8 +118,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 })
             }
 
-            if (showColor) {
-                ColoredCircleWithBorder(color = inputColor ?: Color.Transparent)
+            if (showColor && inputColor != null) {
+                ColoredCircleWithBorder(color = inputColor)
             }
 
             if (showRightArrow) {
@@ -134,8 +134,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
 }
 
-@Composable fun ColoredCircleWithBorder(modifier: Modifier = Modifier,
-    color: Color = Color.Transparent, borderColor: Color = colorResource(id = R.color.color_CCFFFFFF), borderWidth: Dp = 1.dp, size: Dp = 16.dp
+@Composable fun ColoredCircleWithBorder(
+    modifier: Modifier = Modifier, color: Color = Color.Transparent, borderColor: Color = colorResource(id = R.color.color_CCFFFFFF), borderWidth: Dp = 1.dp, size: Dp = 16.dp
 ) {
     Box(
         modifier = modifier
@@ -151,7 +151,15 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 @Composable @Preview(showBackground = true) fun ItemOptionMenuPreview() {
     HomeBookTheme {
         ItemOptionMenu(
-            "付款方式", modifier = Modifier.padding(16.dp), showRightArrow = true, showTextField = false,  showColor = false, showText = true, inputText = "山姆", rightText = "测试", inputColor = Color.Red
+            "付款方式",
+            modifier = Modifier.padding(16.dp),
+            showRightArrow = true,
+            showTextField = false,
+            showColor = false,
+            showText = true,
+            inputText = "山姆",
+            rightText = "测试",
+            inputColor = Color.Red
         )
     }
 }

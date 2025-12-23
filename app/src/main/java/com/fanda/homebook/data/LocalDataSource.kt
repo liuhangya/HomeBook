@@ -50,6 +50,39 @@ object LocalDataSource {
         "其他",
     )
 
+    val seasonData = listOf(
+        "春季",
+        "夏季",
+        "秋季",
+        "冬季",
+    )
+
+    val sizeData = listOf(
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "XXXL",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45",
+        "小码",
+        "中码",
+        "大码",
+        "超大",
+    )
+
     val colorData = listOf(
         // 颜色值要加上透明度值
         ColorType("棕色系", 0xFF83878C),

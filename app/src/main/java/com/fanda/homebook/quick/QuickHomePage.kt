@@ -39,7 +39,9 @@ import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
 import com.fanda.homebook.quick.sheet.PayWayBottomSheet
 import com.fanda.homebook.quick.sheet.ProductTypeBottomSheet
+import com.fanda.homebook.quick.sheet.SeasonBottomSheet
 import com.fanda.homebook.quick.sheet.SelectedCategory
+import com.fanda.homebook.quick.sheet.SizeBottomSheet
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.quick.ui.EditAmountField
 import com.fanda.homebook.quick.ui.EditClosetScreen
@@ -61,6 +63,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     var showProductBottomSheet by remember { mutableStateOf(false) }
     var showColorBottomSheet by remember { mutableStateOf(false) }
     var showClosetCategoryBottomSheet by remember { mutableStateOf(false) }
+    var showSeasonBottomSheet by remember { mutableStateOf(false) }
+    var showSizeBottomSheet by remember { mutableStateOf(false) }
     var showSyncCloset by remember { mutableStateOf(true) }
     var showSyncStock by remember { mutableStateOf(false) }
     var bottomClosetComment by remember { mutableStateOf("") }
@@ -68,9 +72,14 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     var inputText by remember { mutableStateOf("") }
     var payWay by remember { mutableStateOf("微信") }
     var product by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf(ColorType("",0x00000000)) }
+    var color by remember { mutableStateOf(ColorType("", -1L)) }
+    var season by remember { mutableStateOf("") }
+    var size by remember { mutableStateOf("") }
 
     var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
+
+    // 获取焦点管理器
+    val focusManager = LocalFocusManager.current
 
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
@@ -81,17 +90,15 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
             },
             rightText = "保存",
             onRightActionClick = {
-
+                focusManager.clearFocus()
             },
             backIconPainter = painterResource(R.mipmap.icon_back),
         )
     }) { padding ->
-        // 获取焦点管理器
-        val focusManager = LocalFocusManager.current
+
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
         Box(modifier = Modifier
             .fillMaxSize()
-
             .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
                 detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
             }
@@ -118,8 +125,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     SelectCategoryGrid()
                     Spacer(modifier = Modifier.height(12.dp))
                     GradientRoundedBoxWithStroke {
-                        ItemOptionMenu(
-                            title = "备注",
+                        ItemOptionMenu(title = "备注",
                             showRightArrow = false,
                             showTextField = true,
                             modifier = Modifier
@@ -137,18 +143,19 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                                 .height(64.dp)
                                 .padding(start = 20.dp, end = 10.dp)
                         ) {
+                            focusManager.clearFocus()
                             showBottomSheet = !showBottomSheet
-                            Log.d("QuickHomePage", "点击了付款方式")
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    EditClosetScreen(
-                        showSyncCloset = showSyncCloset,
+                    EditClosetScreen(showSyncCloset = showSyncCloset,
                         bottomComment = bottomClosetComment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
                         product = product,
                         color = color.color,
+                        season = season,
+                        size = size,
                         onCheckedChange = {
                             showSyncCloset = it
                             showSyncStock = !it
@@ -158,10 +165,18 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         },
                         onClosetCategoryClick = {
                             showClosetCategoryBottomSheet = true
-                        }, onProductClick = {
+                        },
+                        onProductClick = {
                             showProductBottomSheet = true
-                        }, onColorClick = {
+                        },
+                        onColorClick = {
                             showColorBottomSheet = true
+                        },
+                        onSeasonClick = {
+                            showSeasonBottomSheet = true
+                        },
+                        onSizeClick = {
+                            showSizeBottomSheet = true
                         })
                     Spacer(modifier = Modifier.height(12.dp))
                     EditStockScreen(showSyncStock = showSyncStock, bottomComment = bottomStockComment, onCheckedChange = {
@@ -209,6 +224,18 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         showClosetCategoryBottomSheet = false
     }, onConfirm = {
         currentClosetCategory = it
+    })
+
+    SeasonBottomSheet(season = season, showBottomSheet = showSeasonBottomSheet, onDismiss = {
+        showSeasonBottomSheet = false
+    }, onConfirm = {
+        season = it
+    })
+
+    SizeBottomSheet(size = season, showBottomSheet = showSizeBottomSheet, onDismiss = {
+        showSizeBottomSheet = false
+    }, onConfirm = {
+        size = it
     })
 }
 

@@ -55,7 +55,7 @@ import com.fanda.homebook.R
         ) {
             Text(
                 text = text, fontSize = fontSize, color = if (selected) selectedContentColor else unselectedContentColor, style = TextStyle.Default,  // 用默认样式，才不会有字体的间距
-                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal, modifier = modifier
+                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
             )
             if (imageRes != null) {
                 Image(
