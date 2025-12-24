@@ -142,7 +142,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 }
 
                 if (showRightArrow) {
-                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null,modifier = Modifier.padding(start = 9.dp))
                 }
             }
         }

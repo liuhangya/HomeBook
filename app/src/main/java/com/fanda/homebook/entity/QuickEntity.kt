@@ -14,6 +14,10 @@ data class ExpenseCategory(val name: String, @DrawableRes val icon: Int)
 enum class QuickShowBottomSheetType {
     PAY_WAY,
     PRODUCT,
+    STOCK_PRODUCT,
+    GOODS_RACK,
+    STOCK_CATEGORY,
+    PERIOD ,
     CATEGORY,
     COLOR,
     SEASON,

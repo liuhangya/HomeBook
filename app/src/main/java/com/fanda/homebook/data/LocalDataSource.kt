@@ -38,7 +38,7 @@ object LocalDataSource {
         "云闪付",
         "银行卡",
         "信用卡",
-        "医宝",
+        "医保",
     )
 
     val productData = listOf(
@@ -63,6 +63,18 @@ object LocalDataSource {
         "圆圆",
         "家庭",
         "送人",
+    )
+
+    val periodData = listOf(
+        "日用",
+        "夜用",
+        "全天",
+    )
+    val goodsRackData = listOf(
+        "梳妆台",
+        "米面粮油",
+        "日用百货",
+        "圆圆",
     )
 
     val sizeData = listOf(
@@ -93,19 +105,19 @@ object LocalDataSource {
 
     val colorData = listOf(
         // 颜色值要加上透明度值
-        ColorType("棕色系", 0xFF83878C),
-        ColorType("黑色系", 0xFFFF1234),
-        ColorType("蓝色系", 0xFFFF2222),
-        ColorType("绿色系", 0xFFFF3333),
-        ColorType("紫色系", 0xFFFF4444),
-        ColorType("红色系", 0xFFFF5555),
-        ColorType("灰色系", 0xFFFF6666),
-        ColorType("玫红系", 0xFFFF6666),
-        ColorType("橙色系", 0xFFFF6666),
-        ColorType("金色系", 0xFFFF6666),
-        ColorType("裸色系", 0xFFFF6666),
-        ColorType("黄色系", 0xFFFF6666),
-        ColorType("白色系", 0xFFFF6666),
+        ColorType("棕色系", 0xFF6A3D06),
+        ColorType("黑色系", 0xFF000000),
+        ColorType("蓝色系", 0xFF9CD4EB),
+        ColorType("绿色系", 0xFFA4D66B),
+        ColorType("紫色系", 0xFFB398F1),
+        ColorType("红色系", 0xFFDA4851),
+        ColorType("灰色系", 0xFFDADADA),
+        ColorType("玫红系", 0xFFE360BE),
+        ColorType("橙色系", 0xFFEC9F4C),
+        ColorType("金色系", 0xFFEFDD8B),
+        ColorType("裸色系", 0xFFEFE5CE),
+        ColorType("黄色系", 0xFFF8D854),
+        ColorType("白色系", 0xFFFFFFFF),
     )
 
     val closetCategoryData = listOf(
@@ -151,6 +163,41 @@ object LocalDataSource {
             SubCategory("5-4", "眼镜"),
             SubCategory("5-5", "手表")
         ))
+    )
+
+    val stockCategoryData = listOf(
+        Category("1", "梳妆台", listOf(
+            SubCategory("1-1", "洁面"),
+            SubCategory("1-2", "水"),
+            SubCategory("1-3", "乳液"),
+            SubCategory("1-4", "精华"),
+            SubCategory("1-5", "面霜"),
+            SubCategory("1-6", "眼霜"),
+            SubCategory("1-7", "面膜"),
+            SubCategory("1-8", "防晒"),
+            SubCategory("1-8", "底妆"),
+            SubCategory("1-8", "唇膏"),
+            SubCategory("1-8", "眼影"),
+            SubCategory("1-8", "润肤"),
+        )),
+        Category("2", "米面粮油", listOf(
+            SubCategory("2-1", "零食"),
+            SubCategory("2-2", "主食"),
+            SubCategory("2-3", "调料"),
+        )),
+        Category("3", "日用百货", listOf(
+            SubCategory("3-1", "纸巾"),
+            SubCategory("3-2", "面巾"),
+            SubCategory("3-3", "洗头"),
+            SubCategory("3-4", "洗澡"),
+            SubCategory("3-5", "洗衣"),
+            SubCategory("3-5", "护发"),
+            SubCategory("3-5", "片剂"),
+        )),
+        Category("4", "圆圆", listOf(
+            SubCategory("4-1", "护肤"),
+            SubCategory("4-2", "补剂"),
+        )),
     )
 }
 

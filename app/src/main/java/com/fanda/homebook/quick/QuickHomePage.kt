@@ -1,6 +1,7 @@
 package com.fanda.homebook.quick
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +57,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 /*
 * 记一笔页面
 * */
-@Composable fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
+@Composable
+fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
 
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var showDateSelect by remember { mutableStateOf(false) }
@@ -69,6 +72,11 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     var color by remember { mutableStateOf(ColorType("", -1L)) }
     var season by remember { mutableStateOf("") }
     var size by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var goodsRack by remember { mutableStateOf("") }
+    var stockCategory by remember { mutableStateOf("") }
+    var period by remember { mutableStateOf("") }
+    var stockProduct by remember { mutableStateOf("") }
 
     var currentShowBottomSheetType by remember { mutableStateOf(QuickShowBottomSheetType.NONE) }
 
@@ -76,6 +84,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
+
+    val context = LocalContext.current
 
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
@@ -93,12 +103,16 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
-            }
-            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+                    detectTapGestures(
+                        onTap = { focusManager.clearFocus() },
+                        onDoubleTap = { focusManager.clearFocus() },
+                        onLongPress = { focusManager.clearFocus() })
+                }
+                .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
             // 为了让 padding 内容能滑动，所以用 Column 包起来
             Column(
@@ -121,7 +135,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     SelectCategoryGrid()
                     Spacer(modifier = Modifier.height(12.dp))
                     GradientRoundedBoxWithStroke {
-                        ItemOptionMenu(title = "备注",
+                        ItemOptionMenu(
+                            title = "备注",
                             showRightArrow = false,
                             showTextField = true,
                             removeIndication = true,
@@ -136,16 +151,20 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     Spacer(modifier = Modifier.height(12.dp))
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
-                            title = "付款方式", rightText = payWay, showText = true, modifier = Modifier
+                            title = "付款方式",
+                            rightText = payWay,
+                            showText = true,
+                            modifier = Modifier
                                 .height(64.dp)
-                                .padding(start = 20.dp, end = 10.dp)
+                                .padding(start = 20.dp, end = 20.dp)
                         ) {
                             focusManager.clearFocus()
                             currentShowBottomSheetType = QuickShowBottomSheetType.PAY_WAY
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    EditClosetScreen(showSyncCloset = showSyncCloset,
+                    EditClosetScreen(
+                        showSyncCloset = showSyncCloset,
                         bottomComment = bottomClosetComment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
@@ -154,6 +173,12 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         season = season,
                         owner = owner,
                         size = size,
+                        name = name,
+                        goodsRack = goodsRack,
+                        stockCategory = stockCategory,
+                        period = period,
+                        stockProduct = stockProduct,
+                        bottomStockComment = bottomStockComment,
                         onCheckedChange = {
                             showSyncCloset = it
                         },
@@ -164,8 +189,15 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                                 bottomStockComment = it
                             }
                         },
+                        onNameChange = {
+                            name = it
+                        },
                         onClick = {
-                            currentShowBottomSheetType = it
+                            if (it == QuickShowBottomSheetType.STOCK_CATEGORY && goodsRack.isEmpty()) {
+                                Toast.makeText(context, "请先选择货架", Toast.LENGTH_SHORT).show()
+                            } else {
+                                currentShowBottomSheetType = it
+                            }
                         })
                 }
             }
@@ -184,7 +216,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
     }
 
-    ListBottomSheet(initial = payWay,
+    ListBottomSheet(
+        initial = payWay,
         title = "付款方式",
         dataSource = LocalDataSource.payWayData,
         visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PAY_WAY },
@@ -193,7 +226,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         payWay = it
     }
 
-    ListBottomSheet(initial = product,
+    ListBottomSheet(
+        initial = product,
         title = "品牌",
         dataSource = LocalDataSource.productData,
         visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PRODUCT },
@@ -202,7 +236,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         product = it
     }
 
-    ListBottomSheet(initial = owner,
+    ListBottomSheet(
+        initial = owner,
         title = "归属",
         dataSource = LocalDataSource.ownerData,
         visible = { currentShowBottomSheetType == QuickShowBottomSheetType.OWNER },
@@ -211,7 +246,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         owner = it
     }
 
-    GridBottomSheet(initial = owner,
+    GridBottomSheet(
+        initial = owner,
         title = "尺码",
         dataSource = LocalDataSource.sizeData,
         visible = { currentShowBottomSheetType == QuickShowBottomSheetType.SIZE },
@@ -222,7 +258,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         size = it
     }
 
-    GridBottomSheet(initial = season,
+    GridBottomSheet(
+        initial = season,
         title = "季节",
         dataSource = LocalDataSource.seasonData,
         visible = { currentShowBottomSheetType == QuickShowBottomSheetType.SEASON },
@@ -234,13 +271,18 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     }
 
 
-    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == QuickShowBottomSheetType.COLOR }, onDismiss = {
-        currentShowBottomSheetType = QuickShowBottomSheetType.NONE
-    }, onConfirm = {
-        color = it
-    })
+    ColorTypeBottomSheet(
+        color = color,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.COLOR },
+        onDismiss = {
+            currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+        },
+        onConfirm = {
+            color = it
+        })
 
-    ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
+    ClosetTypeBottomSheet(
+        categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,
         visible = { currentShowBottomSheetType == QuickShowBottomSheetType.CATEGORY },
         onDismiss = {
@@ -250,11 +292,56 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
             currentClosetCategory = it
         })
 
+    ListBottomSheet(
+        initial = stockProduct,
+        title = "品牌",
+        dataSource = LocalDataSource.productData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.STOCK_PRODUCT },
+        displayText = { it },
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        stockProduct = it
+    }
 
+    ListBottomSheet(
+        initial = goodsRack,
+        title = "货架",
+        dataSource = LocalDataSource.goodsRackData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.GOODS_RACK },
+        displayText = { it },
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        if (goodsRack != it){
+            // 切换货架时，清空商品
+            stockCategory = ""
+        }
+        goodsRack = it
+    }
+
+    ListBottomSheet(
+        initial = stockCategory,
+        title = "类别",
+        dataSource = LocalDataSource.stockCategoryData.find { it.name == goodsRack }?.children?.map { it.name }
+            ?: emptyList(),
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.STOCK_CATEGORY },
+        displayText = { it },
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        stockCategory = it
+    }
+
+    ListBottomSheet(
+        initial = period,
+        title = "使用时段",
+        dataSource = LocalDataSource.periodData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PERIOD },
+        displayText = { it },
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        period = it
+    }
 }
 
 
-@Composable @Preview(showBackground = true) fun QuickHomePagePreview() {
+@Composable
+@Preview(showBackground = true)
+fun QuickHomePagePreview() {
     HomeBookTheme {
         QuickHomePage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }

@@ -42,20 +42,28 @@ import com.fanda.homebook.entity.QuickShowBottomSheetType
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
 
-@Composable fun EditClosetScreen(
+@Composable
+fun EditClosetScreen(
     showSyncCloset: Boolean,
     bottomComment: String,
+    bottomStockComment: String,
     modifier: Modifier = Modifier,
     closetCategory: String = "",
     closetSubCategory: String = "",
     product: String = "",
+    stockProduct: String = "",
     color: Long = -1,
     season: String = "",
     size: String = "",
     owner: String = "",
+    name: String = "",
+    goodsRack: String = "",
+    stockCategory: String = "",
+    period: String = "",
     onCheckedChange: (Boolean) -> Unit,
     onBottomCommentChange: (String) -> Unit,
-    onClick: (QuickShowBottomSheetType) -> Unit
+    onNameChange: (String) -> Unit,
+    onClick: (QuickShowBottomSheetType) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     val itemPadding = Modifier.padding(
@@ -63,11 +71,12 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     )
 
     // 包装原始点击事件，先关闭键盘
-    val wrapClick: (QuickShowBottomSheetType, (QuickShowBottomSheetType) -> Unit) -> Unit = { type, original ->
-        focusManager.clearFocus()
-        original(type)
+    val wrapClick: (QuickShowBottomSheetType, (QuickShowBottomSheetType) -> Unit) -> Unit =
+        { type, original ->
+            focusManager.clearFocus()
+            original(type)
 
-    }
+        }
     Column {
         GradientRoundedBoxWithStroke(modifier = modifier) {
             Column {
@@ -88,18 +97,51 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     },
                 )
                 if (showSyncCloset) {
-                    ItemOptionMenu(title = "归属", showText = true, rightText = owner, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.OWNER, onClick) })
-                    SelectTypeWidget(firstType = closetCategory, secondType = closetSubCategory, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.CATEGORY, onClick) })
-                    ItemOptionMenu(title = "颜色",
+                    ItemOptionMenu(
+                        title = "归属",
+                        showText = true,
+                        rightText = owner,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.OWNER, onClick) })
+                    SelectTypeWidget(
+                        firstType = closetCategory,
+                        secondType = closetSubCategory,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.CATEGORY, onClick) })
+                    ItemOptionMenu(
+                        title = "颜色",
                         showColor = true,
                         inputColor = if (color != -1L) Color(color) else null,
                         showDivider = true,
                         modifier = itemPadding,
                         onClick = { wrapClick(QuickShowBottomSheetType.COLOR, onClick) })
-                    ItemOptionMenu(title = "季节", showText = true, rightText = season, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.SEASON, onClick) })
-                    ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.PRODUCT, onClick) })
-                    ItemOptionMenu(title = "尺寸", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.SIZE, onClick) })
-                    EditCommentsWidget(inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange)
+                    ItemOptionMenu(
+                        title = "季节",
+                        showText = true,
+                        rightText = season,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.SEASON, onClick) })
+                    ItemOptionMenu(
+                        title = "品牌",
+                        showText = true,
+                        rightText = product,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.PRODUCT, onClick) })
+                    ItemOptionMenu(
+                        title = "尺寸",
+                        showText = true,
+                        rightText = size,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.SIZE, onClick) })
+                    EditCommentsWidget(
+                        inputText = bottomComment,
+                        modifier = itemPadding,
+                        onValueChange = onBottomCommentChange
+                    )
                 }
             }
         }
@@ -122,81 +164,121 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 )
                 if (!showSyncCloset) {
                     ItemOptionMenu(
-                        title = "名称", showTextField = true, showRightArrow = false, removeIndication = true, inputText = "", showDivider = true, modifier = itemPadding
-                    ) {}
-
+                        title = "名称",
+                        showTextField = true,
+                        showRightArrow = false,
+                        removeIndication = true,
+                        inputText = name,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onValueChange = onNameChange
+                    )
                     ItemOptionMenu(
-                        title = "品牌", showText = true, rightText = "潘婷", showDivider = true, modifier = itemPadding
-                    ) {
-                        Log.d("QuickHomePage", "点击了归属")
-                    }
+                        title = "品牌",
+                        showText = true,
+                        rightText = stockProduct,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.STOCK_PRODUCT, onClick) })
                     ItemOptionMenu(
-                        title = "货架", showText = true, rightText = "梳妆台", showDivider = true, modifier = itemPadding
-                    ) {
-                        Log.d("QuickHomePage", "点击了归属")
-                    }
+                        title = "货架",
+                        showText = true,
+                        rightText = goodsRack,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.GOODS_RACK, onClick) })
                     ItemOptionMenu(
-                        title = "类别", showText = true, rightText = "护发", showDivider = true, modifier = itemPadding
-                    ) {
-                        Log.d("QuickHomePage", "点击了归属")
-                    }
+                        title = "类别",
+                        showText = true,
+                        rightText = stockCategory,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.STOCK_CATEGORY, onClick) })
                     ItemOptionMenu(
-                        title = "使用时段", showText = true, rightText = "全天", showDivider = true, modifier = itemPadding
-                    ) {
-                        Log.d("QuickHomePage", "点击了归属")
-                    }
-                    EditCommentsWidget(inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange)
+                        title = "使用时段",
+                        showText = true,
+                        rightText = period,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.PERIOD, onClick) })
+                    EditCommentsWidget(
+                        inputText = bottomStockComment,
+                        modifier = itemPadding,
+                        onValueChange = onBottomCommentChange
+                    )
                 }
             }
         }
     }
 }
 
-@Composable fun EditCommentsWidget(
+@Composable
+fun EditCommentsWidget(
     modifier: Modifier = Modifier, inputText: String = "", onValueChange: (String) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.Center, modifier = modifier
     ) {
         Text(
-            style = TextStyle.Default, text = "备注", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
+            style = TextStyle.Default,
+            text = "备注",
+            color = Color.Black,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp
         )
-        BasicTextField(value = inputText, onValueChange = { newText ->
-            // 否则忽略非法输入
-            onValueChange(newText)
-        }, singleLine = true, modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 20.dp), keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
-        ), textStyle = TextStyle.Default.copy(
-            color = colorResource(R.color.color_333333), fontSize = 14.sp, textAlign = TextAlign.Start
-        ), decorationBox = { innerTextField ->
-            Box() {
-                // 占位文本
-                if (inputText.isEmpty()) {
-                    Text(
-                        text = "请输入备注信息", color = colorResource(R.color.color_83878C), fontSize = 14.sp
-                    )
+        BasicTextField(
+            value = inputText,
+            onValueChange = { newText ->
+                // 否则忽略非法输入
+                onValueChange(newText)
+            },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 20.dp),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
+            ),
+            textStyle = TextStyle.Default.copy(
+                color = colorResource(R.color.color_333333),
+                fontSize = 14.sp,
+                textAlign = TextAlign.Start
+            ),
+            decorationBox = { innerTextField ->
+                Box() {
+                    // 占位文本
+                    if (inputText.isEmpty()) {
+                        Text(
+                            text = "请输入备注信息",
+                            color = colorResource(R.color.color_83878C),
+                            fontSize = 14.sp
+                        )
+                    }
+                    // 输入框内容
+                    innerTextField()
                 }
-                // 输入框内容
-                innerTextField()
-            }
-        })
+            })
     }
 }
 
 
-@Composable private fun SelectTypeWidget(
-    firstType: String, secondType: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, dividerPadding: Dp = 20.dp,
+@Composable
+private fun SelectTypeWidget(
+    firstType: String,
+    secondType: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    dividerPadding: Dp = 20.dp,
 ) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .clickable(
-            // 去掉默认的点击效果
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                // 去掉默认的点击效果
 //            interactionSource = remember { MutableInteractionSource() }, indication = null
-        ) {
-            onClick?.invoke()
-        }) {
+            ) {
+                onClick?.invoke()
+            }) {
         Column(
             verticalArrangement = Arrangement.Center, modifier = modifier
         ) {
@@ -204,40 +286,59 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    style = TextStyle.Default, text = "分类", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
+                    style = TextStyle.Default,
+                    text = "分类",
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
                 )
                 Spacer(modifier = Modifier.weight(1f))
 
                 if (firstType.isNotEmpty() && secondType.isNotEmpty()) {
                     Text(
-                        style = TextStyle.Default, text = firstType, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                        style = TextStyle.Default,
+                        text = firstType,
+                        color = colorResource(R.color.color_333333),
+                        fontSize = 16.sp
                     )
                     Image(
-                        painter = painterResource(R.mipmap.icon_right), contentDescription = null, colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
+                        painter = painterResource(R.mipmap.icon_right),
+                        contentDescription = null,
+                        modifier = Modifier.padding(horizontal = 7.dp),
+                        colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
                     )
                     Text(
-                        style = TextStyle.Default, text = secondType, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                        style = TextStyle.Default,
+                        text = secondType,
+                        color = colorResource(R.color.color_333333),
+                        fontSize = 16.sp
                     )
-                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null,modifier = Modifier.padding(start = 9.dp))
                 } else {
                     Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
                 }
             }
         }
         HorizontalDivider(
-            thickness = 0.5.dp, color = colorResource(R.color.color_D9E1EB), modifier = Modifier.padding(horizontal = dividerPadding)
+            thickness = 0.5.dp,
+            color = colorResource(R.color.color_D9E1EB),
+            modifier = Modifier.padding(horizontal = dividerPadding)
         )
     }
 }
 
-@Composable @Preview(showBackground = true) fun EditClosetScreenPreview() {
+@Composable
+@Preview(showBackground = true)
+fun EditClosetScreenPreview() {
     HomeBookTheme {
         EditClosetScreen(
             showSyncCloset = true,
             bottomComment = "",
+            bottomStockComment = "",
             onCheckedChange = {},
             onBottomCommentChange = {},
             onClick = {},
+            onNameChange = {}
         )
     }
 }

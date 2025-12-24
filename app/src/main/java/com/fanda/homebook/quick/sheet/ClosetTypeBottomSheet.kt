@@ -39,6 +39,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -58,50 +60,72 @@ data class SubCategory(
 )
 
 data class SelectedCategory(
-    val categoryId: String, val categoryName: String, val subCategoryId: String, val subCategoryName: String
+    val categoryId: String,
+    val categoryName: String,
+    val subCategoryId: String,
+    val subCategoryName: String
 )
 
-@Composable fun ExpandableCategoryItem(
-    category: Category, isExpanded: Boolean, isSelected: Boolean, onToggleExpand: () -> Unit, onSubClick: (SubCategory) -> Unit, isSelectedSub: (SubCategory) -> Boolean, modifier: Modifier = Modifier
+@Composable
+fun ExpandableCategoryItem(
+    category: Category,
+    isExpanded: Boolean,
+    isSelected: Boolean,
+    onToggleExpand: () -> Unit,
+    onSubClick: (SubCategory) -> Unit,
+    isSelectedSub: (SubCategory) -> Boolean,
+    modifier: Modifier = Modifier
 ) {
     val rotation by animateFloatAsState(
-        targetValue = if (isExpanded) 90f else 0f, animationSpec = tween(durationMillis = 200, easing = LinearEasing), label = "expandArrowRotation"
+        targetValue = if (isExpanded) 90f else 0f,
+        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
+        label = "expandArrowRotation"
     )
 
     Column(modifier = modifier) {
         // 一级分类项
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggleExpand() }
-            .padding(horizontal = 24.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onToggleExpand() }
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = category.name,
                 fontSize = 16.sp,
                 color = Color.Black,
             )
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Black, modifier = Modifier
-                    .padding(start = 2.dp)
+            Image(
+                painter = painterResource(R.mipmap.icon_right),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.Black),
+                modifier = Modifier
+                    .padding(start = 8.dp)
                     .rotate(rotation)
             )
             Spacer(Modifier.weight(1f))
             if (isSelected) {
                 Image(
-                    painter = painterResource(R.mipmap.icon_selected), contentDescription = null, modifier = Modifier.size(16.dp)
+                    painter = painterResource(R.mipmap.icon_selected),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
 
         // 二级列表（带动画）
         AnimatedVisibility(
-            visible = isExpanded && category.children.isNotEmpty(), enter = expandVertically(expandFrom = Alignment.Top), exit = shrinkVertically(shrinkTowards = Alignment.Top)
+            visible = isExpanded && category.children.isNotEmpty(),
+            enter = expandVertically(expandFrom = Alignment.Top),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top)
         ) {
             Column {
                 category.children.forEach { sub ->
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSubClick(sub) }
-                        .padding(start = 64.dp, top = 16.dp, bottom = 16.dp, end = 24.dp),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSubClick(sub) }
+                            .padding(start = 64.dp, top = 16.dp, bottom = 16.dp, end = 24.dp),
                         verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = sub.name,
@@ -111,7 +135,9 @@ data class SelectedCategory(
                         Spacer(Modifier.weight(1f))
                         if (isSelectedSub(sub)) {
                             Image(
-                                painter = painterResource(R.mipmap.icon_selected), contentDescription = null, modifier = Modifier.size(16.dp)
+                                painter = painterResource(R.mipmap.icon_selected),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
@@ -121,11 +147,19 @@ data class SelectedCategory(
     }
 }
 
-@Composable fun ClosetTypeBottomSheet(categories: List<Category>, currentCategory: SelectedCategory?, visible: () -> Boolean, onDismiss: () -> Unit, onConfirm: (SelectedCategory) -> Unit) {
+@Composable
+fun ClosetTypeBottomSheet(
+    categories: List<Category>,
+    currentCategory: SelectedCategory?,
+    visible: () -> Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (SelectedCategory) -> Unit
+) {
     CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
         // 记录每一个一级分类是否展开二级分类
         var expandedMap by remember {
-            mutableStateOf(categories.associate { it.id to (it.id == currentCategory?.categoryId) }.toMutableMap())
+            mutableStateOf(categories.associate { it.id to (it.id == currentCategory?.categoryId) }
+                .toMutableMap())
         }
 
         // 记录当前选中的分类，包括一二级
@@ -142,16 +176,25 @@ data class SelectedCategory(
             }
             LazyColumn(contentPadding = PaddingValues(bottom = 10.dp)) {
                 items(categories, key = { it.id }) { category ->
-                    ExpandableCategoryItem(category = category, isExpanded = expandedMap[category.id] == true, isSelected = selectedCategory?.categoryId == category.id, onToggleExpand = {
-                        expandedMap = expandedMap.toMutableMap().apply {
-                            // 如果存在则取反，不存在则设为true展开
-                            put(category.id, !getOrDefault(category.id, false))
-                        }
-                    }, onSubClick = { sub ->
-                        selectedCategory = SelectedCategory(
-                            categoryId = category.id, categoryName = category.name, subCategoryId = sub.id, subCategoryName = sub.name
-                        )
-                    }, isSelectedSub = { sub -> sub.id == selectedCategory?.subCategoryId })
+                    ExpandableCategoryItem(
+                        category = category,
+                        isExpanded = expandedMap[category.id] == true,
+                        isSelected = selectedCategory?.categoryId == category.id,
+                        onToggleExpand = {
+                            expandedMap = expandedMap.toMutableMap().apply {
+                                // 如果存在则取反，不存在则设为true展开
+                                put(category.id, !getOrDefault(category.id, false))
+                            }
+                        },
+                        onSubClick = { sub ->
+                            selectedCategory = SelectedCategory(
+                                categoryId = category.id,
+                                categoryName = category.name,
+                                subCategoryId = sub.id,
+                                subCategoryName = sub.name
+                            )
+                        },
+                        isSelectedSub = { sub -> sub.id == selectedCategory?.subCategoryId })
                 }
             }
         }
