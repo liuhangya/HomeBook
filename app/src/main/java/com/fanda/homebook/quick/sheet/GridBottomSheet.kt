@@ -1,17 +1,22 @@
 package com.fanda.homebook.quick.sheet
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,53 +24,37 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fanda.homebook.R
 import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
 
-
-@Composable fun SizeBottomSheet(
-    size: String, showBottomSheet: Boolean, onDismiss: () -> Unit, onConfirm: (String) -> Unit
-) {
-    CustomBottomSheet(visible = showBottomSheet, onDismiss = onDismiss) {
-        var selected by remember { mutableStateOf(size) }
+@Composable fun <T : Any> GridBottomSheet(initial: T, title: String, dataSource: List<T>, dpSize: DpSize,column: GridCells , visible: () -> Boolean, displayText: (T) -> String, onDismiss: () -> Unit, onConfirm: (T) -> Unit) {
+    CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
+        var selected by remember { mutableStateOf(initial) }
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 5.dp)
-            ) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center), style = TextStyle.Default, text = "尺码", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
-                )
-                TextButton(modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 10.dp), onClick = {
-                    onConfirm(selected)
-                    onDismiss()
-                }) {
-                    Text(
-                        style = TextStyle.Default, text = "确定", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
-                    )
-                }
+            SheetTitleWidget(title = title) {
+                onConfirm(selected)
+                onDismiss()
             }
             LazyVerticalGrid(
-                columns = GridCells.Fixed(5), horizontalArrangement = Arrangement.spacedBy(13.dp), verticalArrangement = Arrangement.spacedBy(13.dp),
+                columns = column, horizontalArrangement = Arrangement.spacedBy(13.dp), verticalArrangement = Arrangement.spacedBy(13.dp),
                 modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(start = 24.dp, top = 10.dp, end = 24.dp, bottom = 28.dp),
             ) {
-                items(LocalDataSource.sizeData, key = { it }) {
+                items(dataSource, key = { it }) {
                     SelectableRoundedButton(cornerSize = 8.dp,
                         fontSize = 14.sp,
                         contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
-                        modifier = Modifier.size(52.dp, 36.dp),
-                        text = it,
+                        modifier = Modifier.size(dpSize),
+                        text = displayText(it),
                         selected = selected == it,
                         onClick = { selected = it })
                 }

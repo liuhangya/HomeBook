@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,59 +50,39 @@ import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.data.LocalDataSource
 
 data class Category(
-    val id: String,
-    val name: String,
-    val children: List<SubCategory> = emptyList()
+    val id: String, val name: String, val children: List<SubCategory> = emptyList()
 )
 
 data class SubCategory(
-    val id: String,
-    val name: String
+    val id: String, val name: String
 )
 
 data class SelectedCategory(
-    val categoryId: String,
-    val categoryName: String,
-    val subCategoryId: String,
-    val subCategoryName: String
+    val categoryId: String, val categoryName: String, val subCategoryId: String, val subCategoryName: String
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExpandableCategoryItem(
-    category: Category,
-    isExpanded: Boolean,
-    isSelected: Boolean,
-    onToggleExpand: () -> Unit,
-    onSubClick: (SubCategory) -> Unit,
-    isSelectedSub: (SubCategory) -> Boolean,
-    modifier: Modifier = Modifier
+@Composable fun ExpandableCategoryItem(
+    category: Category, isExpanded: Boolean, isSelected: Boolean, onToggleExpand: () -> Unit, onSubClick: (SubCategory) -> Unit, isSelectedSub: (SubCategory) -> Boolean, modifier: Modifier = Modifier
 ) {
     val rotation by animateFloatAsState(
-        targetValue = if (isExpanded) 90f else 0f,
-        animationSpec = tween(durationMillis = 200, easing = LinearEasing),
-        label = "expandArrowRotation"
+        targetValue = if (isExpanded) 90f else 0f, animationSpec = tween(durationMillis = 200, easing = LinearEasing), label = "expandArrowRotation"
     )
 
     Column(modifier = modifier) {
         // 一级分类项
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onToggleExpand() }
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggleExpand() }
+            .padding(horizontal = 24.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = category.name,
                 fontSize = 16.sp,
                 color = Color.Black,
             )
             Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                tint =  Color.Black,
-                modifier = Modifier.rotate(rotation)
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Black, modifier = Modifier
+                    .padding(start = 2.dp)
+                    .rotate(rotation)
             )
             Spacer(Modifier.weight(1f))
             if (isSelected) {
@@ -113,19 +94,15 @@ fun ExpandableCategoryItem(
 
         // 二级列表（带动画）
         AnimatedVisibility(
-            visible = isExpanded && category.children.isNotEmpty(),
-            enter = expandVertically(expandFrom = Alignment.Top),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top)
+            visible = isExpanded && category.children.isNotEmpty(), enter = expandVertically(expandFrom = Alignment.Top), exit = shrinkVertically(shrinkTowards = Alignment.Top)
         ) {
             Column {
                 category.children.forEach { sub ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSubClick(sub) }
-                            .padding(start = 64.dp, top = 16.dp, bottom = 16.dp, end = 24.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSubClick(sub) }
+                        .padding(start = 64.dp, top = 16.dp, bottom = 16.dp, end = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = sub.name,
                             fontSize = 16.sp,
@@ -144,11 +121,11 @@ fun ExpandableCategoryItem(
     }
 }
 
-@Composable fun ClosetTypeBottomSheet(   categories: List<Category>, currentCategory: SelectedCategory?, showBottomSheet: Boolean, onDismiss: () -> Unit, onConfirm: (SelectedCategory) -> Unit) {
-    CustomBottomSheet(visible = showBottomSheet, onDismiss = onDismiss) {
+@Composable fun ClosetTypeBottomSheet(categories: List<Category>, currentCategory: SelectedCategory?, visible: () -> Boolean, onDismiss: () -> Unit, onConfirm: (SelectedCategory) -> Unit) {
+    CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
         // 记录每一个一级分类是否展开二级分类
         var expandedMap by remember {
-            mutableStateOf(categories.associate { it.id to ( it.id == currentCategory?.categoryId) }.toMutableMap())
+            mutableStateOf(categories.associate { it.id to (it.id == currentCategory?.categoryId) }.toMutableMap())
         }
 
         // 记录当前选中的分类，包括一二级
@@ -157,50 +134,24 @@ fun ExpandableCategoryItem(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 5.dp)
-            ) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center), style = TextStyle.Default, text = "分类", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
-                )
-                TextButton(modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 10.dp), onClick = {
-                    selectedCategory?.let {
-                        onConfirm(it)
-                        onDismiss()
-                    }
-                }) {
-                    Text(
-                        style = TextStyle.Default, text = "确定", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
-                    )
+            SheetTitleWidget(title = "分类") {
+                selectedCategory?.let {
+                    onConfirm(it)
+                    onDismiss()
                 }
             }
             LazyColumn(contentPadding = PaddingValues(bottom = 10.dp)) {
                 items(categories, key = { it.id }) { category ->
-                    ExpandableCategoryItem(
-                        category = category,
-                        isExpanded = expandedMap[category.id] == true,
-                        isSelected = selectedCategory?.categoryId == category.id,
-                        onToggleExpand = {
-                            expandedMap = expandedMap.toMutableMap().apply {
-                                // 如果存在则取反，不存在则设为true展开
-                                put(category.id, !getOrDefault(category.id, false))
-                            }
-                        },
-                        onSubClick = { sub ->
-                            selectedCategory =
-                                SelectedCategory(
-                                    categoryId = category.id,
-                                    categoryName = category.name,
-                                    subCategoryId = sub.id,
-                                    subCategoryName = sub.name
-                                )
-                        },
-                        isSelectedSub = { sub -> sub.id == selectedCategory?.subCategoryId }
-                    )
+                    ExpandableCategoryItem(category = category, isExpanded = expandedMap[category.id] == true, isSelected = selectedCategory?.categoryId == category.id, onToggleExpand = {
+                        expandedMap = expandedMap.toMutableMap().apply {
+                            // 如果存在则取反，不存在则设为true展开
+                            put(category.id, !getOrDefault(category.id, false))
+                        }
+                    }, onSubClick = { sub ->
+                        selectedCategory = SelectedCategory(
+                            categoryId = category.id, categoryName = category.name, subCategoryId = sub.id, subCategoryName = sub.name
+                        )
+                    }, isSelectedSub = { sub -> sub.id == selectedCategory?.subCategoryId })
                 }
             }
         }

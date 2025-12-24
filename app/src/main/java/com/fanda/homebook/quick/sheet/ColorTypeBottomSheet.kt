@@ -49,43 +49,18 @@ data class ColorType(val name: String, val color: Long)
 @Composable
 fun ColorTypeBottomSheet(
     color: ColorType,
-    showBottomSheet: Boolean,
+    visible: () -> Boolean,
     onDismiss: () -> Unit,
     onConfirm: (ColorType) -> Unit
 ) {
-    CustomBottomSheet(visible = showBottomSheet, onDismiss = onDismiss) {
+    CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
         var selected by remember { mutableStateOf(color) }
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 5.dp)
-            ) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center),
-                    style = TextStyle.Default,
-                    text = "颜色",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
-                )
-                TextButton(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 10.dp), onClick = {
-                        onConfirm(selected)
-                        onDismiss()
-                    }) {
-                    Text(
-                        style = TextStyle.Default,
-                        text = "确定",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp
-                    )
-                }
+            SheetTitleWidget(title = "颜色") {
+                onConfirm(selected)
+                onDismiss()
             }
             LazyVerticalGrid(
                 columns = GridCells.Fixed(5),

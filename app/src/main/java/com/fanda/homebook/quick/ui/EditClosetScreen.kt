@@ -32,11 +32,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
+import com.fanda.homebook.entity.QuickShowBottomSheetType
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
 
@@ -50,67 +52,107 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     color: Long = -1,
     season: String = "",
     size: String = "",
+    owner: String = "",
     onCheckedChange: (Boolean) -> Unit,
     onBottomCommentChange: (String) -> Unit,
-    onClosetCategoryClick: (() -> Unit),
-    onProductClick: (() -> Unit),
-    onColorClick: (() -> Unit),
-    onSeasonClick: (() -> Unit),
-    onSizeClick: () -> Unit
+    onClick: (QuickShowBottomSheetType) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     val itemPadding = Modifier.padding(
-        20.dp, 0.dp, 10.dp, 20.dp
+        20.dp, 20.dp, 20.dp, 20.dp
     )
 
     // 包装原始点击事件，先关闭键盘
-    val wrapClick = { original: () -> Unit ->
+    val wrapClick: (QuickShowBottomSheetType, (QuickShowBottomSheetType) -> Unit) -> Unit = { type, original ->
         focusManager.clearFocus()
-        original()
+        original(type)
+
     }
-
-    GradientRoundedBoxWithStroke(modifier = modifier) {
-        Column {
-            ItemOptionMenu(
-                title = "同步至衣橱",
-                showSwitch = true,
-                showRightArrow = false,
-                showDivider = showSyncCloset,
-                checked = showSyncCloset,
-                dividerPadding = 5.dp,
-                modifier = Modifier.padding(
-                    20.dp, 10.dp, 10.dp, if (showSyncCloset) 22.dp else 10.dp
-                ),
-                onCheckedChange = {
-                    Log.d("QuickHomePage", "同步至衣橱：$it")
-                    focusManager.clearFocus()
-                    onCheckedChange(it)
-                },
-            )
-            if (showSyncCloset) {
+    Column {
+        GradientRoundedBoxWithStroke(modifier = modifier) {
+            Column {
                 ItemOptionMenu(
-                    title = "归属", showText = true, rightText = "嘟嘟", showDivider = true, modifier = itemPadding
-                ) {
-                    Log.d("QuickHomePage", "点击了归属")
+                    title = "同步至衣橱",
+                    showSwitch = true,
+                    showRightArrow = false,
+                    showDivider = showSyncCloset,
+                    checked = showSyncCloset,
+                    removeIndication = true,
+                    modifier = Modifier
+                        .height(63.dp)
+                        .padding(horizontal = 20.dp),
+                    onCheckedChange = {
+                        Log.d("QuickHomePage", "同步至衣橱：$it")
+                        focusManager.clearFocus()
+                        onCheckedChange(it)
+                    },
+                )
+                if (showSyncCloset) {
+                    ItemOptionMenu(title = "归属", showText = true, rightText = owner, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.OWNER, onClick) })
+                    SelectTypeWidget(firstType = closetCategory, secondType = closetSubCategory, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.CATEGORY, onClick) })
+                    ItemOptionMenu(title = "颜色",
+                        showColor = true,
+                        inputColor = if (color != -1L) Color(color) else null,
+                        showDivider = true,
+                        modifier = itemPadding,
+                        onClick = { wrapClick(QuickShowBottomSheetType.COLOR, onClick) })
+                    ItemOptionMenu(title = "季节", showText = true, rightText = season, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.SEASON, onClick) })
+                    ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.PRODUCT, onClick) })
+                    ItemOptionMenu(title = "尺寸", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.SIZE, onClick) })
+                    EditCommentsWidget(inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange)
                 }
-                SelectTypeWidget(title = "分类", firstType = closetCategory, secondType = closetSubCategory, modifier = itemPadding, onClick = { wrapClick(onClosetCategoryClick) })
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        GradientRoundedBoxWithStroke(modifier = modifier) {
+            Column {
+                ItemOptionMenu(
+                    title = "同步至囤货",
+                    showSwitch = true,
+                    showRightArrow = false,
+                    showDivider = !showSyncCloset,
+                    removeIndication = true,
+                    checked = !showSyncCloset,
+                    modifier = Modifier
+                        .height(63.dp)
+                        .padding(horizontal = 20.dp),
+                    onCheckedChange = {
+                        onCheckedChange(!it)
+                    },
+                )
+                if (!showSyncCloset) {
+                    ItemOptionMenu(
+                        title = "名称", showTextField = true, showRightArrow = false, removeIndication = true, inputText = "", showDivider = true, modifier = itemPadding
+                    ) {}
 
-                ItemOptionMenu(title = "颜色",
-                    showColor = true,
-                    inputColor = if (color != -1L) Color(color) else null,
-                    showDivider = true,
-                    modifier = itemPadding,
-                    onClick = { wrapClick(onColorClick) })
-                ItemOptionMenu(title = "季节", showText = true, rightText = season, showDivider = true, modifier = itemPadding, onClick = { wrapClick(onSeasonClick) })
-                ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(onProductClick) })
-                ItemOptionMenu(title = "尺寸", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(onSizeClick) })
-                EditCommentsWidget(inputText = bottomComment, modifier = Modifier.padding(20.dp, 0.dp, 10.dp, 0.dp), onValueChange = onBottomCommentChange)
+                    ItemOptionMenu(
+                        title = "品牌", showText = true, rightText = "潘婷", showDivider = true, modifier = itemPadding
+                    ) {
+                        Log.d("QuickHomePage", "点击了归属")
+                    }
+                    ItemOptionMenu(
+                        title = "货架", showText = true, rightText = "梳妆台", showDivider = true, modifier = itemPadding
+                    ) {
+                        Log.d("QuickHomePage", "点击了归属")
+                    }
+                    ItemOptionMenu(
+                        title = "类别", showText = true, rightText = "护发", showDivider = true, modifier = itemPadding
+                    ) {
+                        Log.d("QuickHomePage", "点击了归属")
+                    }
+                    ItemOptionMenu(
+                        title = "使用时段", showText = true, rightText = "全天", showDivider = true, modifier = itemPadding
+                    ) {
+                        Log.d("QuickHomePage", "点击了归属")
+                    }
+                    EditCommentsWidget(inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange)
+                }
             }
         }
     }
 }
 
-@Composable private fun EditCommentsWidget(
+@Composable fun EditCommentsWidget(
     modifier: Modifier = Modifier, inputText: String = "", onValueChange: (String) -> Unit
 ) {
     Column(
@@ -124,7 +166,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
             onValueChange(newText)
         }, singleLine = true, modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 22.dp), keyboardOptions = KeyboardOptions.Default.copy(
+            .padding(top = 8.dp, bottom = 20.dp), keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
         ), textStyle = TextStyle.Default.copy(
             color = colorResource(R.color.color_333333), fontSize = 14.sp, textAlign = TextAlign.Start
@@ -145,40 +187,45 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
 
 @Composable private fun SelectTypeWidget(
-    title: String, firstType: String, secondType: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null
+    firstType: String, secondType: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, dividerPadding: Dp = 20.dp,
 ) {
-    Column(verticalArrangement = Arrangement.Center, modifier = modifier
+    Column(modifier = Modifier
         .fillMaxWidth()
         .clickable(
             // 去掉默认的点击效果
-            interactionSource = remember { MutableInteractionSource() }, indication = null
+//            interactionSource = remember { MutableInteractionSource() }, indication = null
         ) {
             onClick?.invoke()
         }) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            verticalArrangement = Arrangement.Center, modifier = modifier
         ) {
-            Text(
-                style = TextStyle.Default, text = title, color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    style = TextStyle.Default, text = "分类", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.weight(1f))
 
-            if (firstType.isNotEmpty() && secondType.isNotEmpty()) {
-                Text(
-                    style = TextStyle.Default, text = firstType, color = colorResource(R.color.color_333333), fontSize = 16.sp
-                )
-                Image(
-                    painter = painterResource(R.mipmap.icon_right), contentDescription = null, colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
-                )
-                Text(
-                    style = TextStyle.Default, text = secondType, color = colorResource(R.color.color_333333), fontSize = 16.sp
-                )
-                Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+                if (firstType.isNotEmpty() && secondType.isNotEmpty()) {
+                    Text(
+                        style = TextStyle.Default, text = firstType, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                    )
+                    Image(
+                        painter = painterResource(R.mipmap.icon_right), contentDescription = null, colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
+                    )
+                    Text(
+                        style = TextStyle.Default, text = secondType, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                    )
+                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+                } else {
+                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+                }
             }
         }
-        Spacer(modifier = Modifier.padding(top = 20.dp))
         HorizontalDivider(
-            thickness = 0.5.dp, color = colorResource(R.color.color_D9E1EB), modifier = Modifier.padding(end = 10.dp)
+            thickness = 0.5.dp, color = colorResource(R.color.color_D9E1EB), modifier = Modifier.padding(horizontal = dividerPadding)
         )
     }
 }
@@ -190,11 +237,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
             bottomComment = "",
             onCheckedChange = {},
             onBottomCommentChange = {},
-            onClosetCategoryClick = {},
-            onProductClick = {},
-            onColorClick = {},
-            onSeasonClick = {},
-            onSizeClick = {},
+            onClick = {},
         )
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -26,6 +27,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -34,18 +36,16 @@ import com.fanda.homebook.components.CustomTopAppBar
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.entity.QuickShowBottomSheetType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
 import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
-import com.fanda.homebook.quick.sheet.PayWayBottomSheet
-import com.fanda.homebook.quick.sheet.ProductTypeBottomSheet
-import com.fanda.homebook.quick.sheet.SeasonBottomSheet
+import com.fanda.homebook.quick.sheet.GridBottomSheet
+import com.fanda.homebook.quick.sheet.ListBottomSheet
 import com.fanda.homebook.quick.sheet.SelectedCategory
-import com.fanda.homebook.quick.sheet.SizeBottomSheet
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.quick.ui.EditAmountField
 import com.fanda.homebook.quick.ui.EditClosetScreen
-import com.fanda.homebook.quick.ui.EditStockScreen
 import com.fanda.homebook.quick.ui.SelectCategoryGrid
 import com.fanda.homebook.quick.ui.TopTypeSelector
 import com.fanda.homebook.tools.convertMillisToDate
@@ -59,22 +59,18 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var showDateSelect by remember { mutableStateOf(false) }
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var showProductBottomSheet by remember { mutableStateOf(false) }
-    var showColorBottomSheet by remember { mutableStateOf(false) }
-    var showClosetCategoryBottomSheet by remember { mutableStateOf(false) }
-    var showSeasonBottomSheet by remember { mutableStateOf(false) }
-    var showSizeBottomSheet by remember { mutableStateOf(false) }
     var showSyncCloset by remember { mutableStateOf(true) }
-    var showSyncStock by remember { mutableStateOf(false) }
     var bottomClosetComment by remember { mutableStateOf("") }
     var bottomStockComment by remember { mutableStateOf("") }
     var inputText by remember { mutableStateOf("") }
     var payWay by remember { mutableStateOf("微信") }
     var product by remember { mutableStateOf("") }
+    var owner by remember { mutableStateOf("") }
     var color by remember { mutableStateOf(ColorType("", -1L)) }
     var season by remember { mutableStateOf("") }
     var size by remember { mutableStateOf("") }
+
+    var currentShowBottomSheetType by remember { mutableStateOf(QuickShowBottomSheetType.NONE) }
 
     var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
 
@@ -128,6 +124,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         ItemOptionMenu(title = "备注",
                             showRightArrow = false,
                             showTextField = true,
+                            removeIndication = true,
                             modifier = Modifier
                                 .height(64.dp)
                                 .padding(horizontal = 20.dp),
@@ -144,7 +141,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                                 .padding(start = 20.dp, end = 10.dp)
                         ) {
                             focusManager.clearFocus()
-                            showBottomSheet = !showBottomSheet
+                            currentShowBottomSheetType = QuickShowBottomSheetType.PAY_WAY
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -155,36 +152,21 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         product = product,
                         color = color.color,
                         season = season,
+                        owner = owner,
                         size = size,
                         onCheckedChange = {
                             showSyncCloset = it
-                            showSyncStock = !it
                         },
                         onBottomCommentChange = {
-                            bottomClosetComment = it
+                            if (showSyncCloset) {
+                                bottomClosetComment = it
+                            } else {
+                                bottomStockComment = it
+                            }
                         },
-                        onClosetCategoryClick = {
-                            showClosetCategoryBottomSheet = true
-                        },
-                        onProductClick = {
-                            showProductBottomSheet = true
-                        },
-                        onColorClick = {
-                            showColorBottomSheet = true
-                        },
-                        onSeasonClick = {
-                            showSeasonBottomSheet = true
-                        },
-                        onSizeClick = {
-                            showSizeBottomSheet = true
+                        onClick = {
+                            currentShowBottomSheetType = it
                         })
-                    Spacer(modifier = Modifier.height(12.dp))
-                    EditStockScreen(showSyncStock = showSyncStock, bottomComment = bottomStockComment, onCheckedChange = {
-                        showSyncStock = it
-                        showSyncCloset = !it
-                    }, onBottomCommentChange = {
-                        bottomStockComment = it
-                    })
                 }
             }
         }
@@ -202,41 +184,73 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
     }
 
-    PayWayBottomSheet(payWay = payWay, showBottomSheet = showBottomSheet, onDismiss = {
-        showBottomSheet = false
-    }, onConfirm = {
+    ListBottomSheet(initial = payWay,
+        title = "付款方式",
+        dataSource = LocalDataSource.payWayData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PAY_WAY },
+        displayText = { it },
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
         payWay = it
-    })
+    }
 
-    ProductTypeBottomSheet(product = product, showBottomSheet = showProductBottomSheet, onDismiss = {
-        showProductBottomSheet = false
-    }, onConfirm = {
+    ListBottomSheet(initial = product,
+        title = "品牌",
+        dataSource = LocalDataSource.productData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PRODUCT },
+        displayText = { it },
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
         product = it
-    })
+    }
 
-    ColorTypeBottomSheet(color = color, showBottomSheet = showColorBottomSheet, onDismiss = {
-        showColorBottomSheet = false
+    ListBottomSheet(initial = owner,
+        title = "归属",
+        dataSource = LocalDataSource.ownerData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.OWNER },
+        displayText = { it },
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        owner = it
+    }
+
+    GridBottomSheet(initial = owner,
+        title = "尺码",
+        dataSource = LocalDataSource.sizeData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.SIZE },
+        displayText = { it },
+        dpSize = DpSize(52.dp, 36.dp),
+        column = GridCells.Fixed(5),
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        size = it
+    }
+
+    GridBottomSheet(initial = season,
+        title = "季节",
+        dataSource = LocalDataSource.seasonData,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.SEASON },
+        displayText = { it },
+        dpSize = DpSize(66.dp, 36.dp),
+        column = GridCells.Fixed(4),
+        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        season = it
+    }
+
+
+    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == QuickShowBottomSheetType.COLOR }, onDismiss = {
+        currentShowBottomSheetType = QuickShowBottomSheetType.NONE
     }, onConfirm = {
         color = it
     })
 
-    ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData, currentCategory = currentClosetCategory, showBottomSheet = showClosetCategoryBottomSheet, onDismiss = {
-        showClosetCategoryBottomSheet = false
-    }, onConfirm = {
-        currentClosetCategory = it
-    })
+    ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
+        currentCategory = currentClosetCategory,
+        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.CATEGORY },
+        onDismiss = {
+            currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+        },
+        onConfirm = {
+            currentClosetCategory = it
+        })
 
-    SeasonBottomSheet(season = season, showBottomSheet = showSeasonBottomSheet, onDismiss = {
-        showSeasonBottomSheet = false
-    }, onConfirm = {
-        season = it
-    })
 
-    SizeBottomSheet(size = season, showBottomSheet = showSizeBottomSheet, onDismiss = {
-        showSizeBottomSheet = false
-    }, onConfirm = {
-        size = it
-    })
 }
 
 

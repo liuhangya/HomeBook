@@ -57,6 +57,14 @@ object LocalDataSource {
         "冬季",
     )
 
+    val ownerData = listOf(
+        "番茄",
+        "阿凡达",
+        "圆圆",
+        "家庭",
+        "送人",
+    )
+
     val sizeData = listOf(
         "XS",
         "S",

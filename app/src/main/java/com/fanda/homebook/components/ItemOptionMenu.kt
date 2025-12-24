@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +18,10 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -26,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -57,78 +62,92 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     onValueChange: ((String) -> Unit)? = null,
     checked: Boolean = false,
     showDivider: Boolean = false,
+    removeIndication: Boolean = false,
     dividerPadding: Dp = 20.dp,
     onClick: (() -> Unit)? = null
 ) {
 
-    Column(verticalArrangement = Arrangement.Center, modifier = modifier
+    Column(modifier = Modifier
         .fillMaxWidth()
-        .clickable(
-            // 去掉默认的点击效果
-            interactionSource = remember { MutableInteractionSource() }, indication = null
-        ) {
-            onClick?.invoke()
-        }) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                style = TextStyle.Default, text = title, color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            if (showSwitch) {
-                Switch(
-                    modifier = Modifier.scale(0.8f), checked = checked, onCheckedChange = {
-                        onCheckedChange?.invoke(it)
-                    }, colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = Color.Black,
-                        uncheckedThumbColor = Color.White,
-                        uncheckedBorderColor = Color.Transparent,
-                        uncheckedTrackColor = colorResource(R.color.color_CBD4E0),
-                    )
-                )
+        .then(if (removeIndication) {
+            Modifier.clickable(
+                // 去掉默认的点击效果
+                interactionSource = remember { MutableInteractionSource() }, indication = null
+            ) {
+                onClick?.invoke()
             }
-
-            if (showText) {
+        } else {
+            Modifier.clickable {
+                onClick?.invoke()
+            }
+        })) {
+        Column(
+            verticalArrangement = Arrangement.Center, modifier = modifier
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    style = TextStyle.Default, text = rightText, color = colorResource(R.color.color_333333), fontSize = 16.sp, modifier = Modifier.padding(end = if (showRightArrow) 0.dp else 10.dp)
+                    style = TextStyle.Default, text = title, color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
                 )
-            }
+                Spacer(modifier = Modifier.weight(1f))
+                if (showSwitch) {
+                    Switch(
+                        modifier = Modifier.scale(0.8f), checked = checked, onCheckedChange = {
+                            onCheckedChange?.invoke(it)
+                        }, colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color.Black,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedBorderColor = Color.Transparent,
+                            uncheckedTrackColor = colorResource(R.color.color_CBD4E0),
+                        )
+                    )
+                }
 
-            if (showTextField) {
-                BasicTextField(value = inputText, onValueChange = { newText ->
-                    // 否则忽略非法输入
-                    onValueChange?.invoke(newText)
-                }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
-                ), textStyle = TextStyle.Default.copy(
-                    color = colorResource(R.color.color_333333), fontSize = 16.sp, textAlign = TextAlign.End
-                ), decorationBox = { innerTextField ->
-                    Box(contentAlignment = Alignment.CenterEnd) {
-                        // 占位文本
-                        if (inputText.isEmpty()) {
-                            Text(
-                                text = "请输入", color = colorResource(R.color.color_83878C), textAlign = TextAlign.End
-                            )
+                if (showText) {
+                    Text(
+                        style = TextStyle.Default,
+                        text = rightText,
+                        color = colorResource(R.color.color_333333),
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(end = if (showRightArrow) 0.dp else 10.dp)
+                    )
+                }
+
+                if (showTextField) {
+                    BasicTextField(value = inputText, onValueChange = { newText ->
+                        // 否则忽略非法输入
+                        onValueChange?.invoke(newText)
+                    }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
+                    ), textStyle = TextStyle.Default.copy(
+                        color = colorResource(R.color.color_333333), fontSize = 16.sp, textAlign = TextAlign.End
+                    ), decorationBox = { innerTextField ->
+                        Box(contentAlignment = Alignment.CenterEnd) {
+                            // 占位文本
+                            if (inputText.isEmpty()) {
+                                Text(
+                                    text = "请输入", color = colorResource(R.color.color_83878C), textAlign = TextAlign.End
+                                )
+                            }
+                            // 输入框内容
+                            innerTextField()
                         }
-                        // 输入框内容
-                        innerTextField()
-                    }
-                })
-            }
+                    })
+                }
 
-            if (showColor && inputColor != null) {
-                ColoredCircleWithBorder(color = inputColor)
-            }
+                if (showColor && inputColor != null) {
+                    ColoredCircleWithBorder(color = inputColor)
+                }
 
-            if (showRightArrow) {
-                Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+                if (showRightArrow) {
+                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+                }
             }
         }
         if (showDivider) {
-            Spacer(modifier = Modifier.padding(top = dividerPadding))
-            HorizontalDivider(thickness = 0.5.dp, color = colorResource(R.color.color_D9E1EB), modifier = Modifier.padding(end = 10.dp))
+            HorizontalDivider(thickness = 0.5.dp, color = colorResource(R.color.color_D9E1EB), modifier = Modifier.padding(horizontal = dividerPadding))
         }
     }
 
