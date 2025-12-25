@@ -4,6 +4,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,17 +14,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -39,6 +50,7 @@ import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.QuickShowBottomSheetType
+import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
 import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
@@ -77,6 +89,7 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
     var stockCategory by remember { mutableStateOf("") }
     var period by remember { mutableStateOf("") }
     var stockProduct by remember { mutableStateOf("") }
+    var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
 
     var currentShowBottomSheetType by remember { mutableStateOf(QuickShowBottomSheetType.NONE) }
 
@@ -86,6 +99,20 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
     val focusManager = LocalFocusManager.current
 
     val context = LocalContext.current
+
+    fun getCategoryData() = when (transactionType) {
+        TransactionType.EXPENSE -> {
+            LocalDataSource.expenseCategoryData
+        }
+
+        TransactionType.INCOME -> {
+            LocalDataSource.incomeCategoryData
+        }
+
+        TransactionType.EXCLUDED -> {
+            LocalDataSource.excludeCategoryData
+        }
+    }
 
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
@@ -126,13 +153,19 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    TopTypeSelector(onDateClick = {
-                        showDateSelect = true
-                    }, date = date)
+                    TopTypeSelector(
+                        transactionType = transactionType,
+                        date = date,
+                        onDateClick = {
+                            showDateSelect = true
+                        },
+                        onTypeChange = {
+                            transactionType = it
+                        })
                     Spacer(modifier = Modifier.height(20.dp))
                     EditAmountField()
                     Spacer(modifier = Modifier.height(12.dp))
-                    SelectCategoryGrid()
+                    SelectCategoryGrid(items = getCategoryData())
                     Spacer(modifier = Modifier.height(12.dp))
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
@@ -194,7 +227,8 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
                         },
                         onClick = {
                             if (it == QuickShowBottomSheetType.STOCK_CATEGORY && goodsRack.isEmpty()) {
-                                Toast.makeText(context, "请先选择货架", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "请先选择货架", Toast.LENGTH_SHORT)
+                                    .show()
                             } else {
                                 currentShowBottomSheetType = it
                             }
@@ -309,7 +343,7 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
         visible = { currentShowBottomSheetType == QuickShowBottomSheetType.GOODS_RACK },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
-        if (goodsRack != it){
+        if (goodsRack != it) {
             // 切换货架时，清空商品
             stockCategory = ""
         }
@@ -336,6 +370,8 @@ fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
         onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
         period = it
     }
+
+
 }
 
 

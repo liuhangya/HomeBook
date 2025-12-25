@@ -1,28 +1,45 @@
 package com.fanda.homebook.data
 
-import androidx.compose.ui.graphics.Color
 import com.fanda.homebook.R
-import com.fanda.homebook.entity.ExpenseCategory
+import com.fanda.homebook.entity.TransactionCategory
+import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.quick.sheet.Category
 import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.SubCategory
 
 object LocalDataSource {
     val expenseCategoryData = listOf(
-        ExpenseCategory("保险", R.mipmap.icon_insurance),
-        ExpenseCategory("餐饮", R.mipmap.icon_dining),
-        ExpenseCategory("发红包", R.mipmap.icon_red_envelope),
-        ExpenseCategory("服饰", R.mipmap.icon_clothing),
-        ExpenseCategory("服务", R.mipmap.icon_services),
-        ExpenseCategory("购物", R.mipmap.icon_shopping),
-        ExpenseCategory("护肤", R.mipmap.icon_skincare),
-        ExpenseCategory("交通", R.mipmap.icon_traffic),
-        ExpenseCategory("旅行", R.mipmap.icon_travel),
-        ExpenseCategory("其他", R.mipmap.icon_others),
-        ExpenseCategory("人情", R.mipmap.icon_social),
-        ExpenseCategory("生活", R.mipmap.icon_daily),
-        ExpenseCategory("医疗", R.mipmap.icon_health),
-        ExpenseCategory("娱乐", R.mipmap.icon_play),
+        TransactionCategory("餐饮", R.mipmap.icon_dining , TransactionType.EXPENSE),
+        TransactionCategory("交通", R.mipmap.icon_traffic, TransactionType.EXPENSE),
+        TransactionCategory("服饰", R.mipmap.icon_clothing, TransactionType.EXPENSE),
+        TransactionCategory("护肤", R.mipmap.icon_skincare, TransactionType.EXPENSE),
+        TransactionCategory("购物", R.mipmap.icon_shopping, TransactionType.EXPENSE),
+        TransactionCategory("服务", R.mipmap.icon_services, TransactionType.EXPENSE),
+        TransactionCategory("医疗", R.mipmap.icon_health, TransactionType.EXPENSE),
+        TransactionCategory("娱乐", R.mipmap.icon_play, TransactionType.EXPENSE),
+        TransactionCategory("生活", R.mipmap.icon_daily, TransactionType.EXPENSE),
+        TransactionCategory("旅行", R.mipmap.icon_travel, TransactionType.EXPENSE),
+        TransactionCategory("保险", R.mipmap.icon_insurance , TransactionType.EXPENSE),
+        TransactionCategory("发红包", R.mipmap.icon_red_envelope, TransactionType.EXPENSE),
+        TransactionCategory("人情", R.mipmap.icon_social, TransactionType.EXPENSE),
+        TransactionCategory("其他", R.mipmap.icon_others, TransactionType.EXPENSE),
+        TransactionCategory("其他1", R.mipmap.icon_others, TransactionType.EXPENSE),
+        TransactionCategory("其他2", R.mipmap.icon_others, TransactionType.EXPENSE),
+        TransactionCategory("其他3", R.mipmap.icon_others, TransactionType.EXPENSE),
+    )
+
+    val incomeCategoryData = listOf(
+        TransactionCategory("工资", R.mipmap.icon_salary , TransactionType.INCOME),
+        TransactionCategory("收红包", R.mipmap.icon_get_money , TransactionType.INCOME),
+        TransactionCategory("人情", R.mipmap.icon_social, TransactionType.INCOME),
+        TransactionCategory("奖金", R.mipmap.icon_bonus, TransactionType.INCOME),
+        TransactionCategory("其他", R.mipmap.icon_others, TransactionType.INCOME),
+    )
+
+    val excludeCategoryData = listOf(
+        TransactionCategory("理财", R.mipmap.icon_finance , TransactionType.EXCLUDED),
+        TransactionCategory("借还款", R.mipmap.icon_debts , TransactionType.EXCLUDED),
+        TransactionCategory("其他", R.mipmap.icon_others, TransactionType.EXCLUDED),
     )
 
     val payWayData = listOf(

@@ -14,14 +14,29 @@ import com.fanda.homebook.R
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.entity.TransactionType
 
-@Composable fun TopTypeSelector(modifier: Modifier = Modifier,onDateClick: () -> Unit = {},date: String ) {
-    var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
+@Composable
+fun TopTypeSelector(
+    transactionType: TransactionType,
+    date: String,
+    modifier: Modifier = Modifier,
+    onDateClick: () -> Unit = {},
+    onTypeChange: (TransactionType) -> Unit
+) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier
     ) {
-        SelectableRoundedButton(text = "支出", selected = selectedType == TransactionType.EXPENSE, onClick = { selectedType = TransactionType.EXPENSE })
-        SelectableRoundedButton(text = "入账", selected = selectedType == TransactionType.INCOME, onClick = { selectedType = TransactionType.INCOME })
-        SelectableRoundedButton(text = "不计入收支", selected = selectedType == TransactionType.EXCLUDED, onClick = { selectedType = TransactionType.EXCLUDED })
+        SelectableRoundedButton(
+            text = "支出",
+            selected = transactionType == TransactionType.EXPENSE,
+            onClick = { onTypeChange(TransactionType.EXPENSE) })
+        SelectableRoundedButton(
+            text = "入账",
+            selected = transactionType == TransactionType.INCOME,
+            onClick = { onTypeChange(TransactionType.INCOME) })
+        SelectableRoundedButton(
+            text = "不计入收支",
+            selected = transactionType == TransactionType.EXCLUDED,
+            onClick = { onTypeChange(TransactionType.EXCLUDED) })
         Spacer(modifier = Modifier.weight(1f))
         SelectableRoundedButton(
             text = date, selected = false, onClick = onDateClick, imageRes = R.mipmap.icon_down
