@@ -49,6 +49,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     HomeBookTheme {
-
+        Surface(
+            modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+        ) {
+            HomeBookApp()
+        }
     }
 }

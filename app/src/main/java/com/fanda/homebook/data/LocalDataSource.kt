@@ -1,15 +1,17 @@
 package com.fanda.homebook.data
 
 import com.fanda.homebook.R
+import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.entity.TransactionCategory
 import com.fanda.homebook.entity.TransactionType
+import com.fanda.homebook.entity.UserEntity
 import com.fanda.homebook.quick.sheet.Category
 import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.SubCategory
 
 object LocalDataSource {
     val expenseCategoryData = listOf(
-        TransactionCategory("餐饮", R.mipmap.icon_dining , TransactionType.EXPENSE),
+        TransactionCategory("餐饮", R.mipmap.icon_dining, TransactionType.EXPENSE),
         TransactionCategory("交通", R.mipmap.icon_traffic, TransactionType.EXPENSE),
         TransactionCategory("服饰", R.mipmap.icon_clothing, TransactionType.EXPENSE),
         TransactionCategory("护肤", R.mipmap.icon_skincare, TransactionType.EXPENSE),
@@ -19,7 +21,7 @@ object LocalDataSource {
         TransactionCategory("娱乐", R.mipmap.icon_play, TransactionType.EXPENSE),
         TransactionCategory("生活", R.mipmap.icon_daily, TransactionType.EXPENSE),
         TransactionCategory("旅行", R.mipmap.icon_travel, TransactionType.EXPENSE),
-        TransactionCategory("保险", R.mipmap.icon_insurance , TransactionType.EXPENSE),
+        TransactionCategory("保险", R.mipmap.icon_insurance, TransactionType.EXPENSE),
         TransactionCategory("发红包", R.mipmap.icon_red_envelope, TransactionType.EXPENSE),
         TransactionCategory("人情", R.mipmap.icon_social, TransactionType.EXPENSE),
         TransactionCategory("其他", R.mipmap.icon_others, TransactionType.EXPENSE),
@@ -29,16 +31,16 @@ object LocalDataSource {
     )
 
     val incomeCategoryData = listOf(
-        TransactionCategory("工资", R.mipmap.icon_salary , TransactionType.INCOME),
-        TransactionCategory("收红包", R.mipmap.icon_get_money , TransactionType.INCOME),
+        TransactionCategory("工资", R.mipmap.icon_salary, TransactionType.INCOME),
+        TransactionCategory("收红包", R.mipmap.icon_get_money, TransactionType.INCOME),
         TransactionCategory("人情", R.mipmap.icon_social, TransactionType.INCOME),
         TransactionCategory("奖金", R.mipmap.icon_bonus, TransactionType.INCOME),
         TransactionCategory("其他", R.mipmap.icon_others, TransactionType.INCOME),
     )
 
     val excludeCategoryData = listOf(
-        TransactionCategory("理财", R.mipmap.icon_finance , TransactionType.EXCLUDED),
-        TransactionCategory("借还款", R.mipmap.icon_debts , TransactionType.EXCLUDED),
+        TransactionCategory("理财", R.mipmap.icon_finance, TransactionType.EXCLUDED),
+        TransactionCategory("借还款", R.mipmap.icon_debts, TransactionType.EXCLUDED),
         TransactionCategory("其他", R.mipmap.icon_others, TransactionType.EXCLUDED),
     )
 
@@ -138,83 +140,102 @@ object LocalDataSource {
     )
 
     val closetCategoryData = listOf(
-        Category("1", "上装", listOf(
-            SubCategory("1-1", "打底"),
-            SubCategory("1-2", "毛衣"),
-            SubCategory("1-3", "T恤"),
-            SubCategory("1-4", "卫衣"),
-            SubCategory("1-5", "外套"),
-            SubCategory("1-6", "开衫"),
-            SubCategory("1-7", "大衣"),
-            SubCategory("1-8", "羽绒服")
-        )),
-        Category("2", "下装", listOf(
-            SubCategory("2-1", "休闲裤"),
-            SubCategory("2-2", "牛仔裤"),
-            SubCategory("2-3", "运动裤"),
-            SubCategory("2-4", "打底裤"),
-            SubCategory("2-5", "半身裙"),
-            SubCategory("2-6", "短裤"),
-            SubCategory("2-7", "短裙"),
-            SubCategory("2-8", "西装裤"),
-        )),
-        Category("3", "鞋靴", listOf(
-            SubCategory("3-1", "皮鞋"),
-            SubCategory("3-2", "帆布鞋"),
-            SubCategory("3-3", "单鞋"),
-            SubCategory("3-4", "短靴"),
-            SubCategory("3-5", "长筒靴"),
-        )),
-        Category("4", "包包", listOf(
-            SubCategory("4-1", "钱包"),
-            SubCategory("4-2", "斜挎包"),
-            SubCategory("4-3", "背包"),
-            SubCategory("4-4", "妈妈包"),
-            SubCategory("4-5", "手提包"),
-            SubCategory("4-6", "箱包")
-        )),
-        Category("5", "配饰", listOf(
-            SubCategory("5-1", "帽子"),
-            SubCategory("5-2", "围巾"),
-            SubCategory("5-3", "项链"),
-            SubCategory("5-4", "眼镜"),
-            SubCategory("5-5", "手表")
-        ))
+        Category(
+            "1", "上装", listOf(
+                SubCategory("1-1", "打底"),
+                SubCategory("1-2", "毛衣"),
+                SubCategory("1-3", "T恤"),
+                SubCategory("1-4", "卫衣"),
+                SubCategory("1-5", "外套"),
+                SubCategory("1-6", "开衫"),
+                SubCategory("1-7", "大衣"),
+                SubCategory("1-8", "羽绒服")
+            )
+        ), Category(
+            "2", "下装", listOf(
+                SubCategory("2-1", "休闲裤"),
+                SubCategory("2-2", "牛仔裤"),
+                SubCategory("2-3", "运动裤"),
+                SubCategory("2-4", "打底裤"),
+                SubCategory("2-5", "半身裙"),
+                SubCategory("2-6", "短裤"),
+                SubCategory("2-7", "短裙"),
+                SubCategory("2-8", "西装裤"),
+            )
+        ), Category(
+            "3", "鞋靴", listOf(
+                SubCategory("3-1", "皮鞋"),
+                SubCategory("3-2", "帆布鞋"),
+                SubCategory("3-3", "单鞋"),
+                SubCategory("3-4", "短靴"),
+                SubCategory("3-5", "长筒靴"),
+            )
+        ), Category(
+            "4", "包包", listOf(
+                SubCategory("4-1", "钱包"), SubCategory("4-2", "斜挎包"), SubCategory("4-3", "背包"), SubCategory("4-4", "妈妈包"), SubCategory("4-5", "手提包"), SubCategory("4-6", "箱包")
+            )
+        ), Category(
+            "5", "配饰", listOf(
+                SubCategory("5-1", "帽子"), SubCategory("5-2", "围巾"), SubCategory("5-3", "项链"), SubCategory("5-4", "眼镜"), SubCategory("5-5", "手表")
+            )
+        )
     )
 
     val stockCategoryData = listOf(
-        Category("1", "梳妆台", listOf(
-            SubCategory("1-1", "洁面"),
-            SubCategory("1-2", "水"),
-            SubCategory("1-3", "乳液"),
-            SubCategory("1-4", "精华"),
-            SubCategory("1-5", "面霜"),
-            SubCategory("1-6", "眼霜"),
-            SubCategory("1-7", "面膜"),
-            SubCategory("1-8", "防晒"),
-            SubCategory("1-8", "底妆"),
-            SubCategory("1-8", "唇膏"),
-            SubCategory("1-8", "眼影"),
-            SubCategory("1-8", "润肤"),
-        )),
-        Category("2", "米面粮油", listOf(
-            SubCategory("2-1", "零食"),
-            SubCategory("2-2", "主食"),
-            SubCategory("2-3", "调料"),
-        )),
-        Category("3", "日用百货", listOf(
-            SubCategory("3-1", "纸巾"),
-            SubCategory("3-2", "面巾"),
-            SubCategory("3-3", "洗头"),
-            SubCategory("3-4", "洗澡"),
-            SubCategory("3-5", "洗衣"),
-            SubCategory("3-5", "护发"),
-            SubCategory("3-5", "片剂"),
-        )),
-        Category("4", "圆圆", listOf(
-            SubCategory("4-1", "护肤"),
-            SubCategory("4-2", "补剂"),
-        )),
+        Category(
+            "1", "梳妆台", listOf(
+                SubCategory("1-1", "洁面"),
+                SubCategory("1-2", "水"),
+                SubCategory("1-3", "乳液"),
+                SubCategory("1-4", "精华"),
+                SubCategory("1-5", "面霜"),
+                SubCategory("1-6", "眼霜"),
+                SubCategory("1-7", "面膜"),
+                SubCategory("1-8", "防晒"),
+                SubCategory("1-8", "底妆"),
+                SubCategory("1-8", "唇膏"),
+                SubCategory("1-8", "眼影"),
+                SubCategory("1-8", "润肤"),
+            )
+        ),
+        Category(
+            "2", "米面粮油", listOf(
+                SubCategory("2-1", "零食"),
+                SubCategory("2-2", "主食"),
+                SubCategory("2-3", "调料"),
+            )
+        ),
+        Category(
+            "3", "日用百货", listOf(
+                SubCategory("3-1", "纸巾"),
+                SubCategory("3-2", "面巾"),
+                SubCategory("3-3", "洗头"),
+                SubCategory("3-4", "洗澡"),
+                SubCategory("3-5", "洗衣"),
+                SubCategory("3-5", "护发"),
+                SubCategory("3-5", "片剂"),
+            )
+        ),
+        Category(
+            "4", "圆圆", listOf(
+                SubCategory("4-1", "护肤"),
+                SubCategory("4-2", "补剂"),
+            )
+        ),
     )
+
+    //  =========================== 衣橱
+    val closetGridList = mutableListOf<ClosetGridEntity>().apply {
+        repeat(20) {
+            add(
+                ClosetGridEntity(
+                    name = "上装", count = 10, photoUrl = ""
+                )
+            )
+        }
+    }
+    // 用户列表
+    val userList = mutableListOf(UserEntity(1,"番茄"),UserEntity(2,"阿凡达"),UserEntity(3,"圆圆"),
+        UserEntity(4,"家庭"),UserEntity(5,"送人"))
 }
 

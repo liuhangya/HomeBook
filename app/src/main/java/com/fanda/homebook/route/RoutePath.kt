@@ -21,6 +21,8 @@ sealed class RoutePath(val route: String) {
 
     data object ClosetHome : RoutePath("closet_graph/closet_home")
 
+    data object ClosetEditCategory : RoutePath("closet_graph/closet_edit_category")
+
     data object StockHome : RoutePath("stock_graph/stock_home")
 
     // 全局页面（不属于任何 Tab）
@@ -29,16 +31,10 @@ sealed class RoutePath(val route: String) {
 
 // 所有 Tab 对应的 Graph route（用于判断是否在 Tab 内）
 val bottomTabGraphs = setOf(
-    RoutePath.BookGraph.route,
-    RoutePath.DashboardGraph.route,
-    RoutePath.ClosetGraph.route,
-    RoutePath.StockGraph.route
+    RoutePath.BookGraph.route, RoutePath.DashboardGraph.route, RoutePath.ClosetGraph.route, RoutePath.StockGraph.route
 )
 
 // 所有 Tab 的“根页面” route（用于判断是否应拦截返回键和显示底部导航栏）
 val tabRootRoutes = setOf(
-    RoutePath.BookHome.route,
-    RoutePath.DashboardHome.route,
-    RoutePath.ClosetHome.route,
-    RoutePath.StockHome.route
+    RoutePath.BookHome.route, RoutePath.DashboardHome.route, RoutePath.ClosetHome.route, RoutePath.StockHome.route
 )

@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
+
 // ✅ 校验函数：只允许 "123", "12.34", ".5", "0.1" 等格式
 fun isValidDecimalInput(text: String): Boolean {
     if (text.isEmpty()) return true
