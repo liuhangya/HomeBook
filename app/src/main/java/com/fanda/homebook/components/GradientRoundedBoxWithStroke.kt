@@ -3,6 +3,7 @@ package com.fanda.homebook.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ import com.fanda.homebook.R
     val shape = RoundedCornerShape(cornerRadius)
     Box(
         modifier = modifier
+            .fillMaxWidth()
             .clip(shape) // 裁剪内容，防止溢出圆角
             .background(Brush.verticalGradient(colors = colors)) // 垂直渐变色
             .border(

@@ -229,7 +229,7 @@ object LocalDataSource {
         repeat(20) {
             add(
                 ClosetGridEntity(
-                    name = "上装", count = 10, photoUrl = ""
+                    name = "上装$it", count = 10, photoUrl = ""
                 )
             )
         }

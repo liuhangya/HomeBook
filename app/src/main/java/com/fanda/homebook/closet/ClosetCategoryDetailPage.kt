@@ -18,13 +18,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,13 +47,17 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
+import com.fanda.homebook.closet.ui.UserDropdownMenu
 import com.fanda.homebook.components.CustomTopAppBar
 import com.fanda.homebook.components.DragLazyColumn
 import com.fanda.homebook.components.EditDialog
@@ -60,25 +68,40 @@ import com.fanda.homebook.route.RoutePath
 
 /*
 *
-* 衣橱页面
+* 衣橱详情页面
 * */
-@Composable fun EditClosetCategoryPage(modifier: Modifier = Modifier, navController: NavController) {
+@OptIn(ExperimentalMaterial3Api::class) @Composable fun ClosetCategoryDetailPage(modifier: Modifier = Modifier, navController: NavController) {
     var showDialog by remember { mutableStateOf(false) }
     var category by remember { mutableStateOf(ClosetGridEntity("", 0, "")) }
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
-        CustomTopAppBar(
-            title = "自定义分类",
-            onBackClick = {
-                navController.navigateUp()
-            },
-            rightIconPainter = painterResource(R.mipmap.icon_add_grady),
-            onRightActionClick = {
-                showDialog = true
-            },
-            backIconPainter = painterResource(R.mipmap.icon_back),
-        )
+        TopAppBar(navigationIcon =  { Image(painter = painterResource(id = R.mipmap.icon_back) , contentDescription = null)}, title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+                    .height(56.dp)
 
-
+                    .zIndex(1f)
+            ) {
+                Text(text = "上装", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black)
+                Image(modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null)
+            }
+        }, colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent), actions = {
+            Image(
+                modifier = Modifier.clickable(
+                    // 去掉默认的点击效果
+                    interactionSource = remember { MutableInteractionSource() }, indication = null
+                ) {
+                    Log.d("ClosetHomePage", "点击了添加按钮")
+                }, painter = painterResource(id = R.mipmap.icon_add_grady), contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            Image(
+                modifier = Modifier.clickable(
+                    // 去掉默认的点击效果
+                    interactionSource = remember { MutableInteractionSource() }, indication = null
+                ) {
+                }, painter = painterResource(id = R.mipmap.icon_edit_menu), contentDescription = null
+            )
+        }, modifier = Modifier.padding(end = 20.dp))
     }) { padding ->
 //        CategoryListWidget(Modifier.padding(padding), onItemClick = {
 //            category = it
@@ -173,16 +196,14 @@ import com.fanda.homebook.route.RoutePath
                             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                                 Log.d("EditClosetCategoryPage", "点击了拖动： $it")
                             })
-
                 }
             }
         }
     }
 }
 
-
-@Composable @Preview(showBackground = true) fun EditClosetCategoryPagePreview() {
-    EditClosetCategoryPage(
+@Composable @Preview(showBackground = true) fun ClosetCategoryDetailPagePreview() {
+    ClosetCategoryDetailPage(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding(), navController = rememberNavController()
