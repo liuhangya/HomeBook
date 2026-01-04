@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,6 +55,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     inputText: String = "",
     showSwitch: Boolean = false,
     showText: Boolean = false,
+    showPlus: Boolean = false,
     showTextField: Boolean = false,
     showRightArrow: Boolean = true,
     showColor: Boolean = false,
@@ -64,7 +66,12 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     showDivider: Boolean = false,
     removeIndication: Boolean = false,
     dividerPadding: Dp = 20.dp,
-    onClick: (() -> Unit)? = null
+    showInputTextUnit: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(
+        keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
+    ),
+    onClick: (() -> Unit)? = null,
+    onPlusClick: (() -> Unit)? = null,
 ) {
 
     Column(modifier = Modifier
@@ -114,25 +121,31 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         modifier = Modifier.padding(end = if (showRightArrow) 0.dp else 10.dp)
                     )
                 }
+                if (showPlus) {
+                    SelectableRoundedButton(text = "+1", selected = false, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 5.dp), onClick = { onPlusClick?.invoke() })
+                }
 
                 if (showTextField) {
                     BasicTextField(value = inputText, onValueChange = { newText ->
                         // 否则忽略非法输入
                         onValueChange?.invoke(newText)
-                    }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
-                    ), textStyle = TextStyle.Default.copy(
+                    }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = keyboardOptions, textStyle = TextStyle.Default.copy(
                         color = colorResource(R.color.color_333333), fontSize = 16.sp, textAlign = TextAlign.End
                     ), decorationBox = { innerTextField ->
-                        Box(contentAlignment = Alignment.CenterEnd) {
-                            // 占位文本
-                            if (inputText.isEmpty()) {
-                                Text(
-                                    text = "请输入", color = colorResource(R.color.color_83878C), textAlign = TextAlign.End
-                                )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(contentAlignment = Alignment.CenterEnd) {
+                                // 占位文本
+                                if (inputText.isEmpty()) {
+                                    Text(
+                                        text = "请输入", color = colorResource(R.color.color_83878C), textAlign = TextAlign.End
+                                    )
+                                }
+                                // 输入框内容
+                                innerTextField()
                             }
-                            // 输入框内容
-                            innerTextField()
+                            if (showInputTextUnit) {
+                                Text(text = " 元", color = colorResource(R.color.color_333333), fontSize = 16.sp)
+                            }
                         }
                     })
                 }
@@ -142,7 +155,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 }
 
                 if (showRightArrow) {
-                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null,modifier = Modifier.padding(start = 9.dp))
+                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null, modifier = Modifier.padding(start = 9.dp))
                 }
             }
         }
@@ -172,10 +185,10 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         ItemOptionMenu(
             "付款方式",
             modifier = Modifier.padding(16.dp),
-            showRightArrow = true,
-            showTextField = false,
+            showRightArrow = false,
+            showTextField = true,
             showColor = false,
-            showText = true,
+            showText = false,
             inputText = "山姆",
             rightText = "测试",
             inputColor = Color.Red

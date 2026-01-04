@@ -1,43 +1,62 @@
-package com.fanda.homebook.quick
+package com.fanda.homebook.closet
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -46,7 +65,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.fanda.homebook.R
+import com.fanda.homebook.closet.ui.ClosetInfoScreen
+import com.fanda.homebook.components.EditCommentsWidget
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
@@ -65,34 +87,26 @@ import com.fanda.homebook.quick.ui.EditClosetScreen
 import com.fanda.homebook.quick.ui.SelectCategoryGrid
 import com.fanda.homebook.quick.ui.TopTypeSelector
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import kotlinx.coroutines.launch
 
 
 /*
-* 记一笔页面
+* 添加衣橱页面
 * */
-@Composable fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
-
+@Composable fun AddClosetPage(modifier: Modifier = Modifier, navController: NavController) {
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
-    var showDateSelect by remember { mutableStateOf(false) }
-    var showSyncCloset by remember { mutableStateOf(true) }
-    var bottomClosetComment by remember { mutableStateOf("") }
-    var bottomStockComment by remember { mutableStateOf("") }
-    var inputText by remember { mutableStateOf("") }
-    var payWay by remember { mutableStateOf("微信") }
+    var comment by remember { mutableStateOf("") }
+    var syncBook by remember { mutableStateOf(true) }
+    var wearCount by remember { mutableIntStateOf(1) }
     var product by remember { mutableStateOf("") }
     var owner by remember { mutableStateOf("") }
     var color by remember { mutableStateOf(ColorType("", -1L)) }
     var season by remember { mutableStateOf("") }
     var size by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var goodsRack by remember { mutableStateOf("") }
-    var stockCategory by remember { mutableStateOf("") }
-    var period by remember { mutableStateOf("") }
-    var stockProduct by remember { mutableStateOf("") }
-    var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
+    var price by remember { mutableStateOf("") }
 
     var currentShowBottomSheetType by remember { mutableStateOf(QuickShowBottomSheetType.NONE) }
 
@@ -104,28 +118,20 @@ import kotlinx.coroutines.launch
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
 
-    val context = LocalContext.current
-
-    fun getCategoryData() = when (transactionType) {
-        TransactionType.EXPENSE -> {
-            LocalDataSource.expenseCategoryData
-        }
-
-        TransactionType.INCOME -> {
-            LocalDataSource.incomeCategoryData
-        }
-
-        TransactionType.EXCLUDED -> {
-            LocalDataSource.excludeCategoryData
-        }
-    }
-
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), snackbarHost = {
         SnackbarHost(hostState = snackBarHostState)
+    }, floatingActionButton = {
+        FloatingActionButton(containerColor = Color.Black, contentColor = Color.White, onClick = {
+            scope.launch {
+                snackBarHostState.showSnackbar("不穿了")
+            }
+        }) {
+            Text(text = "不穿了", modifier = Modifier.padding(0.dp))
+        }
     }, topBar = {
         TopIconAppBar(
-            title = "记一笔",
+            title = "单品信息",
             onBackClick = {
                 navController.navigateUp()
             },
@@ -158,102 +164,72 @@ import kotlinx.coroutines.launch
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp)
+                        .padding(start = 20.dp, top = 0.dp, end = 20.dp, bottom = 20.dp)
                 ) {
-                    TopTypeSelector(transactionType = transactionType, date = date, onDateClick = {
-                        showDateSelect = true
-                    }, onTypeChange = {
-                        transactionType = it
-                    })
+                    AsyncImage(
+                        contentScale = ContentScale.Crop,
+                        model = R.mipmap.bg_closet_dufault,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .padding(horizontal = 20.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                    )
+
                     Spacer(modifier = Modifier.height(20.dp))
-                    EditAmountField()
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SelectCategoryGrid(items = getCategoryData())
-                    Spacer(modifier = Modifier.height(12.dp))
-                    GradientRoundedBoxWithStroke {
-                        ItemOptionMenu(title = "备注",
-                            showRightArrow = false,
-                            showTextField = true,
-                            removeIndication = true,
-                            modifier = Modifier
-                                .height(64.dp)
-                                .padding(horizontal = 20.dp),
-                            inputText = inputText,
-                            onValueChange = {
-                                inputText = it
-                            })
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
-                            title = "付款方式", rightText = payWay, showText = true, modifier = Modifier
+                            title = "归属", rightText = owner, showText = true, modifier = Modifier
                                 .height(64.dp)
                                 .padding(start = 20.dp, end = 20.dp)
                         ) {
                             focusManager.clearFocus()
-                            currentShowBottomSheetType = QuickShowBottomSheetType.PAY_WAY
+                            currentShowBottomSheetType = QuickShowBottomSheetType.OWNER
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    EditClosetScreen(showSyncCloset = showSyncCloset,
-                        bottomComment = bottomClosetComment,
+                    WearCountAndCost(price, wearCount) {
+                        focusManager.clearFocus()
+                        wearCount++
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ClosetInfoScreen(bottomComment = comment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
                         product = product,
                         color = color.color,
                         season = season,
-                        owner = owner,
+                        date = date,
+                        syncBook = syncBook,
                         size = size,
-                        name = name,
-                        goodsRack = goodsRack,
-                        stockCategory = stockCategory,
-                        period = period,
-                        stockProduct = stockProduct,
-                        bottomStockComment = bottomStockComment,
+                        price = price,
                         onCheckedChange = {
-                            showSyncCloset = it
+                            syncBook = it
+                            LogUtils.d("同步至当日账单： $it")
                         },
                         onBottomCommentChange = {
-                            if (showSyncCloset) {
-                                bottomClosetComment = it
-                            } else {
-                                bottomStockComment = it
-                            }
+                            comment = it
                         },
-                        onNameChange = {
-                            name = it
+                        onPriceChange = {
+                            price = it
                         },
                         onClick = {
-                            if (it == QuickShowBottomSheetType.STOCK_CATEGORY && goodsRack.isEmpty()) {
-                                Toast.makeText(context, "请先选择货架", Toast.LENGTH_SHORT).show()
-                            } else {
-                                currentShowBottomSheetType = it
-                            }
+                            currentShowBottomSheetType = it
                         })
                 }
             }
         }
-
-        if (showDateSelect) {
-            // 日期选择器
-            CustomDatePickerModal(onDateSelected = {
-                Log.d("QuickHomePage", "选择日期：${it}")
-                date = convertMillisToDate(it ?: System.currentTimeMillis())
-            }, onDismiss = {
-                Log.d("QuickHomePage", "取消选择日期")
-                showDateSelect = false
-            })
-        }
-
     }
 
-    ListBottomSheet(initial = payWay,
-        title = "付款方式",
-        dataSource = LocalDataSource.payWayData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PAY_WAY },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
-        payWay = it
+    if (currentShowBottomSheetType == QuickShowBottomSheetType.BUY_DATE) {
+        // 日期选择器
+        CustomDatePickerModal(onDateSelected = {
+            date = convertMillisToDate(it ?: System.currentTimeMillis(), "yyyy-MM-dd")
+        }, onDismiss = {
+            currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+        })
     }
 
     ListBottomSheet(initial = product,
@@ -313,52 +289,34 @@ import kotlinx.coroutines.launch
             currentClosetCategory = it
         })
 
-    ListBottomSheet(initial = stockProduct,
-        title = "品牌",
-        dataSource = LocalDataSource.productData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.STOCK_PRODUCT },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
-        stockProduct = it
-    }
 
-    ListBottomSheet(initial = goodsRack,
-        title = "货架",
-        dataSource = LocalDataSource.goodsRackData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.GOODS_RACK },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
-        if (goodsRack != it) {
-            // 切换货架时，清空商品
-            stockCategory = ""
+}
+
+@Composable fun WearCountAndCost(price: String, wearCount: Int, modifier: Modifier = Modifier, onPlusClick: (() -> Unit)) {
+    val itemPadding = Modifier.padding(
+        20.dp, 20.dp, 20.dp, 20.dp
+    )
+    val showPrice = if (price.isEmpty()) {
+        ""
+    } else {
+        "${String.format("%.1f", price.toFloat() / wearCount)}元/次"
+    }
+    GradientRoundedBoxWithStroke(modifier = modifier) {
+        Column {
+            ItemOptionMenu(
+                title = "穿着次数：${wearCount}次", showText = true, showRightArrow = false, rightText = "", showPlus = true, showDivider = true, modifier = itemPadding, onPlusClick = onPlusClick
+            )
+
+            ItemOptionMenu(
+                title = "穿着成本", showText = true, rightText = showPrice, showDivider = false, showRightArrow = false, modifier = itemPadding
+            )
         }
-        goodsRack = it
     }
-
-    ListBottomSheet(initial = stockCategory,
-        title = "类别",
-        dataSource = LocalDataSource.stockCategoryData.find { it.name == goodsRack }?.children?.map { it.name } ?: emptyList(),
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.STOCK_CATEGORY },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
-        stockCategory = it
-    }
-
-    ListBottomSheet(initial = period,
-        title = "使用时段",
-        dataSource = LocalDataSource.periodData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PERIOD },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
-        period = it
-    }
-
-
 }
 
 
 @Composable @Preview(showBackground = true) fun QuickHomePagePreview() {
     HomeBookTheme {
-        QuickHomePage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
+        AddClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }
 }

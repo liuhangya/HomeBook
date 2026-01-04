@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +30,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.fanda.homebook.closet.AddClosetPage
+import com.fanda.homebook.closet.ClosetCategoryDetailPage
 import com.fanda.homebook.closet.ClosetHomePage
 import com.fanda.homebook.closet.EditClosetCategoryPage
 import com.fanda.homebook.components.CustomBottomBar
@@ -35,6 +39,7 @@ import com.fanda.homebook.quick.QuickHomePage
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
+import com.fanda.homebook.tools.LogUtils
 
 
 /*
@@ -46,6 +51,7 @@ import com.fanda.homebook.route.tabRootRoutes
     var lastBackPressed by remember { mutableLongStateOf(0L) }
     val (selectedTab, isTabRoute) = rememberSelectedTab(navController)
 
+    LogUtils.i("测试日志框架")
     // 拦截返回键（仅在 tab 一级页面）
     BackHandler(enabled = isTabRoute) {
         val now = System.currentTimeMillis()
@@ -73,7 +79,9 @@ import com.fanda.homebook.route.tabRootRoutes
                 navigation(startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route) {
                     composable(RoutePath.BookHome.route) {
                         Text(
-                            "账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp), modifier = Modifier.fillMaxSize().statusBarsPadding()
+                            "账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp), modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
                         )
                     }
                 }
@@ -81,7 +89,9 @@ import com.fanda.homebook.route.tabRootRoutes
                 // ====== 看板 Tab ======
                 navigation(startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route) {
                     composable(RoutePath.DashboardHome.route) {
-                        Text("看板首页", modifier = Modifier.fillMaxSize().statusBarsPadding())
+                        Text("看板首页", modifier = Modifier
+                            .fillMaxSize()
+                            .statusBarsPadding())
                     }
                 }
 
@@ -90,15 +100,23 @@ import com.fanda.homebook.route.tabRootRoutes
                     composable(RoutePath.ClosetHome.route) {
                         ClosetHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
+                    composable(RoutePath.AddCloset.route) {
+                        AddClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
                     composable(RoutePath.ClosetEditCategory.route) {
                         EditClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
+                    composable(RoutePath.ClosetDetailCategory.route) {
+                        ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
                 }
 
                 // ====== 囤货 Tab ======
                 navigation(startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route) {
                     composable(RoutePath.StockHome.route) {
-                        Text("囤货页面", modifier = Modifier.fillMaxSize().statusBarsPadding())
+                        Text("囤货页面", modifier = Modifier
+                            .fillMaxSize()
+                            .statusBarsPadding())
                     }
                 }
 

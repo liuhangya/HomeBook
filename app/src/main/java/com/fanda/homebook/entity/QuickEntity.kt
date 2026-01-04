@@ -23,6 +23,7 @@ enum class QuickShowBottomSheetType {
     SEASON,
     SIZE,
     OWNER,
-    NONE
+    BUY_DATE,
+    NONE,
 
 }

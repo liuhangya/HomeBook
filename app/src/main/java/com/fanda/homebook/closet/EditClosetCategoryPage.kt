@@ -50,10 +50,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
-import com.fanda.homebook.components.CustomTopAppBar
 import com.fanda.homebook.components.DragLazyColumn
 import com.fanda.homebook.components.EditDialog
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
+import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.route.RoutePath
@@ -66,7 +66,7 @@ import com.fanda.homebook.route.RoutePath
     var showDialog by remember { mutableStateOf(false) }
     var category by remember { mutableStateOf(ClosetGridEntity("", 0, "")) }
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
-        CustomTopAppBar(
+        TopIconAppBar(
             title = "自定义分类",
             onBackClick = {
                 navController.navigateUp()

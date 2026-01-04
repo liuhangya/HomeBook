@@ -1,6 +1,8 @@
 package com.fanda.homebook.data
 
 import com.fanda.homebook.R
+import com.fanda.homebook.entity.CategoryBottomMenuEntity
+import com.fanda.homebook.entity.ClosetCategoryBottomMenuType
 import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.entity.TransactionCategory
 import com.fanda.homebook.entity.TransactionType
@@ -234,8 +236,28 @@ object LocalDataSource {
             )
         }
     }
+
+    val closetDetailGridList = mutableListOf<ClosetGridEntity>().apply {
+        repeat(20) {
+            add(
+                ClosetGridEntity(
+                    name = "上装$it", count = 10, photoUrl = "", isSelected = false
+                )
+            )
+        }
+    }
+
+    val closetCategoryBottomMenuList = listOf(
+        CategoryBottomMenuEntity("全选", R.mipmap.icon_bottom_all_select, ClosetCategoryBottomMenuType.ALL_SELECTED),
+        CategoryBottomMenuEntity("复制", R.mipmap.icon_bottom_copy, ClosetCategoryBottomMenuType.COPY),
+        CategoryBottomMenuEntity("移动", R.mipmap.icon_bottom_move, ClosetCategoryBottomMenuType.MOVE),
+        CategoryBottomMenuEntity("删除", R.mipmap.icon_bottom_delete, ClosetCategoryBottomMenuType.DELETE)
+
+    )
+
     // 用户列表
-    val userList = mutableListOf(UserEntity(1,"番茄"),UserEntity(2,"阿凡达"),UserEntity(3,"圆圆"),
-        UserEntity(4,"家庭"),UserEntity(5,"送人"))
+    val userList = mutableListOf(
+        UserEntity(1, "番茄"), UserEntity(2, "阿凡达"), UserEntity(3, "圆圆"), UserEntity(4, "家庭"), UserEntity(5, "送人")
+    )
 }
 

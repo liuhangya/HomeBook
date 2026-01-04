@@ -36,7 +36,7 @@ import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.R
 
-@Composable fun ClosetGridWidget(modifier: Modifier = Modifier) {
+@Composable fun ClosetGridWidget(modifier: Modifier = Modifier,onItemClick: (ClosetGridEntity) -> Unit) {
     LazyVerticalGrid(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
         columns = GridCells.Fixed(3),
@@ -45,17 +45,17 @@ import com.fanda.homebook.R
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         items(LocalDataSource.closetGridList) {
-            ClosetGridItem(item = it)
+            ClosetGridItem(item = it,onItemClick)
         }
     }
 }
 
-@Composable fun ClosetGridItem(item: ClosetGridEntity) {
+@Composable fun ClosetGridItem(item: ClosetGridEntity ,onItemClick: (ClosetGridEntity) -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(
         // 去掉默认的点击效果
         interactionSource = remember { MutableInteractionSource() }, indication = null
     ) {
-        Log.d("ClosetGridItem", "点击了item: $item")
+        onItemClick(item)
     }) {
         Box(
             modifier = Modifier
@@ -90,5 +90,7 @@ import com.fanda.homebook.R
 
 
 @Composable @Preview(showBackground = true) fun ClosetGridWidgetPreview() {
-    ClosetGridWidget()
+    ClosetGridWidget(){
+
+    }
 }

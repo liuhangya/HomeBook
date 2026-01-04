@@ -1,22 +1,17 @@
 package com.fanda.homebook.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,59 +30,48 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 
-@Composable fun CustomTopAppBar(
-    title: String, modifier: Modifier = Modifier,
-    // ← 左侧：返回图标（可选）
-    showBackButton: Boolean = true, backIconPainter: Painter? = null, onBackClick: (() -> Unit)? = null,
+@Composable fun TopIconAppBar(
+    title: String, modifier: Modifier = Modifier, showBackButton: Boolean = true, backIconPainter: Painter = painterResource(id = R.mipmap.icon_back), onBackClick: (() -> Unit)? = null,
 
-    // → 右侧：支持文本 或 Image 图标（二选一，优先显示图标）
-    rightText: String? = null, rightIconPainter: Painter? = null, onRightActionClick: (() -> Unit)? = null,
-
+    rightText: String? = null, rightIconPainter: Painter? = null, rightNextIconPainter: Painter? = null, onRightActionClick: (() -> Unit)? = null, onRightNextActionClick: (() -> Unit)? = null,
     // 样式
     titleStyle: TextStyle = TextStyle.Default.copy(
         fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.Medium
     ), backgroundColor: Color = Color.Transparent, contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
-    Surface(
-        color = backgroundColor, modifier = modifier.padding(horizontal = 12.dp)
+
+    Box(
+        modifier = modifier
+            .height(64.dp)
+            .padding(start = 12.dp, end = 12.dp)
+            .fillMaxWidth()
+            .background(color = backgroundColor)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-        ) {
-            // ← 左侧：返回按钮（Image 图标）
-            if (showBackButton) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .clickable(enabled = onBackClick != null) {
-                        onBackClick?.invoke()
-                    }) {
-                    if (backIconPainter != null) {
-                        Image(
-                            painter = backIconPainter, contentDescription = "Back", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
-                        )
-                    } else {
-                        // 默认 fallback 到系统箭头（可选）
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = contentColor, modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            } else {
-                Spacer(modifier = Modifier.width(48.dp))
+        // ← 左侧：返回按钮（Image 图标）
+        if (showBackButton) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .align(Alignment.CenterStart)
+                .clickable(enabled = onBackClick != null) {
+                    onBackClick?.invoke()
+                }) {
+                Image(
+                    painter = backIconPainter, contentDescription = "Back", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
+                )
             }
+        }
+        // ↑ 居中标题
+        Text(
+            text = title, style = titleStyle, color = contentColor, maxLines = 1, modifier = Modifier.align(Alignment.Center)
+        )
 
-            // ↑ 居中标题
-            Text(
-                text = title, style = titleStyle, color = contentColor, maxLines = 1
-            )
-
-            // → 右侧：优先显示图标，其次文本
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
             if (rightIconPainter != null) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier
-                    .size(48.dp)
+                    .size(44.dp)
                     .then(if (onRightActionClick != null) {
                         Modifier.clickable { onRightActionClick() }
                     } else Modifier)) {
@@ -95,7 +79,19 @@ import com.fanda.homebook.R
                         painter = rightIconPainter, contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
                     )
                 }
-            } else if (!rightText.isNullOrBlank()) {
+            }
+            if (rightNextIconPainter != null) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier
+                    .size(44.dp)
+                    .then(if (onRightNextActionClick != null) {
+                        Modifier.clickable { onRightNextActionClick() }
+                    } else Modifier)) {
+                    Image(
+                        painter = rightNextIconPainter, contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+            if (!rightText.isNullOrBlank()) {
                 TextButton(onClick = { onRightActionClick?.invoke() }) {
                     Text(
                         text = rightText, style = TextStyle.Default.copy(
@@ -107,18 +103,17 @@ import com.fanda.homebook.R
                         }
                     )
                 }
-            } else {
-                Spacer(modifier = Modifier.width(48.dp))
             }
         }
     }
 }
 
 @Composable @Preview(showBackground = true) private fun CustomTopAppBarPreview() {
-    CustomTopAppBar(
+    TopIconAppBar(
         title = "记一笔",
         onBackClick = {},
-        rightText = "保存",
+        rightIconPainter = painterResource(R.mipmap.icon_add_grady),
+        rightNextIconPainter = painterResource(R.mipmap.icon_edit_menu),
         onRightActionClick = {},
         backIconPainter = painterResource(R.mipmap.icon_back),
     )

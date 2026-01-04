@@ -24,7 +24,7 @@ fun isValidDecimalInput(text: String): Boolean {
 }
 
 
-fun convertMillisToDate(millis: Long): String {
-    val formatter = SimpleDateFormat("MM月dd日", Locale.getDefault())
+fun convertMillisToDate(millis: Long , format: String = "MM月-dd日"): String {
+    val formatter = SimpleDateFormat(format, Locale.getDefault())
     return formatter.format(Date(millis))
 }

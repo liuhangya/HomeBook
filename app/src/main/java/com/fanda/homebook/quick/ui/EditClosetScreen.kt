@@ -36,8 +36,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
+import com.fanda.homebook.components.EditCommentsWidget
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
+import com.fanda.homebook.components.SelectTypeWidget
 import com.fanda.homebook.entity.QuickShowBottomSheetType
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
@@ -209,121 +211,6 @@ fun EditClosetScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun EditCommentsWidget(
-    modifier: Modifier = Modifier, inputText: String = "", onValueChange: (String) -> Unit
-) {
-    Column(
-        verticalArrangement = Arrangement.Center, modifier = modifier
-    ) {
-        Text(
-            style = TextStyle.Default,
-            text = "备注",
-            color = Color.Black,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp
-        )
-        BasicTextField(
-            value = inputText,
-            onValueChange = { newText ->
-                // 否则忽略非法输入
-                onValueChange(newText)
-            },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 20.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
-            ),
-            textStyle = TextStyle.Default.copy(
-                color = colorResource(R.color.color_333333),
-                fontSize = 14.sp,
-                textAlign = TextAlign.Start
-            ),
-            decorationBox = { innerTextField ->
-                Box() {
-                    // 占位文本
-                    if (inputText.isEmpty()) {
-                        Text(
-                            text = "请输入备注信息",
-                            color = colorResource(R.color.color_83878C),
-                            fontSize = 14.sp
-                        )
-                    }
-                    // 输入框内容
-                    innerTextField()
-                }
-            })
-    }
-}
-
-
-@Composable
-private fun SelectTypeWidget(
-    firstType: String,
-    secondType: String,
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    dividerPadding: Dp = 20.dp,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                // 去掉默认的点击效果
-//            interactionSource = remember { MutableInteractionSource() }, indication = null
-            ) {
-                onClick?.invoke()
-            }) {
-        Column(
-            verticalArrangement = Arrangement.Center, modifier = modifier
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    style = TextStyle.Default,
-                    text = "分类",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.weight(1f))
-
-                if (firstType.isNotEmpty() && secondType.isNotEmpty()) {
-                    Text(
-                        style = TextStyle.Default,
-                        text = firstType,
-                        color = colorResource(R.color.color_333333),
-                        fontSize = 16.sp
-                    )
-                    Image(
-                        painter = painterResource(R.mipmap.icon_right),
-                        contentDescription = null,
-                        modifier = Modifier.padding(horizontal = 7.dp),
-                        colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
-                    )
-                    Text(
-                        style = TextStyle.Default,
-                        text = secondType,
-                        color = colorResource(R.color.color_333333),
-                        fontSize = 16.sp
-                    )
-                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null,modifier = Modifier.padding(start = 9.dp))
-                } else {
-                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
-                }
-            }
-        }
-        HorizontalDivider(
-            thickness = 0.5.dp,
-            color = colorResource(R.color.color_D9E1EB),
-            modifier = Modifier.padding(horizontal = dividerPadding)
-        )
     }
 }
 
