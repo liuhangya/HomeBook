@@ -11,7 +11,7 @@ enum class TransactionType {
 // 支出分类
 data class TransactionCategory(val name: String, @DrawableRes val icon: Int, val type: TransactionType)
 
-enum class QuickShowBottomSheetType {
+enum class ShowBottomSheetType {
     PAY_WAY,
     PRODUCT,
     STOCK_PRODUCT,
@@ -25,5 +25,9 @@ enum class QuickShowBottomSheetType {
     OWNER,
     BUY_DATE,
     NONE,
+    REMAIN,
+    USE_UP_DATE,
+    FEEL,
+    DONE
 
 }

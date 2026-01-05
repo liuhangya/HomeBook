@@ -296,5 +296,19 @@ object LocalDataSource {
             )
         }
     }
+
+    val remainData = listOf(
+        "空瓶",
+        "较少",
+        "较多",
+    )
+
+    val feelData = listOf(
+        "不好用",
+        "一般",
+        "好用",
+        "回购",
+    )
+
 }
 

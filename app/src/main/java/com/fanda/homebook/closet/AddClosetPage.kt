@@ -47,7 +47,7 @@ import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.LocalDataSource
-import com.fanda.homebook.entity.QuickShowBottomSheetType
+import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
 import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
@@ -77,7 +77,7 @@ import kotlinx.coroutines.launch
     var size by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
 
-    var currentShowBottomSheetType by remember { mutableStateOf(QuickShowBottomSheetType.NONE) }
+    var currentShowBottomSheetType by remember { mutableStateOf(ShowBottomSheetType.NONE) }
 
     var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
 
@@ -155,7 +155,7 @@ import kotlinx.coroutines.launch
                                 .padding(start = 20.dp, end = 20.dp)
                         ) {
                             focusManager.clearFocus()
-                            currentShowBottomSheetType = QuickShowBottomSheetType.OWNER
+                            currentShowBottomSheetType = ShowBottomSheetType.OWNER
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -192,70 +192,70 @@ import kotlinx.coroutines.launch
         }
     }
 
-    if (currentShowBottomSheetType == QuickShowBottomSheetType.BUY_DATE) {
+    if (currentShowBottomSheetType == ShowBottomSheetType.BUY_DATE) {
         // 日期选择器
         CustomDatePickerModal(onDateSelected = {
             date = convertMillisToDate(it ?: System.currentTimeMillis(), "yyyy-MM-dd")
         }, onDismiss = {
-            currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+            currentShowBottomSheetType = ShowBottomSheetType.NONE
         })
     }
 
     ListBottomSheet(initial = product,
         title = "品牌",
         dataSource = LocalDataSource.productData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.PRODUCT },
+        visible = { currentShowBottomSheetType == ShowBottomSheetType.PRODUCT },
         displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
         product = it
     }
 
     ListBottomSheet(initial = owner,
         title = "归属",
         dataSource = LocalDataSource.ownerData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.OWNER },
+        visible = { currentShowBottomSheetType == ShowBottomSheetType.OWNER },
         displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
         owner = it
     }
 
     GridBottomSheet(initial = owner,
         title = "尺码",
         dataSource = LocalDataSource.sizeData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.SIZE },
+        visible = { currentShowBottomSheetType == ShowBottomSheetType.SIZE },
         displayText = { it },
         dpSize = DpSize(52.dp, 36.dp),
         column = GridCells.Fixed(5),
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
         size = it
     }
 
     GridBottomSheet(initial = season,
         title = "季节",
         dataSource = LocalDataSource.seasonData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.SEASON },
+        visible = { currentShowBottomSheetType == ShowBottomSheetType.SEASON },
         displayText = { it },
         dpSize = DpSize(66.dp, 36.dp),
         column = GridCells.Fixed(4),
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
         season = it
     }
 
 
-    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == QuickShowBottomSheetType.COLOR }, onDismiss = {
-        currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
+        currentShowBottomSheetType = ShowBottomSheetType.NONE
     }, onConfirm = {
         color = it
     }, onSettingClick = {
-        currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+        currentShowBottomSheetType = ShowBottomSheetType.NONE
         navController.navigate(RoutePath.ClosetEditColor.route)
     })
 
     ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.CATEGORY },
+        visible = { currentShowBottomSheetType == ShowBottomSheetType.CATEGORY },
         onDismiss = {
-            currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+            currentShowBottomSheetType = ShowBottomSheetType.NONE
         },
         onConfirm = {
             currentClosetCategory = it

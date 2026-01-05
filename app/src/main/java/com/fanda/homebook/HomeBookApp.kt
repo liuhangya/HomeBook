@@ -41,6 +41,7 @@ import com.fanda.homebook.quick.QuickHomePage
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
+import com.fanda.homebook.stock.AddStockPage
 import com.fanda.homebook.stock.StockHomePage
 import com.fanda.homebook.tools.LogUtils
 
@@ -126,6 +127,9 @@ import com.fanda.homebook.tools.LogUtils
                 navigation(startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route) {
                     composable(RoutePath.StockHome.route) {
                         StockHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
+                    composable(RoutePath.AddStock.route) {
+                        AddStockPage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
                 }
 

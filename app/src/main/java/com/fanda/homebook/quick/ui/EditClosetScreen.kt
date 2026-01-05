@@ -1,46 +1,21 @@
 package com.fanda.homebook.quick.ui
 
 import android.util.Log
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.fanda.homebook.R
 import com.fanda.homebook.components.EditCommentsWidget
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.SelectTypeWidget
-import com.fanda.homebook.entity.QuickShowBottomSheetType
+import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
 
@@ -65,7 +40,7 @@ fun EditClosetScreen(
     onCheckedChange: (Boolean) -> Unit,
     onBottomCommentChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
-    onClick: (QuickShowBottomSheetType) -> Unit,
+    onClick: (ShowBottomSheetType) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     val itemPadding = Modifier.padding(
@@ -73,7 +48,7 @@ fun EditClosetScreen(
     )
 
     // 包装原始点击事件，先关闭键盘
-    val wrapClick: (QuickShowBottomSheetType, (QuickShowBottomSheetType) -> Unit) -> Unit =
+    val wrapClick: (ShowBottomSheetType, (ShowBottomSheetType) -> Unit) -> Unit =
         { type, original ->
             focusManager.clearFocus()
             original(type)
@@ -105,40 +80,40 @@ fun EditClosetScreen(
                         rightText = owner,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.OWNER, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.OWNER, onClick) })
                     SelectTypeWidget(
                         firstType = closetCategory,
                         secondType = closetSubCategory,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.CATEGORY, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.CATEGORY, onClick) })
                     ItemOptionMenu(
                         title = "颜色",
                         showColor = true,
                         inputColor = if (color != -1L) Color(color) else null,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.COLOR, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.COLOR, onClick) })
                     ItemOptionMenu(
                         title = "季节",
                         showText = true,
                         rightText = season,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.SEASON, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.SEASON, onClick) })
                     ItemOptionMenu(
                         title = "品牌",
                         showText = true,
                         rightText = product,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.PRODUCT, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.PRODUCT, onClick) })
                     ItemOptionMenu(
                         title = "尺寸",
                         showText = true,
                         rightText = size,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.SIZE, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.SIZE, onClick) })
                     EditCommentsWidget(
                         inputText = bottomComment,
                         modifier = itemPadding,
@@ -181,28 +156,28 @@ fun EditClosetScreen(
                         rightText = stockProduct,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.STOCK_PRODUCT, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.STOCK_PRODUCT, onClick) })
                     ItemOptionMenu(
                         title = "货架",
                         showText = true,
                         rightText = goodsRack,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.GOODS_RACK, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.GOODS_RACK, onClick) })
                     ItemOptionMenu(
                         title = "类别",
                         showText = true,
                         rightText = stockCategory,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.STOCK_CATEGORY, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.STOCK_CATEGORY, onClick) })
                     ItemOptionMenu(
                         title = "使用时段",
                         showText = true,
                         rightText = period,
                         showDivider = true,
                         modifier = itemPadding,
-                        onClick = { wrapClick(QuickShowBottomSheetType.PERIOD, onClick) })
+                        onClick = { wrapClick(ShowBottomSheetType.PERIOD, onClick) })
                     EditCommentsWidget(
                         inputText = bottomStockComment,
                         modifier = itemPadding,

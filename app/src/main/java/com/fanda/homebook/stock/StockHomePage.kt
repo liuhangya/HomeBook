@@ -157,7 +157,7 @@ import com.fanda.homebook.tools.LogUtils
         showSelectImage = false
     }) {
         showSelectImage = false
-        navController.navigate(RoutePath.AddCloset.route)
+        navController.navigate(RoutePath.AddStock.route)
     }
 
 }

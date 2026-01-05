@@ -17,7 +17,7 @@ import com.fanda.homebook.components.EditCommentsWidget
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.SelectTypeWidget
-import com.fanda.homebook.entity.QuickShowBottomSheetType
+import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.tools.isValidDecimalInput
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
@@ -37,7 +37,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     onCheckedChange: (Boolean) -> Unit,
     onBottomCommentChange: (String) -> Unit,
     onPriceChange: (String) -> Unit,
-    onClick: (QuickShowBottomSheetType) -> Unit,
+    onClick: (ShowBottomSheetType) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     val itemPadding = Modifier.padding(
@@ -45,7 +45,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     )
 
     // 包装原始点击事件，先关闭键盘
-    val wrapClick: (QuickShowBottomSheetType, (QuickShowBottomSheetType) -> Unit) -> Unit = { type, original ->
+    val wrapClick: (ShowBottomSheetType, (ShowBottomSheetType) -> Unit) -> Unit = { type, original ->
         focusManager.clearFocus()
         original(type)
 
@@ -86,22 +86,22 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         }
                         // 否则忽略非法输入
                     })
-                ItemOptionMenu(title = "购入时间", showText = true, rightText = date, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.BUY_DATE, onClick) })
+                ItemOptionMenu(title = "购入时间", showText = true, rightText = date, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.BUY_DATE, onClick) })
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
         GradientRoundedBoxWithStroke(modifier = modifier) {
             Column {
-                SelectTypeWidget(firstType = closetCategory, secondType = closetSubCategory, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.CATEGORY, onClick) })
+                SelectTypeWidget(firstType = closetCategory, secondType = closetSubCategory, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.CATEGORY, onClick) })
                 ItemOptionMenu(title = "颜色",
                     showColor = true,
                     inputColor = if (color != -1L) Color(color) else null,
                     showDivider = true,
                     modifier = itemPadding,
-                    onClick = { wrapClick(QuickShowBottomSheetType.COLOR, onClick) })
-                ItemOptionMenu(title = "季节", showText = true, rightText = season, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.SEASON, onClick) })
-                ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.PRODUCT, onClick) })
-                ItemOptionMenu(title = "尺寸", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(QuickShowBottomSheetType.SIZE, onClick) })
+                    onClick = { wrapClick(ShowBottomSheetType.COLOR, onClick) })
+                ItemOptionMenu(title = "季节", showText = true, rightText = season, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.SEASON, onClick) })
+                ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.PRODUCT, onClick) })
+                ItemOptionMenu(title = "尺寸", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.SIZE, onClick) })
                 EditCommentsWidget(
                     inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange
                 )
