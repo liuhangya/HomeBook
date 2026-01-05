@@ -166,19 +166,6 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
 
 }
 
-@Composable fun ColoredCircleWithBorder(
-    modifier: Modifier = Modifier, color: Color = Color.Transparent, borderColor: Color = colorResource(id = R.color.color_CCFFFFFF), borderWidth: Dp = 1.dp, size: Dp = 16.dp
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(color)
-            .border(
-                width = borderWidth, color = borderColor, shape = CircleShape
-            )
-    )
-}
 
 @Composable @Preview(showBackground = true) fun ItemOptionMenuPreview() {
     HomeBookTheme {

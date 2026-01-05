@@ -30,15 +30,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.fanda.homebook.closet.AddClosetColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
 import com.fanda.homebook.closet.ClosetHomePage
 import com.fanda.homebook.closet.EditClosetCategoryPage
+import com.fanda.homebook.closet.EditClosetColorPage
 import com.fanda.homebook.components.CustomBottomBar
 import com.fanda.homebook.quick.QuickHomePage
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
+import com.fanda.homebook.stock.StockHomePage
 import com.fanda.homebook.tools.LogUtils
 
 
@@ -89,9 +92,11 @@ import com.fanda.homebook.tools.LogUtils
                 // ====== 看板 Tab ======
                 navigation(startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route) {
                     composable(RoutePath.DashboardHome.route) {
-                        Text("看板首页", modifier = Modifier
-                            .fillMaxSize()
-                            .statusBarsPadding())
+                        Text(
+                            "看板首页", modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                        )
                     }
                 }
 
@@ -106,6 +111,12 @@ import com.fanda.homebook.tools.LogUtils
                     composable(RoutePath.ClosetEditCategory.route) {
                         EditClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
+                    composable(RoutePath.ClosetEditColor.route) {
+                        EditClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
+                    composable(RoutePath.ClosetAddColor.route) {
+                        AddClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
                     composable(RoutePath.ClosetDetailCategory.route) {
                         ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
@@ -114,9 +125,7 @@ import com.fanda.homebook.tools.LogUtils
                 // ====== 囤货 Tab ======
                 navigation(startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route) {
                     composable(RoutePath.StockHome.route) {
-                        Text("囤货页面", modifier = Modifier
-                            .fillMaxSize()
-                            .statusBarsPadding())
+                        StockHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
                 }
 

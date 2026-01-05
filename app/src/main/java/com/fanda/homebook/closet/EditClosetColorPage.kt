@@ -53,32 +53,30 @@ import com.fanda.homebook.R
 import com.fanda.homebook.closet.sheet.RenameOrDeleteBottomSheet
 import com.fanda.homebook.closet.sheet.RenameOrDeleteType
 import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
+import com.fanda.homebook.components.ColoredCircleWithBorder
 import com.fanda.homebook.components.DragLazyColumn
 import com.fanda.homebook.components.EditDialog
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.ClosetGridEntity
+import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 
-/*
-*
-* 衣橱页面
-* */
-@Composable fun EditClosetCategoryPage(modifier: Modifier = Modifier, navController: NavController) {
+@Composable fun EditClosetColorPage(modifier: Modifier = Modifier, navController: NavController) {
     var showBottomSheet by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
-    var category by remember { mutableStateOf(ClosetGridEntity("", 0, "")) }
+    var colorType by remember { mutableStateOf(ColorType("", -1L)) }
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopIconAppBar(
-            title = "自定义分类",
+            title = "颜色管理",
             onBackClick = {
                 navController.navigateUp()
             },
             rightIconPainter = painterResource(R.mipmap.icon_add_grady),
             onRightActionClick = {
-                showEditDialog = true
+                navController.navigate(RoutePath.ClosetAddColor.route)
             },
             backIconPainter = painterResource(R.mipmap.icon_back),
         )
@@ -86,33 +84,32 @@ import com.fanda.homebook.tools.LogUtils
 
     }) { padding ->
         ClosetDragWidget(Modifier.padding(padding), onItemClick = {
-            category = it
+            colorType = it
             showBottomSheet = true
         })
     }
 
     if (showEditDialog) {
-        EditDialog(title = "添加分类", value = category.name, placeholder = "不能与已有类型名重复", onDismissRequest = {
+        EditDialog(title = "重命名", value = colorType.name, placeholder = "不能与已有名称重复", onDismissRequest = {
             showEditDialog = false
         }, onConfirm = {
             showEditDialog = false
-            Log.d("EditClosetCategoryPage", "点击了确定： $it")
         })
     }
     RenameOrDeleteBottomSheet(visible = showBottomSheet, onDismiss = {
-        showBottomSheet = false
-    }) {
-        showBottomSheet = false
-        if (it == RenameOrDeleteType.RENAME) {
-            showEditDialog = true
-        } else {
-            LogUtils.d("点击了删除按钮:$it")
+            showBottomSheet = false
+        }) {
+            showBottomSheet = false
+            if (it == RenameOrDeleteType.RENAME){
+                showEditDialog = true
+            }else {
+                LogUtils.d("点击了删除按钮:$it")
+            }
         }
-    }
 }
 
-@Composable private fun ClosetDragWidget(modifier: Modifier = Modifier, onItemClick: (ClosetGridEntity) -> Unit) {
-    DragLazyColumn(modifier = modifier, items = LocalDataSource.closetGridList, onMove = { from, to ->
+@Composable private fun ClosetDragWidget(modifier: Modifier = Modifier, onItemClick: (ColorType) -> Unit) {
+    DragLazyColumn(modifier = modifier, items = LocalDataSource.colorData, onMove = { from, to ->
         Log.d("EditClosetCategoryPage", "from: $from, to: $to")
     }) { item, isDragging ->
         GradientRoundedBoxWithStroke {
@@ -123,10 +120,8 @@ import com.fanda.homebook.tools.LogUtils
                     .height(64.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = item.name, fontSize = 16.sp, modifier = Modifier.padding(start = 16.dp, end = 8.dp), color = Color.Black)
-                Image(
-                    painter = painterResource(id = R.mipmap.icon_right), contentDescription = null, modifier = Modifier.size(4.dp, 8.dp), colorFilter = ColorFilter.tint(Color.Black)
-                )
+                ColoredCircleWithBorder(color = Color(item.color),modifier = Modifier.padding(start = 16.dp, end = 12.dp))
+                Text(text = item.name, fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.weight(1f))
                 Image(painter = painterResource(id = R.mipmap.icon_edit),
                     contentDescription = null,
@@ -142,13 +137,11 @@ import com.fanda.homebook.tools.LogUtils
 
             }
         }
-
-
     }
 }
 
-@Composable @Preview(showBackground = true) fun EditClosetCategoryPagePreview() {
-    EditClosetCategoryPage(
+@Composable @Preview(showBackground = true) fun EditClosetColorPagePreview() {
+    EditClosetColorPage(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding(), navController = rememberNavController()

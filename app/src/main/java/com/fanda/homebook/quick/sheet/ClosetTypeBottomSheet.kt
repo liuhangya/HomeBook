@@ -56,7 +56,7 @@ data class Category(
 )
 
 data class SubCategory(
-    val id: String, val name: String
+    val id: String, val name: String,var selected: Boolean = false
 )
 
 data class SelectedCategory(

@@ -1,4 +1,4 @@
-package com.fanda.homebook.closet
+package com.fanda.homebook.stock
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,8 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -42,21 +48,29 @@ import com.fanda.homebook.R
 import com.fanda.homebook.closet.ui.ClosetGridWidget
 import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.closet.ui.UserDropdownMenu
+import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.entity.BaseCategoryEntity
+import com.fanda.homebook.entity.StateMenuEntity
+import com.fanda.homebook.quick.sheet.SubCategory
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.stock.ui.StockGridWidget
+import com.fanda.homebook.tools.LogUtils
 
 /*
 *
-* 衣橱页面
+* 囤货页面
 * */
-@OptIn(ExperimentalMaterial3Api::class) @Composable fun ClosetHomePage(modifier: Modifier = Modifier, navController: NavController) {
+@OptIn(ExperimentalMaterial3Api::class) @Composable fun StockHomePage(modifier: Modifier = Modifier, navController: NavController) {
     var showSelectImage by remember { mutableStateOf(false) }
     var expandUserMenu by remember { mutableStateOf(false) }
-    var curUser by remember { mutableStateOf(LocalDataSource.userList.first()) }
+    var curGoodRack by remember { mutableStateOf(LocalDataSource.goodsRackData.first()) }
     //  记录上次的返回时间
     var lastBackPressed by remember { mutableLongStateOf(0L) }
 
+    var curStateMenu by remember { mutableStateOf(LocalDataSource.stockStateList.first()) }
 
+    var subCategory by remember { mutableStateOf(SubCategory("", "全部")) }
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopAppBar(
@@ -85,19 +99,17 @@ import com.fanda.homebook.route.RoutePath
                         }
                         .padding(start = 0.dp, end = 30.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-                                .fillMaxHeight()
+                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                         ) {
-                            Text(text = curUser.name, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black)
+                            Text(text = curGoodRack.name, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black)
                             Image(modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null)
                         }
-                        UserDropdownMenu(curUser = curUser, data = LocalDataSource.userList, expanded = expandUserMenu, dpOffset = DpOffset(0.dp, 50.dp), onDismiss = {
+                        UserDropdownMenu(curUser = curGoodRack, data = LocalDataSource.goodsRackData, expanded = expandUserMenu, dpOffset = DpOffset(0.dp, 50.dp), onDismiss = {
                             lastBackPressed = System.currentTimeMillis()
                             expandUserMenu = false
-                            Log.d("ClosetHomePage", "点击了用户菜单")
                         }, onConfirm = {
                             expandUserMenu = false
-                            curUser = it
+                            curGoodRack = it
                         })
                     }
                     Row(
@@ -106,17 +118,10 @@ import com.fanda.homebook.route.RoutePath
                         Box(contentAlignment = Alignment.Center, modifier = Modifier
                             .size(44.dp)
                             .clickable {
-                                showSelectImage  = true
+                                showSelectImage = true
                             }) {
                             Image(
                                 painter = painterResource(id = R.mipmap.icon_add_grady), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier
-                            .size(44.dp)
-                            .clickable { navController.navigate(RoutePath.ClosetEditCategory.route) }) {
-                            Image(
-                                painter = painterResource(id = R.mipmap.icon_setting), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -126,23 +131,73 @@ import com.fanda.homebook.route.RoutePath
             colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
         )
     }) { padding ->
-        ClosetGridWidget(modifier = Modifier.padding(padding)) {
-            navController.navigate(RoutePath.ClosetDetailCategory.route)
+        Column(modifier = Modifier.padding(padding)) {
+            StateMenu(curMenuEntity = curStateMenu) {
+                curStateMenu = it
+            }
+            val list = LocalDataSource.stockCategoryData.find { it.name == curGoodRack.name }?.children ?: emptyList()
+            LabelMenu(list = list, subCategory = subCategory) {
+                val selected = subCategory.selected
+                subCategory = if (subCategory.id == it.id) {
+                    it.copy(selected = !selected)
+                } else {
+                    it.copy(selected = true)
+                }
+                LogUtils.i("LabelMenu", "点击了标签 $subCategory")
+            }
+
+            StockGridWidget {
+
+            }
         }
+
     }
 
     SelectPhotoBottomSheet(visible = showSelectImage, onDismiss = {
         showSelectImage = false
     }) {
         showSelectImage = false
-        Log.d("ClosetHomePage", "点击了图片选择按钮:$it")
         navController.navigate(RoutePath.AddCloset.route)
     }
 
 }
 
+@Composable fun StateMenu(modifier: Modifier = Modifier, curMenuEntity: StateMenuEntity, onMenuChange: (StateMenuEntity) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+    ) {
+        LocalDataSource.stockStateList.forEach {
+            Text(text = "${it.name}(${it.count})",
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                        onMenuChange(it)
+                    },
+                textAlign = TextAlign.Center,
+                color = if (it.id == curMenuEntity.id) Color.Black else colorResource(id = R.color.color_83878C),
+                fontWeight = if (it.id == curMenuEntity.id) FontWeight.Medium else FontWeight.Normal,
+                fontSize = 14.sp
+            )
+        }
+    }
+}
+
+@Composable fun LabelMenu(modifier: Modifier = Modifier, list: List<SubCategory>, subCategory: SubCategory, onLabelChange: (SubCategory) -> Unit) {
+    LazyRow(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(20.dp)) {
+        items(list) {
+            LogUtils.d("item: ${it.id} , $subCategory - ${(subCategory.id == it.id && subCategory.selected)}")
+            SelectableRoundedButton(text = it.name, selected = (subCategory.id == it.id && subCategory.selected), onClick = {
+                onLabelChange(it)
+            })
+        }
+    }
+}
+
+
 @Composable @Preview(showBackground = true) fun ClosetHomePagePreview() {
-    ClosetHomePage(
+    StockHomePage(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding(), navController = rememberNavController()

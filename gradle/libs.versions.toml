@@ -13,6 +13,7 @@ material = "1.10.0"
 #后面添加的
 navigationCompose = "2.7.4"
 coilCompose = "2.4.0"
+colorpicker = "1.1.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,8 @@ material = { group = "com.google.android.material", name = "material", version.r
 #后面添加的
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+compose-colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

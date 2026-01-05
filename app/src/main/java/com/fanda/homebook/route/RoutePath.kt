@@ -25,6 +25,10 @@ sealed class RoutePath(val route: String) {
 
     data object ClosetEditCategory : RoutePath("closet_graph/closet_edit_category")
 
+    data object ClosetEditColor : RoutePath("closet_graph/closet_edit_color")
+
+    data object ClosetAddColor : RoutePath("closet_graph/closet_add_color")
+
     data object ClosetDetailCategory : RoutePath("closet_graph/closet_detail_category")
 
     data object StockHome : RoutePath("stock_graph/stock_home")

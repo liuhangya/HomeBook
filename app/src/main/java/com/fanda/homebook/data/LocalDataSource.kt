@@ -1,9 +1,13 @@
 package com.fanda.homebook.data
 
 import com.fanda.homebook.R
+import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.CategoryBottomMenuEntity
 import com.fanda.homebook.entity.ClosetCategoryBottomMenuType
 import com.fanda.homebook.entity.ClosetGridEntity
+import com.fanda.homebook.entity.StateMenuEntity
+import com.fanda.homebook.entity.StockGridEntity
+import com.fanda.homebook.entity.StockState
 import com.fanda.homebook.entity.TransactionCategory
 import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.entity.UserEntity
@@ -92,10 +96,11 @@ object LocalDataSource {
         "全天",
     )
     val goodsRackData = listOf(
-        "梳妆台",
-        "米面粮油",
-        "日用百货",
-        "圆圆",
+        BaseCategoryEntity(1, "梳妆台"),
+        BaseCategoryEntity(2, "米面粮油"),
+        BaseCategoryEntity(3, "日用百货"),
+        BaseCategoryEntity(4, "圆圆"),
+        BaseCategoryEntity(5, "其他囤货"),
     )
 
     val sizeData = listOf(
@@ -124,7 +129,7 @@ object LocalDataSource {
         "超大",
     )
 
-    val colorData = listOf(
+    val colorData = mutableListOf(
         // 颜色值要加上透明度值
         ColorType("棕色系", 0xFF6A3D06),
         ColorType("黑色系", 0xFF000000),
@@ -194,10 +199,10 @@ object LocalDataSource {
                 SubCategory("1-6", "眼霜"),
                 SubCategory("1-7", "面膜"),
                 SubCategory("1-8", "防晒"),
-                SubCategory("1-8", "底妆"),
-                SubCategory("1-8", "唇膏"),
-                SubCategory("1-8", "眼影"),
-                SubCategory("1-8", "润肤"),
+                SubCategory("1-9", "底妆"),
+                SubCategory("1-10", "唇膏"),
+                SubCategory("1-11", "眼影"),
+                SubCategory("1-12", "润肤"),
             )
         ),
         Category(
@@ -214,8 +219,8 @@ object LocalDataSource {
                 SubCategory("3-3", "洗头"),
                 SubCategory("3-4", "洗澡"),
                 SubCategory("3-5", "洗衣"),
-                SubCategory("3-5", "护发"),
-                SubCategory("3-5", "片剂"),
+                SubCategory("3-6", "护发"),
+                SubCategory("3-7", "片剂"),
             )
         ),
         Category(
@@ -259,5 +264,37 @@ object LocalDataSource {
     val userList = mutableListOf(
         UserEntity(1, "番茄"), UserEntity(2, "阿凡达"), UserEntity(3, "圆圆"), UserEntity(4, "家庭"), UserEntity(5, "送人")
     )
+
+    // 囤货状态菜单列表
+    val stockStateList = listOf(
+        StateMenuEntity(1,"全部", 100),
+        StateMenuEntity(2,"使用中", 200),
+        StateMenuEntity(3,"未开封", 10,),
+        StateMenuEntity(4,"已用完", 20)
+    )
+
+    val stockGridList = mutableListOf<StockGridEntity>().apply {
+        repeat(3) {
+            add(
+                StockGridEntity(
+                    name = "潘婷3分钟奇迹发膜$it", "洁面", "", 10, "剩余2年以上", "50g", StockState.USING
+                )
+            )
+        }
+        repeat(3) {
+            add(
+                StockGridEntity(
+                    name = "潘婷3分钟奇迹发膜$it", "洁面", "", 10, "剩余2年以上", "50g", StockState.NOT_OPEN
+                )
+            )
+        }
+        repeat(3) {
+            add(
+                StockGridEntity(
+                    name = "潘婷3分钟奇迹发膜$it", "洁面", "", 10, "剩余2年以上", "50g", StockState.USED_UP
+                )
+            )
+        }
+    }
 }
 

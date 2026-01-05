@@ -51,6 +51,7 @@ import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.QuickShowBottomSheetType
 import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
@@ -322,17 +323,14 @@ import kotlinx.coroutines.launch
         stockProduct = it
     }
 
-    ListBottomSheet(initial = goodsRack,
-        title = "货架",
-        dataSource = LocalDataSource.goodsRackData,
-        visible = { currentShowBottomSheetType == QuickShowBottomSheetType.GOODS_RACK },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
+    ListBottomSheet(initial = goodsRack, title = "货架", dataSource = LocalDataSource.goodsRackData, visible = { currentShowBottomSheetType == QuickShowBottomSheetType.GOODS_RACK }, displayText = {
+        (it as BaseCategoryEntity).name
+    }, onDismiss = { currentShowBottomSheetType = QuickShowBottomSheetType.NONE }) {
         if (goodsRack != it) {
             // 切换货架时，清空商品
             stockCategory = ""
         }
-        goodsRack = it
+        goodsRack = (it as BaseCategoryEntity).name
     }
 
     ListBottomSheet(initial = stockCategory,

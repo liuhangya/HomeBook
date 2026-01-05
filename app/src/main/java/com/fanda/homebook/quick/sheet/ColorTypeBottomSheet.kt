@@ -51,14 +51,15 @@ fun ColorTypeBottomSheet(
     color: ColorType,
     visible: () -> Boolean,
     onDismiss: () -> Unit,
-    onConfirm: (ColorType) -> Unit
+    onConfirm: (ColorType) -> Unit,
+    onSettingClick: (() -> Unit)? = null
 ) {
     CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
         var selected by remember { mutableStateOf(color) }
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            SheetTitleWidget(title = "颜色") {
+            SheetTitleWidget(title = "颜色", onSettingClick = onSettingClick) {
                 onConfirm(selected)
                 onDismiss()
             }

@@ -33,11 +33,11 @@ import kotlin.math.roundToInt
  * - 仅当长按右侧拖拽图标时才触发拖动
  * - Item 其他区域点击事件不受影响
  */
-@Composable fun DragLazyColumn(
-    items: MutableList<ClosetGridEntity>,
+@Composable fun <T> DragLazyColumn(
+    items: MutableList<T>,
     modifier: Modifier = Modifier,
     onMove: (from: Int, to: Int) -> Unit = { _, _ -> },
-    itemContent: @Composable (item: ClosetGridEntity, isDragging: Boolean) -> Unit
+    itemContent: @Composable (item: T, isDragging: Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
     var draggedIndex by remember { mutableStateOf<Int?>(null) }
@@ -127,7 +127,7 @@ import kotlin.math.roundToInt
             }
         })
     }) {
-        itemsIndexed(items = items, key = { _, item -> item.name } // 必须用唯一 ID
+        itemsIndexed(items = items, key = { _, item -> item.hashCode() } // 必须用唯一 ID
         ) { index, item ->
             val isDragging = draggedIndex == index
             Box(modifier = Modifier

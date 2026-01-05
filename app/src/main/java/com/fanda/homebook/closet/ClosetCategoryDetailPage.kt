@@ -81,9 +81,9 @@ import com.fanda.homebook.entity.ClosetGridEntity
             },
             rightIconPainter = if (isEditState) null else painterResource(R.mipmap.icon_add_grady),
             rightNextIconPainter = if (isEditState) null else painterResource(R.mipmap.icon_edit_menu),
-            rightText = if (isEditState) "完成" else "",
+            rightText = if (isEditState) "取消" else "",
             onRightActionClick = {
-
+                isEditState = false
             },
             onRightNextActionClick = {
                 isEditState = true

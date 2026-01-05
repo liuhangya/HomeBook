@@ -1,15 +1,7 @@
 package com.fanda.homebook.closet
 
-import android.util.Log
-import android.widget.Toast
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,44 +12,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,13 +43,11 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
 import com.fanda.homebook.closet.ui.ClosetInfoScreen
-import com.fanda.homebook.components.EditCommentsWidget
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.QuickShowBottomSheetType
-import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
 import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
@@ -82,10 +55,6 @@ import com.fanda.homebook.quick.sheet.GridBottomSheet
 import com.fanda.homebook.quick.sheet.ListBottomSheet
 import com.fanda.homebook.quick.sheet.SelectedCategory
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
-import com.fanda.homebook.quick.ui.EditAmountField
-import com.fanda.homebook.quick.ui.EditClosetScreen
-import com.fanda.homebook.quick.ui.SelectCategoryGrid
-import com.fanda.homebook.quick.ui.TopTypeSelector
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
@@ -277,6 +246,9 @@ import kotlinx.coroutines.launch
         currentShowBottomSheetType = QuickShowBottomSheetType.NONE
     }, onConfirm = {
         color = it
+    }, onSettingClick = {
+        currentShowBottomSheetType = QuickShowBottomSheetType.NONE
+        navController.navigate(RoutePath.ClosetEditColor.route)
     })
 
     ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
