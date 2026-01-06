@@ -1,5 +1,6 @@
 package com.fanda.homebook.book.sheet
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 import com.fanda.homebook.components.CustomBottomSheet
+import com.fanda.homebook.components.CustomBottomSheet2
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.TransactionCategory
@@ -94,6 +96,7 @@ import com.fanda.homebook.quick.sheet.SheetTitleWidget
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalLayoutApi::class) @Composable fun TransactionTypeItem(
     initial: String,
     modifier: Modifier = Modifier,

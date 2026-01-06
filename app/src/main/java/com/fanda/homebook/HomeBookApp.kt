@@ -92,7 +92,7 @@ import kotlinx.coroutines.launch
         }
     }
 
-    ModalNavigationDrawer(drawerState = drawerState, drawerContent = {
+    ModalNavigationDrawer(gesturesEnabled = drawerState.isOpen, drawerState = drawerState, drawerContent = {
         ModalDrawerSheet(windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
             drawerContainerColor = Color.Transparent, drawerShape = RoundedCornerShape(0.dp)
         ) {

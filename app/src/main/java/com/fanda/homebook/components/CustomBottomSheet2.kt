@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -57,89 +58,56 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.offset
 
-@Composable
-fun CustomBottomSheet2(
-    visible: Boolean,
-    onDismiss: () -> Unit,
-    content: @Composable () -> Unit
+@Composable fun CustomBottomSheet2(
+    visible: Boolean, onDismiss: () -> Unit, content: @Composable () -> Unit
 ) {
-    var shouldShowDialog by remember { mutableStateOf(false) }
 
-    // 控制偏移量动画
-    val offsetY by animateDpAsState(
-        targetValue = if (visible) 0.dp else 600.dp, // 根据实际情况调整
-        animationSpec = tween(durationMillis = 300),
-        label = "slide_animation"
-    )
+    if (!visible) return // ✅ 真正的销毁点：动画结束后才 return
 
-
-    val scrimAlpha by animateFloatAsState(
-        targetValue = if (visible) 0.5f else 0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "scrim_alpha"
-    )
-
-    LaunchedEffect(visible) {
-        if (visible) {
-            shouldShowDialog = true
-        } else {
-            delay(300) // 等待动画完成
-            shouldShowDialog = false
-        }
-    }
-
-    if (!shouldShowDialog) return
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false
-        )
-    ) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        // BackHandler 仍需要（Dialog 不自动处理返回键？其实会，但保留更安全）
         BackHandler { onDismiss() }
 
+        // 使用 Box 模拟全屏容器（实际是 Dialog 内部）
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .navigationBarsPadding(),
-            contentAlignment = Alignment.BottomCenter
+                .navigationBarsPadding(), contentAlignment = Alignment.BottomCenter
         ) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .clickable(
-                        // 去掉默认的点击效果
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { onDismiss() }
-            )
+            // ✅ 背景 scrim
+            Box(modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    // 去掉默认的点击效果
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onDismiss() })
 
-            // 直接使用偏移量动画
-            Box(
-                modifier = Modifier
+            // ✅ BottomSheet 内容（保持原有动画）
+            AnimatedVisibility(
+                visible = visible, // 因为外层已控制 visible，这里恒为 true
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(300, delayMillis = 50)
+                ), exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(250)
+                )
+            ) {
+                Box(modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 135.dp, max = 480.dp)
-                    .offset(y = offsetY)
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                colorResource(R.color.color_E3EBF5),
-                                Color.White
+                                colorResource(R.color.color_E3EBF5), Color.White
                             )
-                        ),
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                        ), shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                     )
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .border(1.dp, color = Color.White)
-                    .clickable(enabled = false) {}
-            ) {
-                content()
+                    .clickable(enabled = false) {}) {
+                    content()
+                }
             }
         }
     }
