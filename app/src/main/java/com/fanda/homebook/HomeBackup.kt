@@ -1,6 +1,5 @@
 //package com.fanda.homebook
 //
-//package com.fanda.homebook
 //
 //import android.app.Activity
 //import android.util.Log
@@ -53,20 +52,27 @@
 //import androidx.navigation.compose.currentBackStackEntryAsState
 //import androidx.navigation.compose.navigation
 //import androidx.navigation.compose.rememberNavController
+//import com.fanda.homebook.book.ui.BookHomePage
+//import com.fanda.homebook.closet.AddClosetColorPage
+//import com.fanda.homebook.closet.AddClosetPage
+//import com.fanda.homebook.closet.ClosetCategoryDetailPage
 //import com.fanda.homebook.closet.ClosetHomePage
 //import com.fanda.homebook.closet.EditClosetCategoryPage
+//import com.fanda.homebook.closet.EditClosetColorPage
 //import com.fanda.homebook.components.CustomBottomBar
 //import com.fanda.homebook.quick.QuickHomePage
 //import com.fanda.homebook.route.RoutePath
 //import com.fanda.homebook.route.bottomTabGraphs
 //import com.fanda.homebook.route.tabRootRoutes
+//import com.fanda.homebook.stock.AddStockPage
+//import com.fanda.homebook.stock.StockHomePage
 //import kotlinx.coroutines.delay
 //
 //
 ///*
 //* 应用入口
 //* */
-//@Composable fun HomeBookApp() {
+//@Composable fun HomeBookBackupApp() {
 //    val context = LocalContext.current
 //    // 获取导航控制器
 //    val navController: NavHostController = rememberNavController()
@@ -102,101 +108,64 @@
 //                navController.navigate(RoutePath.QuickAdd.route)
 //            })
 //        }
-//    }, contentWindowInsets = WindowInsets(0, 0, 0, 0)) { padding ->
-//        // 页面容器
+//    }, contentWindowInsets = WindowInsets(0, 0, 0, 0)) { _ ->
 //        NavHost(
-//            navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.padding(padding)
+//            navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.fillMaxSize()
 //        ) {
 //            // ====== 账本 Tab 嵌套 Graph ======
-//            navigation(
-//                startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route
-//            ) {
+//            navigation(startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route) {
 //                composable(RoutePath.BookHome.route) {
-//                    Text(
-//                        "账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp), modifier = Modifier
-//                            .fillMaxSize()
-//                            .statusBarsPadding()
-//                    )
-//                    // 示例：跳转详情
-////                    Button(onClick = {
-////                        navController.navigate(RoutePath.BookDetail("123").route)
-////                    }) {
-////                        Text("打开账本详情")
-////                    }
+//                    BookHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
 //                }
-////                composable("book_detail/{id}") { backStackEntry ->
-////                    val id = backStackEntry.arguments?.getString("id") ?: "unknown"
-////                    Text("账本详情: $id")
-////                    Button(onClick = { navController.popBackStack() }) {
-////                        Text("返回")
-////                    }
-////                }
 //            }
 //
-//            // ====== 看板 Tab 嵌套 Graph ======
-//            navigation(
-//                startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route
-//            ) {
+//            // ====== 看板 Tab ======
+//            navigation(startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route) {
 //                composable(RoutePath.DashboardHome.route) {
 //                    Text(
 //                        "看板首页", modifier = Modifier
 //                            .fillMaxSize()
 //                            .statusBarsPadding()
 //                    )
-////                    Button(onClick = {
-////                        navController.navigate(RoutePath.DashboardSettings.route)
-////                    }) {
-////                        Text("进入设置")
-////                    }
 //                }
-////                composable(RoutePath.DashboardSettings.route) {
-////                    Text("看板设置")
-////                    Button(onClick = { navController.popBackStack() }) {
-////                        Text("返回")
-////                    }
-////                }
 //            }
 //
 //            // ====== 衣橱 Tab ======
-//            navigation(
-//                startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route
-//            ) {
+//            navigation(startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route) {
 //                composable(RoutePath.ClosetHome.route) {
-//                    ClosetHomePage(
-//                        modifier = Modifier.fillMaxSize(), navController = navController
-//                    )
+//                    ClosetHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
 //                }
-//                composable(
-//                    RoutePath.ClosetEditCategory.route,
-////                    enterTransition = { slideInHorizontally() },
-////                    exitTransition = { slideOutHorizontally() },
-////                    popEnterTransition = { slideInHorizontallyBack() },
-////                    popExitTransition = { slideOutHorizontallyBack() })
-//                ) {
-//                    EditClosetCategoryPage(
-//                        modifier = Modifier.fillMaxSize(), navController = navController
-//                    )
+//                composable(RoutePath.AddCloset.route) {
+//                    AddClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
+//                }
+//                composable(RoutePath.ClosetEditCategory.route) {
+//                    EditClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+//                }
+//                composable(RoutePath.ClosetEditColor.route) {
+//                    EditClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+//                }
+//                composable(RoutePath.ClosetAddColor.route) {
+//                    AddClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+//                }
+//                composable(RoutePath.ClosetDetailCategory.route) {
+//                    ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
 //                }
 //            }
 //
 //            // ====== 囤货 Tab ======
-//            navigation(
-//                startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route
-//            ) {
+//            navigation(startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route) {
 //                composable(RoutePath.StockHome.route) {
-//                    Text(
-//                        "囤货页面", modifier = Modifier
-//                            .fillMaxSize()
-//                            .statusBarsPadding()
-//                    )
+//                    StockHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+//                }
+//                composable(RoutePath.AddStock.route) {
+//                    AddStockPage(modifier = Modifier.fillMaxSize(), navController = navController)
 //                }
 //            }
 //
 //            // ====== 全局页面（不属于任何 Tab）======
 //            composable(RoutePath.QuickAdd.route) {
-//                QuickHomePage(modifier = Modifier.fillMaxSize(), navController)
+//                QuickHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
 //            }
-//
 //        }
 //    }
 //}

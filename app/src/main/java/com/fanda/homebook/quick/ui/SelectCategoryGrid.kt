@@ -53,18 +53,6 @@ fun SelectCategoryGrid(modifier: Modifier = Modifier, items: List<TransactionCat
             .wrapContentHeight()
             .animateContentSize()
     ) {
-
-//        LazyVerticalGrid(
-//            columns = GridCells.Fixed(5),
-//            contentPadding = PaddingValues(20.dp),
-//            verticalArrangement = Arrangement.spacedBy(14.dp),
-//            horizontalArrangement = Arrangement.spacedBy(30.dp),
-//        ) {
-//            items(items = items, key = { it.name }) { category ->
-//                SelectCategoryGridItem(category)
-//                FlowRow {  }
-//            }
-//        }
         var selectedCategory by remember { mutableStateOf("") }
         FlowRow(
             modifier = Modifier.padding(20.dp).fillMaxWidth(),

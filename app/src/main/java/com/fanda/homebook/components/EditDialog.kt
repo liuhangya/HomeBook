@@ -48,10 +48,14 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                 ), placeholder = { Text(text = placeholder, fontSize = 16.sp, color = colorResource(id = R.color.color_84878C)) }, value = newValue, onValueChange = { newText ->
-                    // 限制最大长度
-                    if (newText.length <= maxChar) {
+                   if (showSuffix){
+                       // 限制最大长度
+                       if (newText.length <= maxChar) {
+                           newValue = newText
+                       }
+                   }else{
                         newValue = newText
-                    }
+                   }
                 }, singleLine = true, modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp)
@@ -71,6 +75,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         .padding(top = 24.dp, bottom = 20.dp)
                 ) {
                     SelectableRoundedButton(
+                        interaction = true,
                         text = "取消", selected = false, onClick = onDismissRequest, cornerSize = 27.dp, contentPadding = PaddingValues(horizontal = 47.dp, vertical = 15.dp), fontSize = 16.sp
                     )
                     Spacer(modifier = Modifier.width(12.dp))

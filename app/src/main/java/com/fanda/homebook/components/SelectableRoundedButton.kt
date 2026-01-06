@@ -40,16 +40,21 @@ import com.fanda.homebook.R
     unselectedBackgroundColor: Color = colorResource(R.color.color_D7DEE9),
     selectedContentColor: Color = Color.White,
     unselectedContentColor: Color = Color.Black,
-    @DrawableRes imageRes: Int? = null
+    @DrawableRes imageRes: Int? = null,
+    interaction: Boolean = false
 ) {
     // 给 Box 裁剪成圆角矩形并添加点击事件
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(cornerSize))
             .background(if (selected) selectedBackgroundColor else unselectedBackgroundColor)
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+            .then(if (interaction) {
+                Modifier.clickable {
+                    onClick()
+                }
+            } else Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                 onClick()
-            },
+            }),
         contentAlignment = Alignment.Center,
     ) {
         Row(

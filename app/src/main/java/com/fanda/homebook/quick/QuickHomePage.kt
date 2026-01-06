@@ -108,6 +108,8 @@ import kotlinx.coroutines.launch
         TransactionType.EXCLUDED -> {
             LocalDataSource.excludeCategoryData
         }
+
+        TransactionType.PLAN -> emptyList()
     }
 
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏

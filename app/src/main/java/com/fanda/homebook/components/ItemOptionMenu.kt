@@ -70,8 +70,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(
         keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
     ),
-    onClick: (() -> Unit)? = null,
     onPlusClick: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
 ) {
 
     Column(modifier = Modifier

@@ -66,11 +66,11 @@ import kotlinx.coroutines.launch
 /*
 * 添加囤货页面
 * */
-@Composable
-fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
+@Composable fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var comment by remember { mutableStateOf("") }
     var showCommentBottomSheet by remember { mutableStateOf(false) }
+    var showUsedUpDatePicker by remember { mutableStateOf(false) }
     var syncBook by remember { mutableStateOf(true) }
     var wearCount by remember { mutableIntStateOf(1) }
     var product by remember { mutableStateOf("") }
@@ -80,7 +80,7 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
     var size by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var remain by remember { mutableStateOf("") }
-    var usedUpDate by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis(),"yyyy-MM-dd")) }
+    var usedUpDate by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis(), "yyyy-MM-dd")) }
     var feel by remember { mutableStateOf("") }
 
     var currentShowBottomSheetType by remember { mutableStateOf(ShowBottomSheetType.NONE) }
@@ -120,16 +120,12 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
     }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                    detectTapGestures(
-                        onTap = { focusManager.clearFocus() },
-                        onDoubleTap = { focusManager.clearFocus() },
-                        onLongPress = { focusManager.clearFocus() })
-                }
-                .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+                detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
+            }
+            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
             // 为了让 padding 内容能滑动，所以用 Column 包起来
             Column(
@@ -172,8 +168,7 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
                         wearCount++
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    ClosetInfoScreen(
-                        bottomComment = comment,
+                    ClosetInfoScreen(bottomComment = comment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
                         product = product,
@@ -201,7 +196,7 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
         }
     }
 
-    if (currentShowBottomSheetType == ShowBottomSheetType.BUY_DATE || currentShowBottomSheetType == ShowBottomSheetType.USE_UP_DATE) {
+    if (currentShowBottomSheetType == ShowBottomSheetType.BUY_DATE || showUsedUpDatePicker) {
         // 日期选择器
         CustomDatePickerModal(onDateSelected = {
             if (currentShowBottomSheetType == ShowBottomSheetType.BUY_DATE) {
@@ -211,11 +206,11 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
             }
         }, onDismiss = {
             currentShowBottomSheetType = ShowBottomSheetType.NONE
+            showUsedUpDatePicker = false
         })
     }
 
-    ListBottomSheet(
-        initial = product,
+    ListBottomSheet(initial = product,
         title = "品牌",
         dataSource = LocalDataSource.productData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PRODUCT },
@@ -224,8 +219,7 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
         product = it
     }
 
-    ListBottomSheet(
-        initial = owner,
+    ListBottomSheet(initial = owner,
         title = "归属",
         dataSource = LocalDataSource.ownerData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.OWNER },
@@ -234,8 +228,7 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
         owner = it
     }
 
-    GridBottomSheet(
-        initial = owner,
+    GridBottomSheet(initial = owner,
         title = "尺码",
         dataSource = LocalDataSource.sizeData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.SIZE },
@@ -246,8 +239,7 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
         size = it
     }
 
-    GridBottomSheet(
-        initial = season,
+    GridBottomSheet(initial = season,
         title = "季节",
         dataSource = LocalDataSource.seasonData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.SEASON },
@@ -259,22 +251,16 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
     }
 
 
-    ColorTypeBottomSheet(
-        color = color,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR },
-        onDismiss = {
-            currentShowBottomSheetType = ShowBottomSheetType.NONE
-        },
-        onConfirm = {
-            color = it
-        },
-        onSettingClick = {
-            currentShowBottomSheetType = ShowBottomSheetType.NONE
-            navController.navigate(RoutePath.ClosetEditColor.route)
-        })
+    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
+        currentShowBottomSheetType = ShowBottomSheetType.NONE
+    }, onConfirm = {
+        color = it
+    }, onSettingClick = {
+        currentShowBottomSheetType = ShowBottomSheetType.NONE
+        navController.navigate(RoutePath.ClosetEditColor.route)
+    })
 
-    ClosetTypeBottomSheet(
-        categories = LocalDataSource.closetCategoryData,
+    ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.CATEGORY },
         onDismiss = {
@@ -284,63 +270,22 @@ fun AddStockPage(modifier: Modifier = Modifier, navController: NavController) {
             currentClosetCategory = it
         })
 
-    StockCommentBottomSheet(
-        remain = remain,
-        date = usedUpDate,
-        feel = feel,
-        visible = showCommentBottomSheet,
-        onDismiss = {
-            showCommentBottomSheet = false
-        }) {
-        when (it) {
-            ShowBottomSheetType.REMAIN -> {
-                currentShowBottomSheetType = ShowBottomSheetType.REMAIN
-            }
-
-            ShowBottomSheetType.USE_UP_DATE -> {
-                currentShowBottomSheetType = ShowBottomSheetType.USE_UP_DATE
-            }
-
-            ShowBottomSheetType.FEEL -> {
-                currentShowBottomSheetType = ShowBottomSheetType.FEEL
-            }
-
-            ShowBottomSheetType.DONE -> {
-                showCommentBottomSheet = false
-            }
-
-            else -> {}
-        }
-    }
-
-    ListBottomSheet(
-        initial = remain,
-        title = "用完后剩余量",
-        dataSource = LocalDataSource.remainData,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.REMAIN },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
+    StockCommentBottomSheet(remain = remain, date = usedUpDate, feel = feel, visible = showCommentBottomSheet, onDismiss = {
+        showCommentBottomSheet = false
+    }, onDateClick = {
+        showUsedUpDatePicker = true
+    }, onRemainClick = {
         remain = it
-    }
-
-    ListBottomSheet(
-        initial = feel,
-        title = "使用感受",
-        dataSource = LocalDataSource.feelData,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.FEEL },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
+    }, onFeelClick = {
         feel = it
-    }
+    }, onConfirm = {
+        showCommentBottomSheet = false
+    })
 
 }
 
-@Composable
-fun WearCountAndCost(
-    price: String,
-    wearCount: Int,
-    modifier: Modifier = Modifier,
-    onPlusClick: (() -> Unit)
+@Composable fun WearCountAndCost(
+    price: String, wearCount: Int, modifier: Modifier = Modifier, onPlusClick: (() -> Unit)
 ) {
     val itemPadding = Modifier.padding(
         20.dp, 20.dp, 20.dp, 20.dp
@@ -353,32 +298,18 @@ fun WearCountAndCost(
     GradientRoundedBoxWithStroke(modifier = modifier) {
         Column {
             ItemOptionMenu(
-                title = "穿着次数：${wearCount}次",
-                showText = true,
-                showRightArrow = false,
-                rightText = "",
-                showPlus = true,
-                showDivider = true,
-                modifier = itemPadding,
-                onPlusClick = onPlusClick
+                title = "穿着次数：${wearCount}次", showText = true, showRightArrow = false, rightText = "", showPlus = true, showDivider = true, modifier = itemPadding, onPlusClick = onPlusClick
             )
 
             ItemOptionMenu(
-                title = "穿着成本",
-                showText = true,
-                rightText = showPrice,
-                showDivider = false,
-                showRightArrow = false,
-                modifier = itemPadding
+                title = "穿着成本", showText = true, rightText = showPrice, showDivider = false, showRightArrow = false, modifier = itemPadding
             )
         }
     }
 }
 
 
-@Composable
-@Preview(showBackground = true)
-fun AddStockPagePreview() {
+@Composable @Preview(showBackground = true) fun AddStockPagePreview() {
     HomeBookTheme {
         AddStockPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }

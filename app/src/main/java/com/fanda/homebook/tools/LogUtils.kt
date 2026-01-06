@@ -142,10 +142,10 @@ object LogUtils {
         val stackDeep = cfg.stackDeep
 
         // 如果不需要头部，且 mTagIsSpace 为 false，则直接使用 [globalTag]
-        if (!mTagIsSpace && !logHeadSwitch) {
-            val finalTag = "[$globalTag]"
-            return TagHead(finalTag, null, ": ")
-        }
+//        if (!mTagIsSpace && !logHeadSwitch) {
+//            val finalTag = "[$globalTag]"
+//            return TagHead(finalTag, null, ": ")
+//        }
 
         // 获取调用栈：new Throwable().getStackTrace()
         val stackTrace = Throwable().stackTrace
@@ -381,7 +381,7 @@ object LogUtils {
         var filePrefix: String = "util"
         var fileExtension: String = ".txt"
         var fileWriter: IFileWriter? = null
-        var mTagIsSpace: Boolean = true
+        var mTagIsSpace: Boolean = false
         var onConsoleOutputListener: OnConsoleOutputListener? = null
         var onFileOutputListener: OnFileOutputListener? = null
 

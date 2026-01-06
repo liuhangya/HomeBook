@@ -1,10 +1,13 @@
 package com.fanda.homebook.data
 
 import com.fanda.homebook.R
+import com.fanda.homebook.entity.AmountItemEntity
 import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.CategoryBottomMenuEntity
 import com.fanda.homebook.entity.ClosetCategoryBottomMenuType
 import com.fanda.homebook.entity.ClosetGridEntity
+import com.fanda.homebook.entity.DailyAmountEntity
+import com.fanda.homebook.entity.DailyItemEntity
 import com.fanda.homebook.entity.StateMenuEntity
 import com.fanda.homebook.entity.StockGridEntity
 import com.fanda.homebook.entity.StockState
@@ -31,9 +34,6 @@ object LocalDataSource {
         TransactionCategory("发红包", R.mipmap.icon_red_envelope, TransactionType.EXPENSE),
         TransactionCategory("人情", R.mipmap.icon_social, TransactionType.EXPENSE),
         TransactionCategory("其他", R.mipmap.icon_others, TransactionType.EXPENSE),
-        TransactionCategory("其他1", R.mipmap.icon_others, TransactionType.EXPENSE),
-        TransactionCategory("其他2", R.mipmap.icon_others, TransactionType.EXPENSE),
-        TransactionCategory("其他3", R.mipmap.icon_others, TransactionType.EXPENSE),
     )
 
     val incomeCategoryData = listOf(
@@ -267,10 +267,7 @@ object LocalDataSource {
 
     // 囤货状态菜单列表
     val stockStateList = listOf(
-        StateMenuEntity(1,"全部", 100),
-        StateMenuEntity(2,"使用中", 200),
-        StateMenuEntity(3,"未开封", 10,),
-        StateMenuEntity(4,"已用完", 20)
+        StateMenuEntity(1, "全部", 100), StateMenuEntity(2, "使用中", 200), StateMenuEntity(3, "未开封", 10), StateMenuEntity(4, "已用完", 20)
     )
 
     val stockGridList = mutableListOf<StockGridEntity>().apply {
@@ -310,5 +307,71 @@ object LocalDataSource {
         "回购",
     )
 
+    // 账本页面
+
+    val amountItemList = mutableListOf<AmountItemEntity>().apply {
+        add(
+            AmountItemEntity(
+                name = "本月支出", amount = 5800f, type = TransactionType.EXPENSE
+            )
+        )
+        add(
+            AmountItemEntity(
+                name = "本月收入", amount = 10000f, type = TransactionType.INCOME
+            )
+        )
+        add(
+            AmountItemEntity(
+                name = "添加预算", amount = 4200f, type = TransactionType.PLAN
+            )
+        )
+
+    }
+
+    val bookList = mutableListOf<String>().apply {
+        repeat(15) {
+            add("居家生活$it")
+        }
+    }
+
+    val dailyListData = mutableListOf<DailyAmountEntity>().apply {
+            val children = mutableListOf<DailyItemEntity>().apply {
+                repeat(5) {
+                    add(
+                        DailyItemEntity(
+                            1,
+                            TransactionType.EXPENSE,
+                            100f,
+                            "购物",
+                            "支付宝",
+                            "耐克",
+                        )
+                    )
+                }
+            }
+            add(
+                DailyAmountEntity(1,"10月8日", "今天", 1000f, 500f, children)
+            )
+        val children2 = mutableListOf<DailyItemEntity>().apply {
+            repeat(5) {
+                add(
+                    DailyItemEntity(
+                        1,
+                        TransactionType.INCOME,
+                        100f,
+                        "购物",
+                        "支付宝",
+                        "耐克",
+                    )
+                )
+            }
+        }
+        add(
+            DailyAmountEntity(2,"10月8日", "今天", 1000f, 500f, children2)
+        )
+        add(
+            DailyAmountEntity(3,"10月8日", "今天", 1000f, 500f, children2)
+        )
+    }
 }
 

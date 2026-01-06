@@ -1,8 +1,12 @@
 package com.fanda.homebook.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -31,10 +35,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fanda.homebook.R
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.ui.theme.HomeBookTheme
 
 data class BottomTabEntity(
     val route: String, @DrawableRes val icon: Int, @DrawableRes val iconSelected: Int, var selected: Boolean = false
@@ -45,7 +52,7 @@ data class BottomTabEntity(
 * 底部导航栏
 * */
 @Composable fun CustomBottomBar(
-    navHostController: NavHostController, selectedTab: String, onTabClick: (BottomTabEntity) -> Unit, onQuickAddClick: () -> Unit, modifier: Modifier = Modifier
+    selectedTab: String, onTabClick: (BottomTabEntity) -> Unit, onQuickAddClick: () -> Unit, modifier: Modifier = Modifier
 ) {
     val leftTabs = listOf(
         BottomTabEntity(RoutePath.BookGraph.route, R.mipmap.icon_book, R.mipmap.icon_book_selected),
@@ -62,44 +69,43 @@ data class BottomTabEntity(
 
     // 点击时的缩放值
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.8f else 1f, animationSpec = tween(durationMillis = 150), label = ""
+        targetValue = if (isPressed) 0.8f else 1f, animationSpec = tween(durationMillis = 100), label = ""
     )
 
-    Box(modifier = modifier.padding(16.dp, 0.dp, 16.dp, 16.dp)) {
-        Card(
-            shape = MaterialTheme.shapes.large,
-            modifier = modifier
-                .fillMaxWidth()
-                .height(64.dp),
-            colors = CardDefaults.cardColors().copy(containerColor = colorResource(R.color.color_99FFFFFF)),
-            border = BorderStroke(1.dp, color = Color.White)
+    Card(
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp, 0.dp, 16.dp, 16.dp)
+            .height(64.dp),
+        colors = CardDefaults.cardColors().copy(containerColor = colorResource(R.color.color_99FFFFFF)),
+        border = BorderStroke(1.dp, color = Color.White)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()
-            ) {
-                leftTabs.forEach { tab ->
-                    BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
-                        onTabClick(tab)
-                    }, modifier = Modifier.weight(1f))
-                }
+            leftTabs.forEach { tab ->
+                BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
+                    onTabClick(tab)
+                }, modifier = Modifier.weight(1f))
+            }
 
-                Image(
-                    painter = painterResource(id = R.mipmap.icon_quick_add),
-                    contentDescription = "记一笔",
-                    modifier = Modifier
-                        .size(56.dp)
-                        .scale(scale)
-                        .weight(1f)
-                        .clickable(interactionSource = interactionSource, indication = null, onClick = {
-                            onQuickAddClick()
-                        })
-                )
+            Image(
+                painter = painterResource(id = R.mipmap.icon_quick_add),
+                contentDescription = "记一笔",
+                modifier = Modifier
+                    .size(56.dp)
+                    .scale(scale)
+                    .weight(1f)
+                    .clickable(interactionSource = interactionSource, indication = null, onClick = {
+                        onQuickAddClick()
+                    })
+            )
 
-                rightTabs.forEach { tab ->
-                    BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
-                        onTabClick(tab)
-                    }, modifier = Modifier.weight(1f))
-                }
+            rightTabs.forEach { tab ->
+                BottomBarItem(tab = tab, isSelected = tab.route == selectedTab, onClick = {
+                    onTabClick(tab)
+                }, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -122,5 +128,11 @@ data class BottomTabEntity(
         Image(
             painter = painterResource(id = if (isSelected) tab.iconSelected else tab.icon), contentDescription = tab.route, modifier = Modifier.size(28.dp)
         )
+    }
+}
+
+@Composable @Preview(showBackground = true) fun CustomBottomBarPreview() {
+    HomeBookTheme {
+        CustomBottomBar( selectedTab = RoutePath.BookGraph.route, onTabClick = {}, onQuickAddClick = {})
     }
 }

@@ -35,7 +35,7 @@ import com.fanda.homebook.R
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
 @Composable fun ConfirmDialog(
-    title: String, modifier: Modifier = Modifier, onDismissRequest: () -> Unit, onConfirm: () -> Unit, maxChar: Int = 4, showSuffix: Boolean = true
+    title: String, modifier: Modifier = Modifier, onDismissRequest: () -> Unit, onConfirm: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismissRequest, properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)) {
         GradientRoundedBoxWithStroke(modifier = modifier, colors = listOf(colorResource(R.color.color_E3EBF5), Color.White)) {
@@ -48,6 +48,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         .padding( bottom = 20.dp)
                 ) {
                     SelectableRoundedButton(
+                        interaction = true,
                         text = "取消", selected = false, onClick = onDismissRequest, cornerSize = 27.dp, contentPadding = PaddingValues(horizontal = 47.dp, vertical = 15.dp), fontSize = 16.sp
                     )
                     Spacer(modifier = Modifier.width(12.dp))

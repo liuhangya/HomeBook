@@ -6,14 +6,19 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,8 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,6 +37,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.fanda.homebook.book.BookHomePage
 import com.fanda.homebook.closet.AddClosetColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
@@ -43,7 +51,8 @@ import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
 import com.fanda.homebook.stock.AddStockPage
 import com.fanda.homebook.stock.StockHomePage
-import com.fanda.homebook.tools.LogUtils
+import com.fanda.homebook.ui.theme.HomeBookTheme
+import kotlinx.coroutines.launch
 
 
 /*
@@ -55,105 +64,133 @@ import com.fanda.homebook.tools.LogUtils
     var lastBackPressed by remember { mutableLongStateOf(0L) }
     val (selectedTab, isTabRoute) = rememberSelectedTab(navController)
 
-    LogUtils.i("测试日志框架")
-    // 拦截返回键（仅在 tab 一级页面）
-    BackHandler(enabled = isTabRoute) {
-        val now = System.currentTimeMillis()
-        if (now - lastBackPressed < 2000) {
-            (context as? Activity)?.finishAffinity()
-        } else {
-            lastBackPressed = now
-            Toast.makeText(context, "再按一次退出应用", Toast.LENGTH_SHORT).show()
-        }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    // 同步状态
+    var isDrawerOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(drawerState.currentValue) {
+        isDrawerOpen = drawerState.isOpen
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // 主内容区域：自动占据剩余空间
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
-            NavHost(
-                navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.fillMaxSize()
-            ) {
-                // ====== 账本 Tab 嵌套 Graph ======
-                navigation(startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route) {
-                    composable(RoutePath.BookHome.route) {
-                        Text(
-                            "账本首页", style = MaterialTheme.typography.headlineSmall.copy(fontSize = 18.sp), modifier = Modifier
-                                .fillMaxSize()
-                                .statusBarsPadding()
-                        )
-                    }
-                }
+    // 抽屉内容
+    var drawerContent: @Composable () -> Unit by remember { mutableStateOf({}) }
 
-                // ====== 看板 Tab ======
-                navigation(startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route) {
-                    composable(RoutePath.DashboardHome.route) {
-                        Text(
-                            "看板首页", modifier = Modifier
-                                .fillMaxSize()
-                                .statusBarsPadding()
-                        )
-                    }
-                }
-
-                // ====== 衣橱 Tab ======
-                navigation(startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route) {
-                    composable(RoutePath.ClosetHome.route) {
-                        ClosetHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                    composable(RoutePath.AddCloset.route) {
-                        AddClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                    composable(RoutePath.ClosetEditCategory.route) {
-                        EditClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                    composable(RoutePath.ClosetEditColor.route) {
-                        EditClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                    composable(RoutePath.ClosetAddColor.route) {
-                        AddClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                    composable(RoutePath.ClosetDetailCategory.route) {
-                        ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                }
-
-                // ====== 囤货 Tab ======
-                navigation(startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route) {
-                    composable(RoutePath.StockHome.route) {
-                        StockHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                    composable(RoutePath.AddStock.route) {
-                        AddStockPage(modifier = Modifier.fillMaxSize(), navController = navController)
-                    }
-                }
-
-                // ====== 全局页面（不属于任何 Tab）======
-                composable(RoutePath.QuickAdd.route) {
-                    QuickHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
-                }
+    // 拦截返回键（仅在 tab 一级页面）
+    BackHandler(enabled = isDrawerOpen || isTabRoute) {
+        if (isDrawerOpen) {
+            scope.launch { drawerState.close() }
+        } else {
+            // 原有的双击退出逻辑
+            val now = System.currentTimeMillis()
+            if (now - lastBackPressed < 2000) {
+                (context as? Activity)?.finishAffinity()
+            } else {
+                lastBackPressed = now
+                Toast.makeText(context, "再按一次退出应用", Toast.LENGTH_SHORT).show()
             }
         }
+    }
 
-        // === BottomBar 区域：高度参与动画 ===
-        if (isTabRoute) {
-            // 确保在有手势导航的设备上留出安全区
-            CustomBottomBar(modifier = Modifier.navigationBarsPadding(), navHostController = navController, selectedTab = selectedTab, onTabClick = { tab ->
-                navController.navigate(tab.route) {
-                    launchSingleTop = true
-                    restoreState = true
-                    popUpTo(navController.graph.id) { saveState = true }
+    ModalNavigationDrawer(drawerState = drawerState, drawerContent = {
+        ModalDrawerSheet(windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+            drawerContainerColor = Color.Transparent, drawerShape = RoundedCornerShape(0.dp)
+        ) {
+            ModalDrawerSheet(windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerShape = RoundedCornerShape(0.dp), drawerContainerColor = Color.Transparent) {
+                drawerContent()
+            }
+        }
+    }) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // 主内容区域：自动占据剩余空间
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                NavHost(
+                    navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.fillMaxSize()
+                ) {
+                    // ====== 账本 Tab 嵌套 Graph ======
+                    navigation(startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route) {
+                        composable(RoutePath.BookHome.route) {
+                            BookHomePage(modifier = Modifier.fillMaxSize(), navController = navController, onShowDrawer = { content ->
+                                drawerContent = content
+                                scope.launch { drawerState.open() }
+                            }, onCloseDrawer = {
+                                scope.launch { drawerState.close() }
+                            })
+                        }
+                    }
+
+                    // ====== 看板 Tab ======
+                    navigation(startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route) {
+                        composable(RoutePath.DashboardHome.route) {
+                            Text(
+                                "看板首页", modifier = Modifier
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                            )
+                        }
+                    }
+
+                    // ====== 衣橱 Tab ======
+                    navigation(startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route) {
+                        composable(RoutePath.ClosetHome.route) {
+                            ClosetHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.AddCloset.route) {
+                            AddClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.ClosetEditCategory.route) {
+                            EditClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.ClosetEditColor.route) {
+                            EditClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.ClosetAddColor.route) {
+                            AddClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.ClosetDetailCategory.route) {
+                            ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                    }
+
+                    // ====== 囤货 Tab ======
+                    navigation(startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route) {
+                        composable(RoutePath.StockHome.route) {
+                            StockHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.AddStock.route) {
+                            AddStockPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                    }
+
+                    // ====== 全局页面（不属于任何 Tab）======
+                    composable(RoutePath.QuickAdd.route) {
+                        QuickHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
                 }
-            }, onQuickAddClick = {
-                navController.navigate(RoutePath.QuickAdd.route)
-            })
+            }
+
+            if (isTabRoute) {
+                // 确保在有手势导航的设备上留出安全区
+                CustomBottomBar(modifier = Modifier.navigationBarsPadding(), selectedTab = selectedTab, onTabClick = { tab ->
+                    navController.navigate(tab.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                        popUpTo(navController.graph.id) { saveState = true }
+                    }
+                }, onQuickAddClick = {
+                    navController.navigate(RoutePath.QuickAdd.route)
+                })
+            }
         }
     }
+
+
 }
 
 /**
@@ -165,7 +202,6 @@ import com.fanda.homebook.tools.LogUtils
 @Composable private fun rememberSelectedTab(
     navController: NavController, defaultTab: String = RoutePath.BookGraph.route
 ): Pair<String, Boolean> {
-    Log.d("HomeBookApp", "11111")
     val currentEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route ?: ""
     val routePrefix = currentRoute.split("/").firstOrNull() ?: defaultTab
@@ -179,6 +215,12 @@ import com.fanda.homebook.tools.LogUtils
     Log.d("HomeBookApp", "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute")
 
     return Pair(selectedTab, isTabRoute)
+}
+
+@Composable @Preview(showBackground = true) private fun HomeBookAppPreview() {
+    HomeBookTheme {
+        HomeBookApp()
+    }
 }
 
 
