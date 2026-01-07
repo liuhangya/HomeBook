@@ -37,6 +37,8 @@ sealed class RoutePath(val route: String) {
 
     // 全局页面（不属于任何 Tab）
     data object QuickAdd : RoutePath("quick_add")
+
+    data object EditImage : RoutePath("edit_image")
 }
 
 // 所有 Tab 对应的 Graph route（用于判断是否在 Tab 内）

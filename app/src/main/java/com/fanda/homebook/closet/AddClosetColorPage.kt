@@ -55,8 +55,7 @@ import com.github.skydoves.colorpicker.compose.drawColorIndicator
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
 @Composable fun AddClosetColorPage(modifier: Modifier = Modifier, navController: NavController) {
-    var sliderPosition by remember { mutableFloatStateOf(1f) }
-    val controller = rememberColorPickerController()
+
     var name by remember { mutableStateOf("") }
     var color by remember { mutableLongStateOf(Color.Green.toArgb().toLong()) }
 
@@ -96,34 +95,6 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
                 HSVColorPicker(initialColor = Color(color), onColorSelected = {
                     color = it.toArgb().toLong()
                 })
-
-
-                /* HsvColorPicker(
-                     modifier = Modifier
-                         .padding(20.dp)
-                         .size(300.dp),
-                     controller = controller,
-                     drawOnPosSelected = {
-                         drawColorIndicator(
-                             controller.selectedPoint.value,
-                             controller.selectedColor.value,
-                         )
-                     },
-                     onColorChanged = { colorEnvelope ->
-                         color = colorEnvelope.color.toArgb().toLong()
-                     },
-                     initialColor = Color.Red,
-                 )
-
-                 Slider(modifier = Modifier
-                     .padding(horizontal = 20.dp, vertical = 20.dp)
-                     .fillMaxWidth(),
-                     colors = SliderDefaults.colors().copy(thumbColor = Color(0xFF6750A4), activeTrackColor = Color(0xFF6750A4), inactiveTrackColor = Color(0xFFE2E0EB)),
-                     value = sliderPosition,
-                     onValueChange = {
-                         sliderPosition = it
-                         controller.setAlpha(sliderPosition, true)
-                     })*/
             }
         }
 

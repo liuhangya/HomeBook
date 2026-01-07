@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 授予对 cache 目录的访问权限 -->
+    <cache-path name="my_cache" path="." />
+
+    <!-- 如果你需要访问 files 目录  -->
+    <files-path name="my_files" path="." />
+
+    <external-cache-path name="external_cache" path="." />
+</paths>

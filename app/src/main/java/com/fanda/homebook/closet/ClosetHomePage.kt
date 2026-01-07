@@ -135,7 +135,10 @@ import com.fanda.homebook.route.RoutePath
         showSelectImage = false
     }) {
         showSelectImage = false
-        Log.d("ClosetHomePage", "点击了图片选择按钮:$it")
+        // 导航时保存状态
+        navController.currentBackStackEntry?.savedStateHandle?.set(
+            "selectedImageUri", it
+        )
         navController.navigate(RoutePath.AddCloset.route)
     }
 

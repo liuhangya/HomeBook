@@ -41,4 +41,8 @@ dependencies {
     // Coil
     api("io.coil-kt:coil-compose:2.4.0")
     api(libs.compose.colorpicker)
+    api "com.google.accompanist:accompanist-permissions:0.37.3"
+    api 'com.github.yalantis:ucrop:2.2.11'
+    api 'com.github.yalantis:ucrop:2.2.11-native'
+//    api(libs.vico.compose.m3)
 }

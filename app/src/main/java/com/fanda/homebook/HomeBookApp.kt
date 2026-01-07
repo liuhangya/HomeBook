@@ -32,11 +32,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.fanda.homebook.book.BookHomePage
 import com.fanda.homebook.closet.AddClosetColorPage
 import com.fanda.homebook.closet.AddClosetPage
@@ -50,6 +52,7 @@ import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
 import com.fanda.homebook.stock.AddStockPage
+import com.fanda.homebook.stock.EditImagePage
 import com.fanda.homebook.stock.StockHomePage
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import kotlinx.coroutines.launch
@@ -171,6 +174,10 @@ import kotlinx.coroutines.launch
                     // ====== 全局页面（不属于任何 Tab）======
                     composable(RoutePath.QuickAdd.route) {
                         QuickHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
+
+                    composable(RoutePath.EditImage.route) {
+                        EditImagePage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.fanda.homebook.closet
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -66,6 +67,14 @@ import kotlinx.coroutines.launch
 * 添加衣橱页面
 * */
 @Composable fun AddClosetPage(modifier: Modifier = Modifier, navController: NavController) {
+    val imageUri = remember {
+        navController.previousBackStackEntry?.savedStateHandle?.get<Uri>("selectedImageUri")
+    }
+
+    var curImageUri by remember {
+        mutableStateOf(imageUri)
+    }
+
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var comment by remember { mutableStateOf("") }
     var syncBook by remember { mutableStateOf(true) }
@@ -137,7 +146,7 @@ import kotlinx.coroutines.launch
                 ) {
                     AsyncImage(
                         contentScale = ContentScale.Crop,
-                        model = R.mipmap.bg_closet_dufault,
+                        model = curImageUri,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
