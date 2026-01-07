@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,11 +41,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColor
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.components.ColoredCircleWithBorder
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
+import com.fanda.homebook.components.HSVColorPicker
 import com.fanda.homebook.components.TopIconAppBar
 import com.github.skydoves.colorpicker.compose.AlphaSlider
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
@@ -55,7 +58,7 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
     var sliderPosition by remember { mutableFloatStateOf(1f) }
     val controller = rememberColorPickerController()
     var name by remember { mutableStateOf("") }
-    var color by remember { mutableLongStateOf(Color.Red.toArgb().toLong()) }
+    var color by remember { mutableLongStateOf(Color.Green.toArgb().toLong()) }
 
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
@@ -84,37 +87,43 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
             }
             .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 EditColorNameWidget(name = name, color = Color(color)) {
                     name = it
                 }
+                Spacer(modifier = Modifier.height(20.dp))
 
-                HsvColorPicker(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .size(300.dp),
-                    controller = controller,
-                    drawOnPosSelected = {
-                        drawColorIndicator(
-                            controller.selectedPoint.value,
-                            controller.selectedColor.value,
-                        )
-                    },
-                    onColorChanged = { colorEnvelope ->
-                        color = colorEnvelope.color.toArgb().toLong()
-                    },
-                    initialColor = Color.Red,
-                )
+                HSVColorPicker(initialColor = Color(color), onColorSelected = {
+                    color = it.toArgb().toLong()
+                })
 
-                Slider(modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-                    .fillMaxWidth(),
-                    colors = SliderDefaults.colors().copy(thumbColor = Color(0xFF6750A4), activeTrackColor = Color(0xFF6750A4), inactiveTrackColor = Color(0xFFE2E0EB)),
-                    value = sliderPosition,
-                    onValueChange = {
-                        sliderPosition = it
-                        controller.setAlpha(sliderPosition, true)
-                    })
+
+                /* HsvColorPicker(
+                     modifier = Modifier
+                         .padding(20.dp)
+                         .size(300.dp),
+                     controller = controller,
+                     drawOnPosSelected = {
+                         drawColorIndicator(
+                             controller.selectedPoint.value,
+                             controller.selectedColor.value,
+                         )
+                     },
+                     onColorChanged = { colorEnvelope ->
+                         color = colorEnvelope.color.toArgb().toLong()
+                     },
+                     initialColor = Color.Red,
+                 )
+
+                 Slider(modifier = Modifier
+                     .padding(horizontal = 20.dp, vertical = 20.dp)
+                     .fillMaxWidth(),
+                     colors = SliderDefaults.colors().copy(thumbColor = Color(0xFF6750A4), activeTrackColor = Color(0xFF6750A4), inactiveTrackColor = Color(0xFFE2E0EB)),
+                     value = sliderPosition,
+                     onValueChange = {
+                         sliderPosition = it
+                         controller.setAlpha(sliderPosition, true)
+                     })*/
             }
         }
 

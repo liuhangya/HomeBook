@@ -50,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -71,6 +73,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.book.sheet.TransactionTypeBottomSheet
+import com.fanda.homebook.book.sheet.YearMonthBottomSheet
 import com.fanda.homebook.book.sheet.YearMonthPicker
 import com.fanda.homebook.book.ui.DailyItemWidget
 import com.fanda.homebook.components.ConfirmDialog
@@ -84,19 +87,16 @@ import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.quick.sheet.SheetTitleWidget
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
+import com.fanda.homebook.tools.formatYearMonth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BookHomePage(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    onShowDrawer: (@Composable () -> Unit) -> Unit,
-    onCloseDrawer: () -> Unit
+@OptIn(ExperimentalMaterial3Api::class) @Composable fun BookHomePage(
+    modifier: Modifier = Modifier, navController: NavController, onShowDrawer: (@Composable () -> Unit) -> Unit, onCloseDrawer: () -> Unit
 ) {
     var showSelectCategoryBottomSheet by remember { mutableStateOf(false) }
     var showMonthPlanDialog by remember { mutableStateOf(false) }
@@ -104,18 +104,15 @@ fun BookHomePage(
     var showEditBookDialog by remember { mutableStateOf(false) }
     var showAddBookDialog by remember { mutableStateOf(false) }
     var isEditBook by remember { mutableStateOf(false) }
+    var showSelectYearMonthBottomSheet by remember { mutableStateOf(false) }
     var curCategory by remember { mutableStateOf("全部类型") }
     var curBookName by remember { mutableStateOf("居家生活") }
     var curEditBookName by remember { mutableStateOf("") }
     var planAmount by remember { mutableFloatStateOf(0f) }
-    var date by remember {
-        mutableStateOf(
-            convertMillisToDate(
-                System.currentTimeMillis(),
-                "yyyy年MM月"
-            )
-        )
-    }
+
+    val currentDate = LocalDate.now()
+    var selectedYear by remember { mutableIntStateOf(currentDate.year) }
+    var selectedMonth by remember { mutableIntStateOf(currentDate.monthValue) }
 
     val scope = rememberCoroutineScope()
 
@@ -130,33 +127,25 @@ fun BookHomePage(
                         .background(color = Color.Transparent)
                 ) {
 
-                    Box(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
-                            .align(Alignment.CenterEnd)
-                            .clickable(
-                                // 去掉默认的点击效果
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                showSelectCategoryBottomSheet = true
-                            }
-                            .padding(start = 0.dp, end = 20.dp)) {
+                    Box(modifier = Modifier
+                        .wrapContentWidth()
+                        .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
+                        .align(Alignment.CenterEnd)
+                        .clickable(
+                            // 去掉默认的点击效果
+                            interactionSource = remember { MutableInteractionSource() }, indication = null
+                        ) {
+                            showSelectCategoryBottomSheet = true
+                        }
+                        .padding(start = 0.dp, end = 20.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxHeight()
+                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                         ) {
                             Text(
-                                text = curCategory,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 18.sp,
-                                color = Color.Black
+                                text = curCategory, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
                             )
                             Image(
-                                modifier = Modifier.padding(start = 6.dp),
-                                painter = painterResource(id = R.mipmap.icon_arrow_down_black),
-                                contentDescription = null
+                                modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null
                             )
                         }
 
@@ -167,8 +156,7 @@ fun BookHomePage(
                             .align(Alignment.CenterStart)
                             .padding(end = 10.dp)
                             .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
+                                interactionSource = remember { MutableInteractionSource() }, indication = null
                             ) {
                                 onShowDrawer {
                                     BookDrawerWidget(isEditBook = isEditBook, onEditClick = {
@@ -188,11 +176,7 @@ fun BookHomePage(
                                         }
                                     })
                                 }
-                            },
-                        text = curBookName,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 18.sp,
-                        color = Color.Black
+                            }, text = curBookName, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
                     )
                 }
 
@@ -201,32 +185,22 @@ fun BookHomePage(
         )
     }) { padding ->
         LazyColumn(
-            modifier = modifier.padding(padding),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp)
+            modifier = modifier.padding(padding), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp)
         ) {
             item {
                 GradientRoundedBoxWithStroke {
                     Column {
-                        Row(
-                            modifier = Modifier
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
-                                ) {
-                                    LogUtils.d("点击了日期")
-                                }
-                                .padding(start = 20.dp, top = 14.dp, bottom = 12.dp, end = 20.dp),
-                            verticalAlignment = Alignment.CenterVertically) {
+                        Row(modifier = Modifier
+                            .clip(RoundedCornerShape(25.dp))
+                            .clickable{
+                                showSelectYearMonthBottomSheet = true
+                            }
+                            .padding(start = 20.dp, top = 14.dp, bottom = 12.dp, end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = date,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 16.sp,
-                                color = Color.Black
+                                text = formatYearMonth(selectedYear, selectedMonth), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black
                             )
                             Image(
-                                painter = painterResource(id = R.mipmap.icon_down),
-                                contentDescription = null,
-                                modifier = Modifier.padding(start = 4.dp)
+                                painter = painterResource(id = R.mipmap.icon_down), contentDescription = null, modifier = Modifier.padding(start = 4.dp)
                             )
                         }
                         Row(
@@ -262,31 +236,21 @@ fun BookHomePage(
     }
 
     if (showMonthPlanDialog) {
-        EditDialog(
-            title = "设置本月预算",
-            value = planAmount.toString(),
-            showSuffix = false,
-            onDismissRequest = {
-                showMonthPlanDialog = false
-            },
-            onConfirm = {
-                showMonthPlanDialog = false
-                LogUtils.d("设置预算：$it")
-                planAmount = it.toFloat()
-            })
+        EditDialog(title = "设置本月预算", value = planAmount.toString(), showSuffix = false, onDismissRequest = {
+            showMonthPlanDialog = false
+        }, onConfirm = {
+            showMonthPlanDialog = false
+            LogUtils.d("设置预算：$it")
+            planAmount = it.toFloat()
+        })
     }
     if (showEditBookDialog) {
-        EditDialog(
-            title = "账本名称",
-            value = curEditBookName,
-            showSuffix = false,
-            onDismissRequest = {
-                showEditBookDialog = false
-            },
-            onConfirm = {
-                showEditBookDialog = false
-                LogUtils.d("编辑名称：$it")
-            })
+        EditDialog(title = "账本名称", value = curEditBookName, showSuffix = false, onDismissRequest = {
+            showEditBookDialog = false
+        }, onConfirm = {
+            showEditBookDialog = false
+            LogUtils.d("编辑名称：$it")
+        })
     }
     if (showAddBookDialog) {
         EditDialog(title = "账本名称", value = "", showSuffix = false, onDismissRequest = {
@@ -304,67 +268,35 @@ fun BookHomePage(
             LogUtils.d("删除账本")
         })
     }
-    TransactionTypeBottomSheet(
-        initial = curCategory,
-        title = "选择类型",
-        visible = showSelectCategoryBottomSheet,
-        onDismiss = {
-            showSelectCategoryBottomSheet = false
-        },
-        onConfirm = {
-            showSelectCategoryBottomSheet = false
-        },
-        onSettingClick = {
-            showSelectCategoryBottomSheet = false
-        })
+    TransactionTypeBottomSheet(initial = curCategory, title = "选择类型", visible = showSelectCategoryBottomSheet, onDismiss = {
+        showSelectCategoryBottomSheet = false
+    }, onConfirm = {
+        showSelectCategoryBottomSheet = false
+    }, onSettingClick = {
+        showSelectCategoryBottomSheet = false
+    })
 
-    var selectedYear by remember { mutableStateOf(2024) }
-    var selectedMonth by remember { mutableStateOf(5) }
-
-    CustomBottomSheet(visible = true, onDismiss =   {}) {
-        Column() {
-            SheetTitleWidget(title = "选择时间") {
-            }
-            YearMonthPicker(
-                selectedYear = selectedYear,
-                selectedMonth = selectedMonth,
-                onYearMonthSelected = { year, month ->
-                    selectedYear = year
-                    selectedMonth = month
-                    LogUtils.d("选择：$year-$month")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-            )
-        }
-
+    YearMonthBottomSheet(year = selectedYear, month = selectedMonth, visible = showSelectYearMonthBottomSheet, onDismiss = { /*TODO*/ }) { year, month ->
+        showSelectYearMonthBottomSheet = false
+        selectedYear = year
+        selectedMonth = month
+        LogUtils.d("选中的年月${year}-${month}")
     }
 
 }
 
 
-
-@Composable
-fun BookDrawerWidget(
-    isEditBook: Boolean,
-    modifier: Modifier = Modifier,
-    onItemClick: (String) -> Unit,
-    onEditClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit,
-    onToggleEdit: () -> Unit,
-    onAddClick: () -> Unit
+@Composable fun BookDrawerWidget(
+    isEditBook: Boolean, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, onEditClick: (String) -> Unit, onDeleteClick: (String) -> Unit, onToggleEdit: () -> Unit, onAddClick: () -> Unit
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier
             .fillMaxHeight()
             .fillMaxWidth(0.7f)
             .background(
                 brush = Brush.verticalGradient(
                     listOf(
-                        colorResource(R.color.color_E3EBF5),
-                        Color.White
+                        colorResource(R.color.color_E3EBF5), Color.White
                     )
                 )
             )
@@ -372,45 +304,28 @@ fun BookDrawerWidget(
         Row(
             modifier = Modifier
                 .statusBarsPadding()
-                .padding(top = 10.dp, bottom = 8.dp),
-            horizontalArrangement = Arrangement.Absolute.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = 10.dp, bottom = 8.dp), horizontalArrangement = Arrangement.Absolute.SpaceBetween, verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                modifier = Modifier.padding(start = 20.dp),
-                text = "我的账本",
-                fontWeight = FontWeight.Medium,
-                fontSize = 18.sp,
-                color = Color.Black
+                modifier = Modifier.padding(start = 20.dp), text = "我的账本", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 modifier = Modifier
                     .padding(end = 20.dp)
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
+                        interactionSource = remember { MutableInteractionSource() }, indication = null
                     ) {
                         onToggleEdit()
-                    },
-                text = if (isEditBook) "保存" else "编辑",
-                fontWeight = FontWeight.Normal,
-                fontSize = 16.sp,
-                color = colorResource(id = R.color.color_333333)
+                    }, text = if (isEditBook) "保存" else "编辑", fontWeight = FontWeight.Normal, fontSize = 16.sp, color = colorResource(id = R.color.color_333333)
             )
         }
         LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)
+            modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)
         ) {
             items(LocalDataSource.bookList, key = { book -> book }) { book ->
                 BookItem(
-                    isEditBook,
-                    name = book,
-                    onEditClick = onEditClick,
-                    onDeleteClick = onDeleteClick,
-                    onItemClick = onItemClick
+                    isEditBook, name = book, onEditClick = onEditClick, onDeleteClick = onDeleteClick, onItemClick = onItemClick
                 )
             }
         }
@@ -429,56 +344,39 @@ fun BookDrawerWidget(
     }
 }
 
-@Composable
-fun BookItem(
-    isEditBook: Boolean,
-    modifier: Modifier = Modifier,
-    name: String,
-    onItemClick: (String) -> Unit,
-    onEditClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit
+@Composable fun BookItem(
+    isEditBook: Boolean, modifier: Modifier = Modifier, name: String, onItemClick: (String) -> Unit, onEditClick: (String) -> Unit, onDeleteClick: (String) -> Unit
 ) {
     GradientRoundedBoxWithStroke(
         colors = listOf(
-            Color.White.copy(alpha = 0.4f),
-            Color.White.copy(alpha = 0.2f)
+            Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.2f)
         ), modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .clickable { onItemClick(name) }
-                .height(54.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = modifier
+            .fillMaxWidth()
+            .clickable { onItemClick(name) }
+            .height(54.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = name,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(start = 16.dp, end = 8.dp),
-                color = Color.Black
+                text = name, fontSize = 16.sp, modifier = Modifier.padding(start = 16.dp, end = 8.dp), color = Color.Black
             )
 
             Spacer(modifier = Modifier.weight(1f))
             AnimatedVisibility(visible = isEditBook, enter = fadeIn(), exit = fadeOut()) {
                 Row {
-                    Image(
-                        painter = painterResource(id = R.mipmap.icon_edit),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(7.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                onEditClick(name)
-                            })
+                    Image(painter = painterResource(id = R.mipmap.icon_edit), contentDescription = null, modifier = Modifier
+                        .padding(7.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() }, indication = null
+                        ) {
+                            onEditClick(name)
+                        })
 
-                    Image(
-                        painter = painterResource(id = R.mipmap.icon_delete_red),
+                    Image(painter = painterResource(id = R.mipmap.icon_delete_red),
                         contentDescription = null,
                         modifier = Modifier
                             .padding(start = 7.dp, top = 7.dp, end = 20.dp, bottom = 7.dp)
                             .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
+                                interactionSource = remember { MutableInteractionSource() }, indication = null
                             ) {
                                 onDeleteClick(name)
                             })
@@ -491,11 +389,8 @@ fun BookItem(
 }
 
 
-@Composable
-fun TopAmountItemWidget(
-    modifier: Modifier = Modifier,
-    item: AmountItemEntity,
-    onItemClick: (AmountItemEntity) -> Unit
+@Composable fun TopAmountItemWidget(
+    modifier: Modifier = Modifier, item: AmountItemEntity, onItemClick: (AmountItemEntity) -> Unit
 ) {
     Column(
         modifier = modifier.clickable {
@@ -503,27 +398,16 @@ fun TopAmountItemWidget(
         }, horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            modifier = Modifier.padding(top = 12.dp),
-            text = item.amount.toString(),
-            fontWeight = FontWeight.Medium,
-            fontSize = 22.sp,
-            color = Color.Black
+            modifier = Modifier.padding(top = 12.dp), text = item.amount.toString(), fontWeight = FontWeight.Medium, fontSize = 22.sp, color = Color.Black
         )
         Text(
-            modifier = Modifier.padding(top = 3.dp, bottom = 16.dp),
-            text = item.name,
-            fontWeight = FontWeight.Medium,
-            fontSize = 10.sp,
-            color = colorResource(id = R.color.color_83878C)
+            modifier = Modifier.padding(top = 3.dp, bottom = 16.dp), text = item.name, fontWeight = FontWeight.Medium, fontSize = 10.sp, color = colorResource(id = R.color.color_83878C)
         )
     }
 }
 
-@Composable
-@Preview(showBackground = true)
-fun BookDrawerWidgetPreview() {
-    BookDrawerWidget(
-        isEditBook = true,
+@Composable @Preview(showBackground = true) fun BookDrawerWidgetPreview() {
+    BookDrawerWidget(isEditBook = true,
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Gray)
@@ -536,15 +420,9 @@ fun BookDrawerWidgetPreview() {
 }
 
 
-@Composable
-@Preview(showBackground = true)
-fun BookHomePagePreview() {
-    BookHomePage(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Gray)
-            .statusBarsPadding(),
-        navController = rememberNavController(),
-        onShowDrawer = {},
-        onCloseDrawer = {})
+@Composable @Preview(showBackground = true) fun BookHomePagePreview() {
+    BookHomePage(modifier = Modifier
+        .fillMaxWidth()
+        .background(Color.Gray)
+        .statusBarsPadding(), navController = rememberNavController(), onShowDrawer = {}, onCloseDrawer = {})
 }

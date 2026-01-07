@@ -12,17 +12,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import kotlin.math.abs
+import com.fanda.homebook.R
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YearMonthPicker(
     selectedYear: Int,
@@ -32,12 +35,12 @@ fun YearMonthPicker(
     startYear: Int = 2000,
     endYear: Int = 2030,
     monthNames: List<String> = listOf(
-        "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"
+        "全年", "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"
     )
 ) {
     val coroutineScope = rememberCoroutineScope()
     val years = remember { (startYear..endYear).toList() }
-    val months = remember { (1..12).toList() }
+    val months = remember { (0..12).toList() }
 
     // 使用 LazyListState
     val yearListState = rememberLazyListState(
@@ -139,11 +142,11 @@ fun YearMonthPicker(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 24.dp)
                 .height((ITEM_HEIGHT * SELECTED_SCALE).dp)
                 .align(Alignment.Center)
                 .background(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    shape = MaterialTheme.shapes.medium
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), shape = MaterialTheme.shapes.medium
                 )
         )
 
@@ -231,7 +234,7 @@ private fun MonthLazyColumn(
         itemsIndexed(months) { index, month ->
             MonthItem(
                 month = month,
-                monthName = monthNames.getOrElse(month - 1) { "${month}月" },
+                monthName = monthNames[month],
                 isSelected = month == centerSelectedMonth,
                 listState = listState,
                 itemIndex = index,
@@ -281,8 +284,8 @@ private fun YearItem(
             style = TextStyle(
                 fontSize = if (isSelected) SELECTED_FONT_SIZE.sp else NORMAL_FONT_SIZE.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = alpha)
+                color = if (isSelected) Color.Black
+                else colorResource(id = R.color.color_83878C)
             )
         )
     }
@@ -329,8 +332,8 @@ private fun MonthItem(
             style = TextStyle(
                 fontSize = if (isSelected) SELECTED_FONT_SIZE.sp else NORMAL_FONT_SIZE.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = alpha)
+                color = if (isSelected) Color.Black
+                else colorResource(id = R.color.color_83878C)
             )
         )
     }
@@ -424,14 +427,15 @@ private fun calculateAlpha(distanceFromCenter: Float): Float {
 private const val ITEM_HEIGHT = 50
 private const val PICKER_HEIGHT = 300
 private const val SELECTED_SCALE = 1.3f
-private const val NORMAL_FONT_SIZE = 16
+private const val NORMAL_FONT_SIZE = 17
 private const val SELECTED_FONT_SIZE = 20
 
 @Composable
 @Preview(showBackground = true)
 fun YearMonthPickerDemo() {
-    var selectedYear by remember { mutableStateOf(2024) }
-    var selectedMonth by remember { mutableStateOf(5) }
+    val currentDate = LocalDate.now()
+    var selectedYear by remember { mutableIntStateOf(currentDate.year) }
+    var selectedMonth by remember { mutableIntStateOf(currentDate.monthValue) }
 
     Column(
         modifier = Modifier

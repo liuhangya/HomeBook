@@ -4,6 +4,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+fun formatYearMonth(year: Int, month: Int): String =
+    if (month == 0) {
+        "${year}年全年"
+    } else {
+        "${year}年${month}月"
+    }
 
 
 // ✅ 校验函数：只允许 "123", "12.34", ".5", "0.1" 等格式
