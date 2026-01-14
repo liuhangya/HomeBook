@@ -85,6 +85,7 @@ import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.AmountItemEntity
 import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.quick.sheet.SheetTitleWidget
+import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.tools.formatYearMonth
@@ -210,7 +211,7 @@ import kotlin.math.abs
                                 TopAmountItemWidget(item = item, modifier = Modifier.weight(1f)) {
                                     when (item.type) {
                                         TransactionType.INCOME -> {
-
+                                            navController.navigate(RoutePath.Dashboar.route)
                                         }
 
                                         TransactionType.EXPENSE -> {

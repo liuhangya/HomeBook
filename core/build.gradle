@@ -44,5 +44,5 @@ dependencies {
     api "com.google.accompanist:accompanist-permissions:0.37.3"
     api 'com.github.yalantis:ucrop:2.2.11'
     api 'com.github.yalantis:ucrop:2.2.11-native'
-//    api(libs.vico.compose.m3)
+    api 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 }
