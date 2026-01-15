@@ -12,7 +12,9 @@ sealed class RoutePath(val route: String) {
 
     // 子页面必须包含 graph 前缀（隐式）
     data object BookHome : RoutePath("book_graph/book_home")
-    data object Dashboar : RoutePath("book_graph/dashboard")
+    data object DashBoar : RoutePath("book_graph/dashboard")
+    data object DashBoarRank : RoutePath("book_graph/dashboard_rank")
+    data object DashBoarDetail : RoutePath("book_graph/dashboard_detail")
 
     data class BookDetail(val id: String) : RoutePath("book_graph/book_detail/$id")
 

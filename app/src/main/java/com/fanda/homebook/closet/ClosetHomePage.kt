@@ -56,8 +56,6 @@ import com.fanda.homebook.route.RoutePath
     //  记录上次的返回时间
     var lastBackPressed by remember { mutableLongStateOf(0L) }
 
-
-
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopAppBar(
             title = {
@@ -106,7 +104,7 @@ import com.fanda.homebook.route.RoutePath
                         Box(contentAlignment = Alignment.Center, modifier = Modifier
                             .size(44.dp)
                             .clickable {
-                                showSelectImage  = true
+                                showSelectImage = true
                             }) {
                             Image(
                                 painter = painterResource(id = R.mipmap.icon_add_grady), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)

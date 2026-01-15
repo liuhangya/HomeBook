@@ -8,6 +8,7 @@ import com.fanda.homebook.entity.ClosetCategoryBottomMenuType
 import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.entity.DailyAmountEntity
 import com.fanda.homebook.entity.DailyItemEntity
+import com.fanda.homebook.entity.DashBoarItemEntity
 import com.fanda.homebook.entity.StateMenuEntity
 import com.fanda.homebook.entity.StockGridEntity
 import com.fanda.homebook.entity.StockState
@@ -335,23 +336,23 @@ object LocalDataSource {
     }
 
     val dailyListData = mutableListOf<DailyAmountEntity>().apply {
-            val children = mutableListOf<DailyItemEntity>().apply {
-                repeat(5) {
-                    add(
-                        DailyItemEntity(
-                            1,
-                            TransactionType.EXPENSE,
-                            100f,
-                            "购物",
-                            "支付宝",
-                            "耐克",
-                        )
+        val children = mutableListOf<DailyItemEntity>().apply {
+            repeat(5) {
+                add(
+                    DailyItemEntity(
+                        1,
+                        TransactionType.EXPENSE,
+                        100f,
+                        "购物",
+                        "支付宝",
+                        "耐克",
                     )
-                }
+                )
             }
-            add(
-                DailyAmountEntity(1,"10月8日", "今天", 1000f, 500f, children)
-            )
+        }
+        add(
+            DailyAmountEntity(1, "10月8日", "今天", 1000f, 500f, children)
+        )
         val children2 = mutableListOf<DailyItemEntity>().apply {
             repeat(5) {
                 add(
@@ -367,11 +368,44 @@ object LocalDataSource {
             }
         }
         add(
-            DailyAmountEntity(2,"10月8日", "今天", 1000f, 500f, children2)
+            DailyAmountEntity(2, "10月8日", "今天", 1000f, 500f, children2)
         )
         add(
-            DailyAmountEntity(3,"10月8日", "今天", 1000f, 500f, children2)
+            DailyAmountEntity(3, "10月8日", "今天", 1000f, 500f, children2)
         )
+    }
+
+    val dashBoarList = listOf(
+        DashBoarItemEntity(1, TransactionType.INCOME, 10000f, "购物", 0.5f),
+        DashBoarItemEntity(2, TransactionType.INCOME, 450.23f, "护肤", 0.2f),
+        DashBoarItemEntity(3, TransactionType.INCOME, 220.66f, "生活", 0.3f),
+    )
+
+    val rankList = mutableListOf<DailyItemEntity>().apply {
+        repeat(5) {
+            add(
+                DailyItemEntity(
+                    it + 1,
+                    TransactionType.INCOME,
+                    100f,
+                    "购物",
+                    "支付宝",
+                    "耐克",
+                )
+            )
+        }
+        repeat(5) {
+            add(
+                DailyItemEntity(
+                    it + 10,
+                    TransactionType.EXPENSE,
+                    100f,
+                    "购物",
+                    "支付宝",
+                    "耐克",
+                )
+            )
+        }
     }
 }
 

@@ -43,9 +43,9 @@ import com.fanda.homebook.R
     Box(
         modifier = modifier
             .height(64.dp)
+            .background(color = backgroundColor)
             .padding(start = 12.dp, end = 12.dp)
             .fillMaxWidth()
-            .background(color = backgroundColor)
     ) {
         // ← 左侧：返回按钮（Image 图标）
         if (showBackButton) {

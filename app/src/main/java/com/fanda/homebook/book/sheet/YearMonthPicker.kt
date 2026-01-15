@@ -283,7 +283,7 @@ private fun YearItem(
             text = year.toString(),
             style = TextStyle(
                 fontSize = if (isSelected) SELECTED_FONT_SIZE.sp else NORMAL_FONT_SIZE.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                 color = if (isSelected) Color.Black
                 else colorResource(id = R.color.color_83878C)
             )
@@ -428,7 +428,7 @@ private const val ITEM_HEIGHT = 50
 private const val PICKER_HEIGHT = 300
 private const val SELECTED_SCALE = 1.3f
 private const val NORMAL_FONT_SIZE = 17
-private const val SELECTED_FONT_SIZE = 20
+private const val SELECTED_FONT_SIZE = 19
 
 @Composable
 @Preview(showBackground = true)

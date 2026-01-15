@@ -38,7 +38,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.book.BookHomePage
+import com.fanda.homebook.book.DashBoarDetailPage
 import com.fanda.homebook.book.DashBoarPage
+import com.fanda.homebook.book.DashBoarRankPage
 import com.fanda.homebook.closet.AddClosetColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
@@ -125,8 +127,14 @@ import kotlinx.coroutines.launch
                                 scope.launch { drawerState.close() }
                             })
                         }
-                        composable(RoutePath.Dashboar.route) {
+                        composable(RoutePath.DashBoar.route) {
                             DashBoarPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.DashBoarRank.route) {
+                            DashBoarRankPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+                        composable(RoutePath.DashBoarDetail.route) {
+                            DashBoarDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
                     }
 
