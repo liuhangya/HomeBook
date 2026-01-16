@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -142,9 +143,10 @@ import kotlinx.coroutines.launch
                     navigation(startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route) {
                         composable(RoutePath.DashboardHome.route) {
                             Text(
-                                "看板首页", modifier = Modifier
+                                "资产首页-没开发呢...", modifier = Modifier
                                     .fillMaxSize()
-                                    .statusBarsPadding()
+                                    .statusBarsPadding(),
+                                textAlign = TextAlign.Center
                             )
                         }
                     }

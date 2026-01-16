@@ -1,8 +1,6 @@
 package com.fanda.homebook.book
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import DonutChartMPWithLabels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +21,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -61,7 +56,10 @@ import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.book.sheet.YearMonthBottomSheet
 import com.fanda.homebook.book.ui.DailyAmountItemWidget
-import com.fanda.homebook.book.ui.DailyItemWidget
+import com.fanda.homebook.book.ui.DailyExpense
+import com.fanda.homebook.book.ui.DailyExpenseBarChart
+import com.fanda.homebook.book.ui.MonthlyBarData
+import com.fanda.homebook.book.ui.ScrollableBarChartWithIndicator
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
@@ -71,6 +69,9 @@ import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.formatYearMonth
 import java.time.LocalDate
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun DashBoarPage(modifier: Modifier = Modifier, navController: NavController) {
     var showSelectYearMonthBottomSheet by remember { mutableStateOf(false) }
@@ -78,6 +79,10 @@ import java.time.LocalDate
     var selectedYear by remember { mutableIntStateOf(currentDate.year) }
     var selectedMonth by remember { mutableIntStateOf(currentDate.monthValue) }
     var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
+
+    var chartData by remember { mutableStateOf(generateRandomExpenseData()) }
+    var expenses by remember { mutableStateOf(generateDailyExpenses()) }
+    var barData by remember { mutableStateOf(generateMonthData()) }
 
 
     Scaffold(topBar = {
@@ -171,11 +176,11 @@ import java.time.LocalDate
                     .background(colorResource(R.color.color_E3EBF5))
                     .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
             ) {
-                RingChatWidget() {
+                PieChatWidget(chartData) {
                     navController.navigate(RoutePath.DashBoarDetail.route)
                 }
-                DailyBarChatWidget()
-                MonthBarChatWidget()
+                DailyBarChatWidget(expenses = expenses)
+                MonthBarChatWidget(barData = barData)
                 MonthRankWidget() {
                     navController.navigate(RoutePath.DashBoarRank.route)
                 }
@@ -192,6 +197,9 @@ import java.time.LocalDate
         selectedYear = year
         selectedMonth = month
         LogUtils.d("选中的年月${year}-${month}")
+        chartData = generateRandomExpenseData()
+        expenses = generateDailyExpenses()
+        barData = generateMonthData()
     }
 }
 
@@ -228,7 +236,7 @@ import java.time.LocalDate
 
 
 // 每月对比柱状图
-@Composable fun MonthBarChatWidget(modifier: Modifier = Modifier) {
+@Composable fun MonthBarChatWidget(modifier: Modifier = Modifier, barData: List<MonthlyBarData>) {
     Text(
         text = "月度对比", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
@@ -239,14 +247,18 @@ import java.time.LocalDate
             .wrapContentHeight()
             .background(Color.White, RoundedCornerShape(12.dp))
     ) {
-        Text(
-            text = "月度柱状图", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(54.dp)
+
+        ScrollableBarChartWithIndicator(
+            barData = barData, modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp, top = 5.dp, bottom = 12.dp)
+                .height(250.dp)
         )
     }
 }
 
 // 每日对比柱状图
-@Composable fun DailyBarChatWidget(modifier: Modifier = Modifier) {
+@Composable fun DailyBarChatWidget(modifier: Modifier = Modifier, expenses: List<DailyExpense>) {
     Text(
         text = "每日对比", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
@@ -256,14 +268,17 @@ import java.time.LocalDate
             .wrapContentHeight()
             .background(Color.White, RoundedCornerShape(12.dp))
     ) {
-        Text(
-            text = "每日柱状图", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(54.dp)
+        DailyExpenseBarChart(
+            expenses = expenses, modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 6.dp, end = 12.dp, top = 15.dp, bottom = 12.dp)
+                .height(250.dp), visibleDays = 7
         )
     }
 }
 
 // 圆环图
-@Composable fun RingChatWidget(modifier: Modifier = Modifier, onItemClick: (DashBoarItemEntity) -> Unit) {
+@Composable fun PieChatWidget(data: List<Pair<String, Float>>, modifier: Modifier = Modifier, onItemClick: (DashBoarItemEntity) -> Unit) {
     Text(
         text = "支出构成", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
@@ -274,9 +289,15 @@ import java.time.LocalDate
             .wrapContentHeight()
             .background(Color.White, RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
     ) {
-        Text(
-            text = "圆环图", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = Modifier.padding(54.dp)
+
+        DonutChartMPWithLabels(
+            data = data, modifier = Modifier
+                .size(300.dp)
+                .padding(50.dp)
+                .align(Alignment.Center)
         )
+
+
     }
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -354,6 +375,99 @@ import java.time.LocalDate
             }
         }
     }
+}
+
+
+// 数据生成函数
+fun generateDailyExpenses(): List<DailyExpense> {
+    val expenses = mutableListOf<DailyExpense>()
+    repeat(Random.nextInt(7, 30)){
+        expenses.add(DailyExpense("9.${it+10}", 450f *Random.nextInt(1, 10)))
+    }
+    return expenses
+}
+
+fun generateMonthData() = (1..Random.nextInt(2, 12)).map { month ->
+
+    val monthName = when (month) {
+        1 -> "1月"
+        2 -> "2月"
+        3 -> "3月"
+        4 -> "4月"
+        5 -> "5月"
+        6 -> "6月"
+        7 -> "7月"
+        8 -> "8月"
+        9 -> "9月"
+        10 -> "10月"
+        11 -> "11月"
+        else -> "12月"
+    }
+    val value = when (month) {
+        1 -> 8000f
+        2 -> 12000f
+        3 -> 15000f
+        4 -> 18000f
+        5 -> 12643.54f
+        6 -> 19648.21f
+        7 -> 14503.99f
+        8 -> 9315.84f
+        9 -> 9591.34f
+        10 -> 1043.54f
+        11 -> 6000f
+        else -> 9000f
+    }
+    val color = when (month % 6) {
+        0 -> Color(0xFF4CAF50)
+        1 -> Color(0xFF2196F3)
+        2 -> Color(0xFFFF9800)
+        3 -> Color(0xFFF44336)
+        4 -> Color(0xFF9C27B0)
+        else -> Color(0xFF607D8B)
+    }
+    MonthlyBarData(monthName, value, color)
+}
+
+
+fun generateRandomExpenseData(): List<Pair<String, Float>> {
+    val categories = listOf(
+        "餐饮", "交通", "服饰", "护肤", "购物", "服务", "娱乐", "生活", "其他"
+    )
+
+    // 为每个类别生成随机权重
+    val weights = categories.map {
+        Random.nextFloat() * 10f + 1f  // 生成1-11之间的随机权重
+    }
+
+    val totalWeight = weights.sum()
+
+    // 计算百分比，确保总和为100%
+    val percentages = weights.map { weight ->
+        (weight / totalWeight * 100f).roundTo(1) // 保留1位小数
+    }
+
+    // 调整最后一项以确保总和为100%
+    val adjustedPercentages = adjustTo100Percent(percentages)
+    LogUtils.d("生成随机圆环图数据")
+    return categories.zip(adjustedPercentages)
+}
+
+private fun Float.roundTo(decimalPlaces: Int): Float {
+    val factor = 10f.pow(decimalPlaces)
+    return (this * factor).roundToInt() / factor
+}
+
+private fun adjustTo100Percent(percentages: List<Float>): List<Float> {
+    val total = percentages.sum()
+    val diff = 100f - total
+
+    if (diff == 0f) return percentages
+
+    // 调整最后一项
+    val adjusted = percentages.toMutableList()
+    adjusted[adjusted.size - 1] = (adjusted.last() + diff).roundTo(1)
+
+    return adjusted
 }
 
 

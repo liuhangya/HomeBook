@@ -117,7 +117,7 @@ import com.fanda.homebook.quick.sheet.SheetTitleWidget
             val itemWidth = (maxWidth - totalSpacing) / maxColumns  // 根据父容器的宽度和间距，动态计算每个item的宽度
 
             FlowRow(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(itemSpacing), verticalArrangement = Arrangement.spacedBy(16.dp), maxItemsInEachRow = maxColumns
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(itemSpacing), verticalArrangement = Arrangement.spacedBy(itemSpacing), maxItemsInEachRow = maxColumns
             ) {
                 data.forEach { category ->
                     SelectableRoundedButton(cornerSize = 8.dp,
