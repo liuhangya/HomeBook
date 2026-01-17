@@ -1,4 +1,3 @@
-// components/DragLazyColumn.kt
 package com.fanda.homebook.components
 
 import android.util.Log
@@ -34,10 +33,7 @@ import kotlin.math.roundToInt
  * - Item 其他区域点击事件不受影响
  */
 @Composable fun <T> DragLazyColumn(
-    items: MutableList<T>,
-    modifier: Modifier = Modifier,
-    onMove: (from: Int, to: Int) -> Unit = { _, _ -> },
-    itemContent: @Composable (item: T, isDragging: Boolean) -> Unit
+    items: MutableList<T>, modifier: Modifier = Modifier, onMove: (from: Int, to: Int, items: MutableList<T>) -> Unit = { _, _, _ -> }, itemContent: @Composable (item: T, isDragging: Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
     var draggedIndex by remember { mutableStateOf<Int?>(null) }
@@ -79,7 +75,7 @@ import kotlin.math.roundToInt
                 val from = dragStartIndex!!
                 val to = draggedIndex!!
                 if (from != to) {
-                    onMove(from, to)
+                    onMove(from, to, items)
                 }
             }
             draggedIndex = null
@@ -130,11 +126,13 @@ import kotlin.math.roundToInt
         itemsIndexed(items = items, key = { _, item -> item.hashCode() } // 必须用唯一 ID
         ) { index, item ->
             val isDragging = draggedIndex == index
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .then(if (isDragging) {
-                    Modifier.offset { IntOffset(0, dragOffsetY.roundToInt()) }
-                } else Modifier)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (isDragging) {
+                        Modifier.offset { IntOffset(0, dragOffsetY.roundToInt()) }
+                    } else Modifier)) {
                 itemContent(item, isDragging)
             }
         }

@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -60,7 +61,7 @@ import java.io.File
     // 编辑图片逻辑 ================================================
 
     val options = UCrop.Options().apply {
-//                    setActiveControlsWidgetColor(Color.Black.toArgb())
+        setActiveControlsWidgetColor(Color(0xFF2196F3).toArgb())
         setCompressionQuality(90)
         setFreeStyleCropEnabled(true)
         setShowCropGrid(true)

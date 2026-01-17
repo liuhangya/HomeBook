@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+
 }
 
 android {
@@ -37,12 +38,10 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
-    api "com.google.accompanist:accompanist-systemuicontroller:0.30.1"
-    // Coil
-    api("io.coil-kt:coil-compose:2.4.0")
     api(libs.compose.colorpicker)
-    api "com.google.accompanist:accompanist-permissions:0.37.3"
-    api 'com.github.yalantis:ucrop:2.2.11'
-    api 'com.github.yalantis:ucrop:2.2.11-native'
-    api 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    api(libs.compose.permissions)
+    api(libs.ucrop.native)
+    api(libs.ucrop)
+    api(libs.chat)
+    api(libs.coil.compose)
 }

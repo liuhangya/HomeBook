@@ -14,6 +14,14 @@ material = "1.10.0"
 navigationCompose = "2.7.4"
 coilCompose = "2.4.0"
 colorpicker = "1.1.2"
+room = "2.6.1"
+jetbrainsKotlinJvm = "1.9.20"
+jetbrainsKotlinKsp = "1.9.20-1.0.14"
+chart = "v3.1.0"
+ucrop = "2.2.11"
+ucropNative = "2.2.11-native"
+permissions = "0.37.3"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,9 +45,19 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 compose-colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+compose-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "permissions" }
+ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
+ucrop-native = { module = "com.github.yalantis:ucrop", version.ref = "ucropNative" }
+chat = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "chart" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+jetbrains-kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "jetbrainsKotlinKsp" }
 

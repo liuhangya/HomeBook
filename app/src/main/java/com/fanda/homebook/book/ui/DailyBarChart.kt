@@ -128,8 +128,8 @@ private fun configureDailyExpenseChart(
 
         // 交互
         setTouchEnabled(true)
-        setPinchZoom(true) //
-        setScaleEnabled(true)
+//        setPinchZoom(true)
+//        setScaleEnabled(true)
         setDragEnabled(true)
         isDoubleTapToZoomEnabled = false
         isAutoScaleMinMaxEnabled = false

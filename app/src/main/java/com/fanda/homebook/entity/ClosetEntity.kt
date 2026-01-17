@@ -1,6 +1,8 @@
 package com.fanda.homebook.entity
 
 import androidx.annotation.DrawableRes
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 data class ClosetGridEntity(val name: String, val count: Int, val photoUrl: String, var isSelected: Boolean = false)
 
@@ -12,8 +14,30 @@ enum class ClosetCategoryBottomMenuType {
 
 data class CategoryBottomMenuEntity(val name: String, @DrawableRes val icon: Int, val type: ClosetCategoryBottomMenuType)
 
-data class ColorPickerState(
-    val hue: Float = 0f, // 0 ~ 360
-    val saturation: Float = 1f, // 0 ~ 1
-    val value: Float = 1f // 0 ~ 1
-)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -425,7 +425,7 @@ fun generateMonthData() = (1..Random.nextInt(2, 12)).map { month ->
         4 -> Color(0xFF9C27B0)
         else -> Color(0xFF607D8B)
     }
-    MonthlyBarData(monthName, value, color)
+    MonthlyBarData(monthName, value, Color(0xFF4CAF50))
 }
 
 

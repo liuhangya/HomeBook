@@ -101,8 +101,8 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthlyBarData>, vi
     // 交互设置
     chart.apply {
         setTouchEnabled(true)
-        setPinchZoom(true)
-        setScaleEnabled(true)
+//        setPinchZoom(true)
+//        setScaleEnabled(true)
         setDragEnabled(true)
         isDoubleTapToZoomEnabled = false
         isAutoScaleMinMaxEnabled = false

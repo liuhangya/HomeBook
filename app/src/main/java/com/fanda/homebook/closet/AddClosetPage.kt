@@ -23,6 +23,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,14 +40,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
 import com.fanda.homebook.closet.ui.ClosetInfoScreen
+import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
+import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
@@ -66,7 +70,7 @@ import kotlinx.coroutines.launch
 /*
 * 添加衣橱页面
 * */
-@Composable fun AddClosetPage(modifier: Modifier = Modifier, navController: NavController) {
+@Composable fun AddClosetPage(modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)) {
     val imageUri = remember {
         navController.previousBackStackEntry?.savedStateHandle?.get<Uri>("selectedImageUri")
     }
@@ -81,7 +85,6 @@ import kotlinx.coroutines.launch
     var wearCount by remember { mutableIntStateOf(1) }
     var product by remember { mutableStateOf("") }
     var owner by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf(ColorType("", -1L)) }
     var season by remember { mutableStateOf("") }
     var size by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
@@ -90,6 +93,14 @@ import kotlinx.coroutines.launch
 
     var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
 
+
+    // 通过 ViewModel 状态管理进行数据绑定
+    val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
+    val colorTypes by addClosetViewModel.colorTypes.collectAsState()
+
+
+
+    LogUtils.d("AddClosetPage: addClosetUiState: $addClosetUiState")
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
 
@@ -173,11 +184,12 @@ import kotlinx.coroutines.launch
                         wearCount++
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    ClosetInfoScreen(bottomComment = comment,
+                    ClosetInfoScreen(
+                        bottomComment = comment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
                         product = product,
-                        color = color.color,
+                        color = addClosetUiState.colorType?.color ?: -1,
                         season = season,
                         date = date,
                         syncBook = syncBook,
@@ -210,7 +222,8 @@ import kotlinx.coroutines.launch
         })
     }
 
-    ListBottomSheet(initial = product,
+    ListBottomSheet(
+        initial = product,
         title = "品牌",
         dataSource = LocalDataSource.productData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PRODUCT },
@@ -219,7 +232,8 @@ import kotlinx.coroutines.launch
         product = it
     }
 
-    ListBottomSheet(initial = owner,
+    ListBottomSheet(
+        initial = owner,
         title = "归属",
         dataSource = LocalDataSource.ownerData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.OWNER },
@@ -228,7 +242,8 @@ import kotlinx.coroutines.launch
         owner = it
     }
 
-    GridBottomSheet(initial = owner,
+    GridBottomSheet(
+        initial = owner,
         title = "尺码",
         dataSource = LocalDataSource.sizeData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.SIZE },
@@ -239,7 +254,8 @@ import kotlinx.coroutines.launch
         size = it
     }
 
-    GridBottomSheet(initial = season,
+    GridBottomSheet(
+        initial = season,
         title = "季节",
         dataSource = LocalDataSource.seasonData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.SEASON },
@@ -251,16 +267,17 @@ import kotlinx.coroutines.launch
     }
 
 
-    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
+    ColorTypeBottomSheet(color = addClosetUiState.colorType, colorList = colorTypes, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
         currentShowBottomSheetType = ShowBottomSheetType.NONE
     }, onConfirm = {
-        color = it
+        addClosetViewModel.updateClosetColor(it)
     }, onSettingClick = {
         currentShowBottomSheetType = ShowBottomSheetType.NONE
         navController.navigate(RoutePath.ClosetEditColor.route)
     })
 
-    ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
+    ClosetTypeBottomSheet(
+        categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.CATEGORY },
         onDismiss = {

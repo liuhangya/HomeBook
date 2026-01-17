@@ -41,9 +41,9 @@ import kotlin.math.abs
             description.isEnabled = false
             legend.isEnabled = false
             setUsePercentValues(false)
-            setTouchEnabled(false)
+            setTouchEnabled(true)
             isHighlightPerTapEnabled = false
-            isRotationEnabled = false
+            isRotationEnabled = true
             setDrawMarkers(false)
 
             // 更新图表数据

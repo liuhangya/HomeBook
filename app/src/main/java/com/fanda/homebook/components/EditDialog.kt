@@ -1,6 +1,7 @@
 package com.fanda.homebook.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -73,6 +74,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 20.dp)
+                    , horizontalArrangement = Arrangement.Center
                 ) {
                     SelectableRoundedButton(
                         interaction = true,

@@ -289,11 +289,11 @@ import kotlinx.coroutines.launch
     }
 
 
-    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
-        currentShowBottomSheetType = ShowBottomSheetType.NONE
-    }, onConfirm = {
-        color = it
-    })
+//    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
+//        currentShowBottomSheetType = ShowBottomSheetType.NONE
+//    }, onConfirm = {
+//        color = it
+//    })
 
     ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,

@@ -112,7 +112,7 @@ import com.fanda.homebook.tools.LogUtils
 }
 
 @Composable private fun ClosetDragWidget(modifier: Modifier = Modifier, onItemClick: (ClosetGridEntity) -> Unit) {
-    DragLazyColumn(modifier = modifier, items = LocalDataSource.closetGridList, onMove = { from, to ->
+    DragLazyColumn(modifier = modifier, items = LocalDataSource.closetGridList, onMove = { from, to ,items->
         Log.d("EditClosetCategoryPage", "from: $from, to: $to")
     }) { item, isDragging ->
         GradientRoundedBoxWithStroke {

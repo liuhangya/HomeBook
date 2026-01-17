@@ -251,14 +251,14 @@ import kotlinx.coroutines.launch
     }
 
 
-    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
-        currentShowBottomSheetType = ShowBottomSheetType.NONE
-    }, onConfirm = {
-        color = it
-    }, onSettingClick = {
-        currentShowBottomSheetType = ShowBottomSheetType.NONE
-        navController.navigate(RoutePath.ClosetEditColor.route)
-    })
+//    ColorTypeBottomSheet(color = color, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
+//        currentShowBottomSheetType = ShowBottomSheetType.NONE
+//    }, onConfirm = {
+//        color = it
+//    }, onSettingClick = {
+//        currentShowBottomSheetType = ShowBottomSheetType.NONE
+//        navController.navigate(RoutePath.ClosetEditColor.route)
+//    })
 
     ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,

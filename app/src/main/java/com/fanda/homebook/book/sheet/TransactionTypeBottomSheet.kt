@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 import com.fanda.homebook.components.CustomBottomSheet
-import com.fanda.homebook.components.CustomBottomSheet2
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.TransactionCategory
