@@ -26,6 +26,7 @@ class HomeBookApplication : Application() {
     * */
     private fun initDefaultDataEntity() {
         applicationScope.launch {
+            appContainer.seasonRepository.initializeDatabase()
             appContainer.colorTypeRepository.initializeDatabase()
         }
     }

@@ -104,8 +104,8 @@ import com.fanda.homebook.route.RoutePath
                         Box(contentAlignment = Alignment.Center, modifier = Modifier
                             .size(44.dp)
                             .clickable {
-//                                showSelectImage = true
-                                navController.navigate(RoutePath.ClosetEditColor.route)
+                                showSelectImage = true
+//                                navController.navigate(RoutePath.ClosetEditColor.route)
                             }) {
                             Image(
                                 painter = painterResource(id = R.mipmap.icon_add_grady), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)

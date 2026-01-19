@@ -52,9 +52,9 @@ import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
-import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
 import com.fanda.homebook.quick.sheet.GridBottomSheet
 import com.fanda.homebook.quick.sheet.ListBottomSheet
@@ -70,7 +70,12 @@ import kotlinx.coroutines.launch
 /*
 * 添加衣橱页面
 * */
-@Composable fun AddClosetPage(modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)) {
+@Composable
+fun AddClosetPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
     val imageUri = remember {
         navController.previousBackStackEntry?.savedStateHandle?.get<Uri>("selectedImageUri")
     }
@@ -85,7 +90,6 @@ import kotlinx.coroutines.launch
     var wearCount by remember { mutableIntStateOf(1) }
     var product by remember { mutableStateOf("") }
     var owner by remember { mutableStateOf("") }
-    var season by remember { mutableStateOf("") }
     var size by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
 
@@ -136,12 +140,16 @@ import kotlinx.coroutines.launch
     }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
-            }
-            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+                    detectTapGestures(
+                        onTap = { focusManager.clearFocus() },
+                        onDoubleTap = { focusManager.clearFocus() },
+                        onLongPress = { focusManager.clearFocus() })
+                }
+                .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
             // 为了让 padding 内容能滑动，所以用 Column 包起来
             Column(
@@ -190,7 +198,7 @@ import kotlinx.coroutines.launch
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
                         product = product,
                         color = addClosetUiState.colorType?.color ?: -1,
-                        season = season,
+                        season = addClosetUiState.season?.name ?: "",
                         date = date,
                         syncBook = syncBook,
                         size = size,
@@ -251,30 +259,36 @@ import kotlinx.coroutines.launch
         dpSize = DpSize(52.dp, 36.dp),
         column = GridCells.Fixed(5),
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        size = it
+        size = it!!
     }
 
-    GridBottomSheet(
-        initial = season,
+    GridBottomSheet<SeasonEntity>(
+        initial = addClosetUiState.season,
         title = "季节",
-        dataSource = LocalDataSource.seasonData,
+        dataSource = addClosetViewModel.seasons,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.SEASON },
-        displayText = { it },
+        displayText = { it.name },
         dpSize = DpSize(66.dp, 36.dp),
         column = GridCells.Fixed(4),
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        season = it
+        addClosetViewModel.updateClosetSeason(it)
     }
 
 
-    ColorTypeBottomSheet(color = addClosetUiState.colorType, colorList = colorTypes, visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR }, onDismiss = {
-        currentShowBottomSheetType = ShowBottomSheetType.NONE
-    }, onConfirm = {
-        addClosetViewModel.updateClosetColor(it)
-    }, onSettingClick = {
-        currentShowBottomSheetType = ShowBottomSheetType.NONE
-        navController.navigate(RoutePath.ClosetEditColor.route)
-    })
+    ColorTypeBottomSheet(
+        color = addClosetUiState.colorType,
+        colorList = colorTypes,
+        visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR },
+        onDismiss = {
+            currentShowBottomSheetType = ShowBottomSheetType.NONE
+        },
+        onConfirm = {
+            addClosetViewModel.updateClosetColor(it)
+        },
+        onSettingClick = {
+            currentShowBottomSheetType = ShowBottomSheetType.NONE
+            navController.navigate(RoutePath.ClosetEditColor.route)
+        })
 
     ClosetTypeBottomSheet(
         categories = LocalDataSource.closetCategoryData,
@@ -290,7 +304,13 @@ import kotlinx.coroutines.launch
 
 }
 
-@Composable fun WearCountAndCost(price: String, wearCount: Int, modifier: Modifier = Modifier, onPlusClick: (() -> Unit)) {
+@Composable
+fun WearCountAndCost(
+    price: String,
+    wearCount: Int,
+    modifier: Modifier = Modifier,
+    onPlusClick: (() -> Unit)
+) {
     val itemPadding = Modifier.padding(
         20.dp, 20.dp, 20.dp, 20.dp
     )
@@ -302,18 +322,32 @@ import kotlinx.coroutines.launch
     GradientRoundedBoxWithStroke(modifier = modifier) {
         Column {
             ItemOptionMenu(
-                title = "穿着次数：${wearCount}次", showText = true, showRightArrow = false, rightText = "", showPlus = true, showDivider = true, modifier = itemPadding, onPlusClick = onPlusClick
+                title = "穿着次数：${wearCount}次",
+                showText = true,
+                showRightArrow = false,
+                rightText = "",
+                showPlus = true,
+                showDivider = true,
+                modifier = itemPadding,
+                onPlusClick = onPlusClick
             )
 
             ItemOptionMenu(
-                title = "穿着成本", showText = true, rightText = showPrice, showDivider = false, showRightArrow = false, modifier = itemPadding
+                title = "穿着成本",
+                showText = true,
+                rightText = showPrice,
+                showDivider = false,
+                showRightArrow = false,
+                modifier = itemPadding
             )
         }
     }
 }
 
 
-@Composable @Preview(showBackground = true) fun QuickHomePagePreview() {
+@Composable
+@Preview(showBackground = true)
+fun AddClosetPagePreview() {
     HomeBookTheme {
         AddClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }

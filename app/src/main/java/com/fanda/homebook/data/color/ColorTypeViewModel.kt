@@ -14,16 +14,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ColorTypeViewModel(savedStateHandle: SavedStateHandle, private val colorTypeRepository: ColorTypeRepository) : ViewModel() {
-
-    init {
-        viewModelScope.launch {
-            colorTypeRepository.initializeDatabase()
-        }
-    }
+class ColorTypeViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val colorTypeRepository: ColorTypeRepository
+) : ViewModel() {
 
     // 颜色列表
-    val colorTypes: StateFlow<List<ColorTypeEntity>> = colorTypeRepository.getColorTypes().stateIn(scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList())
+    val colorTypes: StateFlow<List<ColorTypeEntity>> = colorTypeRepository.getColorTypes().stateIn(
+        scope = viewModelScope,
+        SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+        emptyList()
+    )
 
     private val _uiState = MutableStateFlow(ColorUiState())
 
@@ -66,7 +67,7 @@ class ColorTypeViewModel(savedStateHandle: SavedStateHandle, private val colorTy
         }
     }
 
-    fun updateSortOrders(fromIndex: Int, toIndex: Int ,items: MutableList<ColorTypeEntity>) {
+    fun updateSortOrders(fromIndex: Int, toIndex: Int, items: MutableList<ColorTypeEntity>) {
         viewModelScope.launch {
             // 执行交换和更新
             val updatedList = performSwapAndUpdate(items, fromIndex, toIndex)
@@ -99,5 +100,29 @@ class ColorTypeViewModel(savedStateHandle: SavedStateHandle, private val colorTy
         updatedList[toIndex] = itemFrom
 
         return updatedList
+    }
+
+    fun updateAddColor(name: String) {
+        _uiState.update {
+            it.copy(addColorTypeEntity = it.addColorTypeEntity.copy(name = name))
+        }
+    }
+
+    fun updateAddColor(color: Long) {
+        _uiState.update {
+            it.copy(addColorTypeEntity = it.addColorTypeEntity.copy(color = color))
+        }
+    }
+
+    fun insertWithAutoOrder(result:(success:Boolean) -> Unit) {
+        if (_uiState.value.addColorTypeEntity.name.isNotEmpty()) {
+            viewModelScope.launch {
+                colorTypeRepository.insertWithAutoOrder(_uiState.value.addColorTypeEntity)
+                result(true)
+            }
+        }else {
+            LogUtils.d("请输入颜色名称")
+            result(false)
+        }
     }
 }

@@ -39,6 +39,7 @@ import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.color.ColorTypeEntity
 import com.fanda.homebook.data.color.ColorTypeViewModel
+import com.fanda.homebook.data.color.defaultColorData
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 
@@ -124,6 +125,17 @@ import com.fanda.homebook.tools.LogUtils
             }
         }
     }
+}
+
+@Composable @Preview(showBackground = true) fun ColorDragWidgetPreview() {
+    ColorDragWidget(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding(),
+        colorList = defaultColorData,
+        onEditClick = {},
+        onMove = { _, _, _ -> }
+    )
 }
 
 @Composable @Preview(showBackground = true) fun EditClosetColorPagePreview() {

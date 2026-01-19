@@ -35,7 +35,8 @@ import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
 
-@Composable fun <T : Any> GridBottomSheet(initial: T, title: String, dataSource: List<T>, dpSize: DpSize,column: GridCells , visible: () -> Boolean, displayText: (T) -> String, onDismiss: () -> Unit, onConfirm: (T) -> Unit) {
+@Composable
+inline fun <reified T : Any> GridBottomSheet(initial: T?, title: String, dataSource: List<T>, dpSize: DpSize, column: GridCells, visible: () -> Boolean, crossinline displayText: (T) -> String, noinline onDismiss: () -> Unit, crossinline onConfirm: (T?) -> Unit) {
     CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
         var selected by remember { mutableStateOf(initial) }
         Column(
@@ -49,7 +50,7 @@ import com.fanda.homebook.data.LocalDataSource
                 columns = column, horizontalArrangement = Arrangement.spacedBy(13.dp), verticalArrangement = Arrangement.spacedBy(13.dp),
                 modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(start = 24.dp, top = 10.dp, end = 24.dp, bottom = 28.dp),
             ) {
-                items(dataSource, key = { it }) {
+                items(dataSource, key = { it.hashCode() }) {
                     SelectableRoundedButton(cornerSize = 8.dp,
                         fontSize = 14.sp,
                         contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),

@@ -15,14 +15,21 @@ import com.fanda.homebook.data.color.ColorTypeViewModel
 object AppViewModelProvider {
     val factory = viewModelFactory {
         initializer {
-            ColorTypeViewModel(this.createSavedStateHandle(), homeBookApplication().appContainer.colorTypeRepository)
+            ColorTypeViewModel(
+                this.createSavedStateHandle(),
+                homeBookApplication().appContainer.colorTypeRepository
+            )
         }
         initializer {
             AddClosetViewModel(
-                this.createSavedStateHandle(), homeBookApplication().appContainer.colorTypeRepository, homeBookApplication().appContainer.closetRepository
+                this.createSavedStateHandle(),
+                homeBookApplication().appContainer.colorTypeRepository,
+                homeBookApplication().appContainer.closetRepository,
+                homeBookApplication().appContainer.seasonRepository
             )
         }
     }
 }
 
-fun CreationExtras.homeBookApplication(): HomeBookApplication = (this[AndroidViewModelFactory.APPLICATION_KEY] as HomeBookApplication)
+fun CreationExtras.homeBookApplication(): HomeBookApplication =
+    (this[AndroidViewModelFactory.APPLICATION_KEY] as HomeBookApplication)

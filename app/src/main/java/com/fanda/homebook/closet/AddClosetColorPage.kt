@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -42,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColor
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
@@ -49,15 +51,21 @@ import com.fanda.homebook.components.ColoredCircleWithBorder
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.HSVColorPicker
 import com.fanda.homebook.components.TopIconAppBar
+import com.fanda.homebook.data.AppViewModelProvider
+import com.fanda.homebook.data.color.ColorTypeViewModel
 import com.github.skydoves.colorpicker.compose.AlphaSlider
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.drawColorIndicator
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
-@Composable fun AddClosetColorPage(modifier: Modifier = Modifier, navController: NavController) {
+@Composable
+fun AddClosetColorPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    colorTypeViewModel: ColorTypeViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
 
-    var name by remember { mutableStateOf("") }
-    var color by remember { mutableLongStateOf(Color.Green.toArgb().toLong()) }
+    val uiState by colorTypeViewModel.uiState.collectAsState()
 
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
@@ -70,31 +78,44 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
             },
             rightText = "完成",
             onRightActionClick = {
-
+                colorTypeViewModel.insertWithAutoOrder{ success ->
+                    if (success){
+                        navController.navigateUp()
+                    }
+                }
             },
             backIconPainter = painterResource(R.mipmap.icon_back),
         )
 
 
     }) { padding ->
-        Box(modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp)
-            .then(Modifier.padding(padding))
-            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
-            }
-            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .then(Modifier.padding(padding))
+                .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+                    detectTapGestures(
+                        onTap = { focusManager.clearFocus() },
+                        onDoubleTap = { focusManager.clearFocus() },
+                        onLongPress = { focusManager.clearFocus() })
+                }
+                .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                EditColorNameWidget(name = name, color = Color(color)) {
-                    name = it
+                EditColorNameWidget(
+                    name = uiState.addColorTypeEntity.name,
+                    color = Color(uiState.addColorTypeEntity.color)
+                ) {
+                    colorTypeViewModel.updateAddColor(it)
                 }
                 Spacer(modifier = Modifier.height(20.dp))
 
-                HSVColorPicker(initialColor = Color(color), onColorSelected = {
-                    color = it.toArgb().toLong()
-                })
+                HSVColorPicker(
+                    initialColor = Color(uiState.addColorTypeEntity.color),
+                    onColorSelected = {
+                        colorTypeViewModel.updateAddColor(it.toArgb().toLong())
+                    })
             }
         }
 
@@ -102,34 +123,59 @@ import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 
 }
 
-@Composable fun EditColorNameWidget(modifier: Modifier = Modifier, color: Color, name: String, onNameChange: (String) -> Unit) {
+@Composable
+fun EditColorNameWidget(
+    modifier: Modifier = Modifier,
+    color: Color,
+    name: String,
+    onNameChange: (String) -> Unit
+) {
     GradientRoundedBoxWithStroke(modifier = Modifier.height(64.dp)) {
         Row(
             modifier = modifier
                 .fillMaxWidth()
                 .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically
         ) {
-            ColoredCircleWithBorder(color = color, modifier = Modifier.padding(start = 16.dp, end = 0.dp))
-            TextField(colors = TextFieldDefaults.colors().copy(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-            ), placeholder = { Text(text = "请输入名称", fontSize = 16.sp, color = colorResource(id = R.color.color_84878C)) }, value = name, onValueChange = { newText ->
-                onNameChange(newText)
-            }, singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done
-            ), textStyle = TextStyle.Default.copy(
-                fontSize = 16.sp,
-                color = Color.Black,
+            ColoredCircleWithBorder(
+                color = color,
+                modifier = Modifier.padding(start = 16.dp, end = 0.dp)
             )
+            TextField(
+                colors = TextFieldDefaults.colors().copy(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+                placeholder = {
+                    Text(
+                        text = "请输入名称",
+                        fontSize = 16.sp,
+                        color = colorResource(id = R.color.color_84878C)
+                    )
+                },
+                value = name,
+                onValueChange = { newText ->
+                    onNameChange(newText)
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ),
+                textStyle = TextStyle.Default.copy(
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                )
             )
         }
     }
 }
 
 
-@Composable @Preview(showBackground = true) private fun AddClosetColorPagePreview() {
+@Composable
+@Preview(showBackground = true)
+private fun AddClosetColorPagePreview() {
     AddClosetColorPage(
         modifier = Modifier
             .fillMaxWidth()

@@ -18,8 +18,12 @@ data class AddClosetEntity(
     ) val colorType: ColorTypeEntity? // 可空，删除颜色被删除了
 )
 
-@Entity(tableName = "closet") data class ClosetEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0, val name: String = "", val colorTypeId: Int = -1
+@Entity(tableName = "closet")
+data class ClosetEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val name: String = "",
+    val colorTypeId: Int = -1,
+    var seasonId: Int = -1
 )
 
 

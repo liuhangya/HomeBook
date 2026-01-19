@@ -274,7 +274,7 @@ import kotlinx.coroutines.launch
         dpSize = DpSize(52.dp, 36.dp),
         column = GridCells.Fixed(5),
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        size = it
+        size = it!!
     }
 
     GridBottomSheet(initial = season,
@@ -285,7 +285,7 @@ import kotlinx.coroutines.launch
         dpSize = DpSize(66.dp, 36.dp),
         column = GridCells.Fixed(4),
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        season = it
+        season = it!!
     }
 
 
