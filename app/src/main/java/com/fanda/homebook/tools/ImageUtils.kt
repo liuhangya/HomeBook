@@ -34,13 +34,12 @@ private fun String.md5(): String {
 }
 
 /**
- * 根据原始 Uri 获取其在 cache 中对应的 File（不保证存在）
+ * 根据原始 Uri 获取其在 file 目录 中对应的 File（不保证存在）
  */
 fun getCacheFileFromUri(context: Context, uri: Uri): File {
     val fileId = uri.toCacheFileId()
-    // 可加上扩展名（可选）
     val extension = getExtensionFromUri(context, uri) ?: "jpg"
-    return File(context.cacheDir, "$fileId.$extension")
+    return File(context.getExternalFilesDir("image"), "$fileId.$extension")
 }
 
 /**
@@ -66,16 +65,18 @@ private fun getExtensionFromUri(context: Context, uri: Uri): String? {
     return extension.takeIf { it != "bin" }
 }
 
-suspend fun saveUriToCacheWithBinding(context: Context, uri: Uri): File? {
+suspend fun saveUriToFilesDir(context: Context, uri: Uri): File? {
     return withContext(Dispatchers.IO) {
         val cacheFile = getCacheFileFromUri(context, uri)
 
         // 如果已存在，可选择跳过或覆盖
         if (cacheFile.exists()) {
+            LogUtils.i("文件已存在：${cacheFile.absolutePath}")
             return@withContext cacheFile // 已缓存，直接返回
         }
 
         try {
+            LogUtils.i("开始保存文件：$uri , ${cacheFile.absolutePath}")
             context.contentResolver.openInputStream(uri)?.use { input ->
                 cacheFile.outputStream().use { output ->
                     input.copyTo(output)
@@ -106,35 +107,5 @@ private fun deleteRecursively(file: File): Boolean {
         file.delete()
     } else {
         file.delete()
-    }
-}
-
-/**
- * 将给定的源文件复制到应用的私有 files 目录下，保持文件名不变。
- *
- * @param context 应用上下文
- * @param sourceFile 源文件对象（应位于缓存目录或确认存在的位置）
- * @return 成功时返回目标 File 对象，失败则返回 null
- */
-fun copyFileToFilesDir(context: Context, sourceFile: File): File? {
-    // 确认源文件存在
-    if (!sourceFile.exists()) {
-        return null
-    }
-
-    // 创建目标文件对象，保持文件名不变
-    val targetFile = File(context.filesDir, sourceFile.name)
-
-    return try {
-        // 使用 NIO 高效复制
-        FileInputStream(sourceFile).use { fis ->
-            FileOutputStream(targetFile).use { fos ->
-                fis.channel.transferTo(0, fis.channel.size(), fos.channel)
-            }
-        }
-        targetFile
-    } catch (e: IOException) {
-        e.printStackTrace()
-        null
     }
 }

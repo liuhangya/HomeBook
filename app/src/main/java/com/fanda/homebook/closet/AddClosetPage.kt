@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -96,6 +97,8 @@ import kotlinx.coroutines.launch
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
 
+    val context = LocalContext.current
+
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), snackbarHost = {
         SnackbarHost(hostState = snackBarHostState)
@@ -120,9 +123,7 @@ import kotlinx.coroutines.launch
                 rightText = "保存",
                 onRightActionClick = {
                     focusManager.clearFocus()
-                    scope.launch {
-                        snackBarHostState.showSnackbar("保存成功")
-                    }
+                    addClosetViewModel.saveCloset(context)
                 },
                 backIconPainter = painterResource(R.mipmap.icon_back),
             )

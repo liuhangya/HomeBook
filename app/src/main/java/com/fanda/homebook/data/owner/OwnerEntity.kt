@@ -9,4 +9,5 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "owner") data class OwnerEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,     // 名称
+    val selected: Boolean = false
 )

@@ -244,11 +244,6 @@ object LocalDataSource {
 
     )
 
-    // 用户列表
-    val userList = mutableListOf(
-        UserEntity(1, "番茄"), UserEntity(2, "阿凡达"), UserEntity(3, "圆圆"), UserEntity(4, "家庭"), UserEntity(5, "送人")
-    )
-
     // 囤货状态菜单列表
     val stockStateList = listOf(
         StateMenuEntity(1, "全部", 100), StateMenuEntity(2, "使用中", 200), StateMenuEntity(3, "未开封", 10), StateMenuEntity(4, "已用完", 20)

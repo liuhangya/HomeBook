@@ -25,6 +25,7 @@ enum class ShowBottomSheetType {
     SIZE,
     OWNER,
     BUY_DATE,
+    SELECT_IMAGE,
     NONE,
 
 }
