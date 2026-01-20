@@ -53,12 +53,12 @@
 //import androidx.navigation.compose.navigation
 //import androidx.navigation.compose.rememberNavController
 //import com.fanda.homebook.book.ui.BookHomePage
-//import com.fanda.homebook.closet.AddClosetColorPage
+//import com.fanda.homebook.common.AddClosetColorPage
 //import com.fanda.homebook.closet.AddClosetPage
 //import com.fanda.homebook.closet.ClosetCategoryDetailPage
 //import com.fanda.homebook.closet.ClosetHomePage
 //import com.fanda.homebook.closet.EditClosetCategoryPage
-//import com.fanda.homebook.closet.EditClosetColorPage
+//import com.fanda.homebook.common.EditClosetColorPage
 //import com.fanda.homebook.components.CustomBottomBar
 //import com.fanda.homebook.quick.QuickHomePage
 //import com.fanda.homebook.route.RoutePath

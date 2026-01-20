@@ -122,7 +122,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     )
                 }
                 if (showPlus) {
-                    SelectableRoundedButton(text = "+1", selected = false, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 5.dp), onClick = { onPlusClick?.invoke() })
+                    SelectableRoundedButton(text = "+1", selected = false, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 5.dp), onClick = { onPlusClick?.invoke() }, interaction = true)
                 }
 
                 if (showTextField) {

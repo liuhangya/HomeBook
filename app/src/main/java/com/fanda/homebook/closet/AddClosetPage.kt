@@ -1,6 +1,5 @@
 package com.fanda.homebook.closet
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -52,7 +51,10 @@ import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.data.owner.OwnerEntity
+import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.season.SeasonEntity
+import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
@@ -70,39 +72,22 @@ import kotlinx.coroutines.launch
 /*
 * 添加衣橱页面
 * */
-@Composable
-fun AddClosetPage(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+@Composable fun AddClosetPage(
+    modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
-    val imageUri = remember {
-        navController.previousBackStackEntry?.savedStateHandle?.get<Uri>("selectedImageUri")
-    }
-
-    var curImageUri by remember {
-        mutableStateOf(imageUri)
-    }
-
-    var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
-    var comment by remember { mutableStateOf("") }
-    var syncBook by remember { mutableStateOf(true) }
-    var wearCount by remember { mutableIntStateOf(1) }
-    var product by remember { mutableStateOf("") }
-    var owner by remember { mutableStateOf("") }
-    var size by remember { mutableStateOf("") }
-    var price by remember { mutableStateOf("") }
-
-    var currentShowBottomSheetType by remember { mutableStateOf(ShowBottomSheetType.NONE) }
-
     var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
-
 
     // 通过 ViewModel 状态管理进行数据绑定
     val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
     val colorTypes by addClosetViewModel.colorTypes.collectAsState()
+    val products by addClosetViewModel.products.collectAsState()
+    val sizes by addClosetViewModel.sizes.collectAsState()
 
-
+    val colorType by addClosetViewModel.colorType.collectAsState()
+    val season by addClosetViewModel.season.collectAsState()
+    val product by addClosetViewModel.product.collectAsState()
+    val size by addClosetViewModel.size.collectAsState()
+    val owner by addClosetViewModel.owner.collectAsState()
 
     LogUtils.d("AddClosetPage: addClosetUiState: $addClosetUiState")
     val scope = rememberCoroutineScope()
@@ -114,42 +99,42 @@ fun AddClosetPage(
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), snackbarHost = {
         SnackbarHost(hostState = snackBarHostState)
-    }, floatingActionButton = {
-        FloatingActionButton(containerColor = Color.Black, contentColor = Color.White, onClick = {
-            scope.launch {
-                snackBarHostState.showSnackbar("不穿了")
-            }
-        }) {
-            Text(text = "不穿了", modifier = Modifier.padding(0.dp))
-        }
-    }, topBar = {
-        TopIconAppBar(
-            title = "单品信息",
-            onBackClick = {
-                navController.navigateUp()
-            },
-            rightText = "保存",
-            onRightActionClick = {
-                focusManager.clearFocus()
-                scope.launch {
-                    snackBarHostState.showSnackbar("保存成功")
-                }
-            },
-            backIconPainter = painterResource(R.mipmap.icon_back),
-        )
-    }) { padding ->
+    }
+//        ,
+//        floatingActionButton = {
+//        FloatingActionButton(containerColor = Color.Black, contentColor = Color.White, onClick = {
+//            scope.launch {
+//                snackBarHostState.showSnackbar("不穿了")
+//            }
+//        }, modifier = Modifier.padding(5.dp)) {
+//            Text(text = "不穿了")
+//        }
+//    }
+
+        , topBar = {
+            TopIconAppBar(
+                title = "单品信息",
+                onBackClick = {
+                    navController.navigateUp()
+                },
+                rightText = "保存",
+                onRightActionClick = {
+                    focusManager.clearFocus()
+                    scope.launch {
+                        snackBarHostState.showSnackbar("保存成功")
+                    }
+                },
+                backIconPainter = painterResource(R.mipmap.icon_back),
+            )
+        }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                    detectTapGestures(
-                        onTap = { focusManager.clearFocus() },
-                        onDoubleTap = { focusManager.clearFocus() },
-                        onLongPress = { focusManager.clearFocus() })
-                }
-                .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+                detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
+            }
+            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
             // 为了让 padding 内容能滑动，所以用 Column 包起来
             Column(
@@ -165,7 +150,7 @@ fun AddClosetPage(
                 ) {
                     AsyncImage(
                         contentScale = ContentScale.Crop,
-                        model = curImageUri,
+                        model = addClosetUiState.imageUri,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -178,124 +163,126 @@ fun AddClosetPage(
                     Spacer(modifier = Modifier.height(20.dp))
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
-                            title = "归属", rightText = owner, showText = true, modifier = Modifier
+                            title = "归属", rightText = owner?.name ?: "", showText = true, modifier = Modifier
                                 .height(64.dp)
                                 .padding(start = 20.dp, end = 20.dp)
                         ) {
                             focusManager.clearFocus()
-                            currentShowBottomSheetType = ShowBottomSheetType.OWNER
+                            addClosetViewModel.updateSheetType(ShowBottomSheetType.OWNER)
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    WearCountAndCost(price, wearCount) {
-                        focusManager.clearFocus()
-                        wearCount++
-                    }
+//                    WearCountAndCost(addClosetUiState.closetEntity.price, addClosetUiState.closetEntity.wearCount) {
+//                        focusManager.clearFocus()
+//                        addClosetViewModel.plusClosetWearCount()
+//                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     ClosetInfoScreen(
-                        bottomComment = comment,
+                        bottomComment = addClosetUiState.closetEntity.comment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
-                        product = product,
-                        color = addClosetUiState.colorType?.color ?: -1,
-                        season = addClosetUiState.season?.name ?: "",
-                        date = date,
-                        syncBook = syncBook,
-                        size = size,
-                        price = price,
+                        product = product?.name ?: "",
+                        color = colorType?.color ?: -1,
+                        season = season?.name ?: "",
+                        date = convertMillisToDate(addClosetUiState.closetEntity.date, "yyyy-MM-dd"),
+                        syncBook = addClosetUiState.closetEntity.syncBook,
+                        size = size?.name ?: "",
+                        price = addClosetUiState.closetEntity.price,
                         onCheckedChange = {
-                            syncBook = it
+                            addClosetViewModel.updateClosetSyncBook(it)
                             LogUtils.d("同步至当日账单： $it")
                         },
                         onBottomCommentChange = {
-                            comment = it
+                            addClosetViewModel.updateClosetComment(it)
                         },
                         onPriceChange = {
-                            price = it
+                            addClosetViewModel.updateClosetPrice(it)
                         },
                         onClick = {
-                            currentShowBottomSheetType = it
+                            addClosetViewModel.updateSheetType(it)
                         })
                 }
             }
         }
     }
 
-    if (currentShowBottomSheetType == ShowBottomSheetType.BUY_DATE) {
+    if (addClosetViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
         // 日期选择器
         CustomDatePickerModal(onDateSelected = {
-            date = convertMillisToDate(it ?: System.currentTimeMillis(), "yyyy-MM-dd")
+            addClosetViewModel.updateClosetDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
-            currentShowBottomSheetType = ShowBottomSheetType.NONE
+            addClosetViewModel.dismissBottomSheet()
         })
     }
 
-    ListBottomSheet(
+    ListBottomSheet<ProductEntity>(
         initial = product,
         title = "品牌",
-        dataSource = LocalDataSource.productData,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.PRODUCT },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        product = it
+        dataSource = products,
+        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.PRODUCT) },
+        displayText = { it.name },
+        onDismiss = { addClosetViewModel.dismissBottomSheet() },
+        onSettingClick = {
+            addClosetViewModel.dismissBottomSheet()
+            navController.navigate(RoutePath.EditProduct.route)
+        }) {
+        addClosetViewModel.updateClosetProduct(it)
     }
 
-    ListBottomSheet(
+    ListBottomSheet<OwnerEntity>(
         initial = owner,
         title = "归属",
-        dataSource = LocalDataSource.ownerData,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.OWNER },
-        displayText = { it },
-        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        owner = it
+        dataSource = addClosetViewModel.owners,
+        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.OWNER) },
+        displayText = { it.name },
+        onDismiss = { addClosetViewModel.dismissBottomSheet() }) {
+        addClosetViewModel.updateClosetOwner(it)
     }
 
-    GridBottomSheet(
-        initial = owner,
+    GridBottomSheet<SizeEntity>(
+        initial = size,
         title = "尺码",
-        dataSource = LocalDataSource.sizeData,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.SIZE },
-        displayText = { it },
+        dataSource = sizes,
+        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.SIZE) },
+        displayText = { it.name },
         dpSize = DpSize(52.dp, 36.dp),
         column = GridCells.Fixed(5),
-        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        size = it!!
+        onDismiss = { addClosetViewModel.dismissBottomSheet() },
+        onSettingClick = {
+            addClosetViewModel.dismissBottomSheet()
+            navController.navigate(RoutePath.EditSize.route)
+        }) {
+        addClosetViewModel.updateClosetSize(it)
     }
 
     GridBottomSheet<SeasonEntity>(
-        initial = addClosetUiState.season,
+        initial = season,
         title = "季节",
         dataSource = addClosetViewModel.seasons,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.SEASON },
+        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.SEASON) },
         displayText = { it.name },
         dpSize = DpSize(66.dp, 36.dp),
         column = GridCells.Fixed(4),
-        onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
+        onDismiss = { addClosetViewModel.dismissBottomSheet() }) {
         addClosetViewModel.updateClosetSeason(it)
     }
 
 
-    ColorTypeBottomSheet(
-        color = addClosetUiState.colorType,
-        colorList = colorTypes,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.COLOR },
-        onDismiss = {
-            currentShowBottomSheetType = ShowBottomSheetType.NONE
-        },
-        onConfirm = {
-            addClosetViewModel.updateClosetColor(it)
-        },
-        onSettingClick = {
-            currentShowBottomSheetType = ShowBottomSheetType.NONE
-            navController.navigate(RoutePath.ClosetEditColor.route)
-        })
+    ColorTypeBottomSheet(color = colorType, colorList = colorTypes, visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) }, onDismiss = {
+        addClosetViewModel.dismissBottomSheet()
+    }, onConfirm = {
+        addClosetViewModel.updateClosetColor(it)
+    }, onSettingClick = {
+        addClosetViewModel.dismissBottomSheet()
+        navController.navigate(RoutePath.EditColor.route)
+    })
 
     ClosetTypeBottomSheet(
         categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,
-        visible = { currentShowBottomSheetType == ShowBottomSheetType.CATEGORY },
+        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY) },
         onDismiss = {
-            currentShowBottomSheetType = ShowBottomSheetType.NONE
+            addClosetViewModel.dismissBottomSheet()
         },
         onConfirm = {
             currentClosetCategory = it
@@ -304,20 +291,16 @@ fun AddClosetPage(
 
 }
 
-@Composable
-fun WearCountAndCost(
-    price: String,
-    wearCount: Int,
-    modifier: Modifier = Modifier,
-    onPlusClick: (() -> Unit)
+@Composable fun WearCountAndCost(
+    price: Float, wearCount: Int, modifier: Modifier = Modifier, onPlusClick: (() -> Unit)
 ) {
     val itemPadding = Modifier.padding(
         20.dp, 20.dp, 20.dp, 20.dp
     )
-    val showPrice = if (price.isEmpty()) {
+    val showPrice = if (price <= 0f) {
         ""
     } else {
-        "${String.format("%.1f", price.toFloat() / wearCount)}元/次"
+        "${String.format("%.1f", price / wearCount)}元/次"
     }
     GradientRoundedBoxWithStroke(modifier = modifier) {
         Column {
@@ -329,25 +312,19 @@ fun WearCountAndCost(
                 showPlus = true,
                 showDivider = true,
                 modifier = itemPadding,
-                onPlusClick = onPlusClick
+                onPlusClick = onPlusClick,
+                removeIndication = true
             )
 
             ItemOptionMenu(
-                title = "穿着成本",
-                showText = true,
-                rightText = showPrice,
-                showDivider = false,
-                showRightArrow = false,
-                modifier = itemPadding
+                title = "穿着成本", showText = true, rightText = showPrice, showDivider = false, showRightArrow = false, modifier = itemPadding, removeIndication = true
             )
         }
     }
 }
 
 
-@Composable
-@Preview(showBackground = true)
-fun AddClosetPagePreview() {
+@Composable @Preview(showBackground = true) fun AddClosetPagePreview() {
     HomeBookTheme {
         AddClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }

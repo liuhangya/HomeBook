@@ -26,12 +26,6 @@ sealed class RoutePath(val route: String) {
 
     data object AddCloset : RoutePath("closet_graph/add_closet")
 
-    data object ClosetEditCategory : RoutePath("closet_graph/closet_edit_category")
-
-    data object ClosetEditColor : RoutePath("closet_graph/closet_edit_color")
-
-    data object ClosetAddColor : RoutePath("closet_graph/closet_add_color")
-
     data object ClosetDetailCategory : RoutePath("closet_graph/closet_detail_category")
 
     data object StockHome : RoutePath("stock_graph/stock_home")
@@ -41,7 +35,16 @@ sealed class RoutePath(val route: String) {
     // 全局页面（不属于任何 Tab）
     data object QuickAdd : RoutePath("quick_add")
 
-    data object EditImage : RoutePath("edit_image")
+    data object EditCategory : RoutePath("edit_category")
+
+    data object EditColor : RoutePath("edit_color")
+
+    data object EditProduct : RoutePath("edit_product")
+
+    data object AddColor : RoutePath("add_color")
+
+    data object EditSize : RoutePath("edit_size")
+
 }
 
 // 所有 Tab 对应的 Graph route（用于判断是否在 Tab 内）

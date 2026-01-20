@@ -1,21 +1,23 @@
 package com.fanda.homebook.data.color
 
+import com.fanda.homebook.data.product.ProductEntity
 import kotlinx.coroutines.flow.Flow
 
 
 interface ColorTypeRepository {
     suspend fun initializeDatabase()
-    suspend fun insertWithAutoOrder(colorType: ColorTypeEntity): Long
+    suspend fun insertWithAutoOrder(entity: ColorTypeEntity): Long
     suspend fun getCount(): Int
-    suspend fun resetToDefault(colorTypes: List<ColorTypeEntity>)
-    suspend fun insert(colorType: ColorTypeEntity): Long
-    suspend fun update(colorType: ColorTypeEntity): Int
-    suspend fun delete(colorType: ColorTypeEntity): Int
+    suspend fun resetToDefault(list: List<ColorTypeEntity>)
+    suspend fun insert(entity: ColorTypeEntity): Long
+    suspend fun update(entity: ColorTypeEntity): Int
+    suspend fun delete(entity: ColorTypeEntity): Int
     suspend fun deleteById(id: Int): Int
-    fun getColorTypes(): Flow<List<ColorTypeEntity>>
-    fun getColorTypeById(id: Int): Flow<ColorTypeEntity>
+    fun getItems(): Flow<List<ColorTypeEntity>>
+    fun getItemById(id: Int): Flow<ColorTypeEntity>
+    suspend fun getItemByName(name: String): ColorTypeEntity?
     suspend fun getMaxSortOrder(): Int?
-    suspend fun updateSortOrders(colorTypes: List<ColorTypeEntity>): Int
+    suspend fun updateSortOrders(list: List<ColorTypeEntity>): Int
 }
 
 class LocalColorTypeRepository(private val colorTypeDao: ColorTypeDao) : ColorTypeRepository {
@@ -26,25 +28,27 @@ class LocalColorTypeRepository(private val colorTypeDao: ColorTypeDao) : ColorTy
         }
     }
 
-    override suspend fun insertWithAutoOrder(colorType: ColorTypeEntity) = colorTypeDao.insertWithAutoOrder(colorType)
+    override suspend fun insertWithAutoOrder(entity: ColorTypeEntity) = colorTypeDao.insertWithAutoOrder(entity)
     override suspend fun getCount() = colorTypeDao.getCount()
 
-    override suspend fun resetToDefault(colorTypes: List<ColorTypeEntity>) = colorTypeDao.resetToDefault(colorTypes)
+    override suspend fun resetToDefault(list: List<ColorTypeEntity>) = colorTypeDao.resetToDefault(list)
 
-    override suspend fun insert(colorType: ColorTypeEntity) = colorTypeDao.insert(colorType)
+    override suspend fun insert(entity: ColorTypeEntity) = colorTypeDao.insert(entity)
 
-    override suspend fun update(colorType: ColorTypeEntity) = colorTypeDao.update(colorType)
+    override suspend fun update(entity: ColorTypeEntity) = colorTypeDao.update(entity)
 
-    override suspend fun delete(colorType: ColorTypeEntity) = colorTypeDao.delete(colorType)
+    override suspend fun delete(entity: ColorTypeEntity) = colorTypeDao.delete(entity)
 
     override suspend fun deleteById(id: Int) = colorTypeDao.deleteById(id)
 
-    override fun getColorTypes(): Flow<List<ColorTypeEntity>> = colorTypeDao.getColorTypes()
+    override fun getItems(): Flow<List<ColorTypeEntity>> = colorTypeDao.getItems()
 
-    override fun getColorTypeById(id: Int): Flow<ColorTypeEntity> = colorTypeDao.getColorTypeById(id)
+    override fun getItemById(id: Int): Flow<ColorTypeEntity> = colorTypeDao.getItemById(id)
+
+    override suspend fun getItemByName(name: String) = colorTypeDao.getItemByName(name)
 
     override suspend fun getMaxSortOrder() = colorTypeDao.getMaxSortOrder()
-    override suspend fun updateSortOrders(colorTypes: List<ColorTypeEntity>) = colorTypeDao.updateSortOrders(colorTypes)
+    override suspend fun updateSortOrders(list: List<ColorTypeEntity>) = colorTypeDao.updateSortOrders(list)
 
 }
 

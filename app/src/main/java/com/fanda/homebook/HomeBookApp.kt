@@ -33,28 +33,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.fanda.homebook.book.BookHomePage
 import com.fanda.homebook.book.DashBoarDetailPage
 import com.fanda.homebook.book.DashBoarPage
 import com.fanda.homebook.book.DashBoarRankPage
-import com.fanda.homebook.closet.AddClosetColorPage
+import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
 import com.fanda.homebook.closet.ClosetHomePage
 import com.fanda.homebook.closet.EditClosetCategoryPage
-import com.fanda.homebook.closet.EditClosetColorPage
+import com.fanda.homebook.common.EditColorPage
+import com.fanda.homebook.common.EditProductPage
+import com.fanda.homebook.common.EditSizePage
 import com.fanda.homebook.components.CustomBottomBar
 import com.fanda.homebook.quick.QuickHomePage
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
 import com.fanda.homebook.stock.AddStockPage
-import com.fanda.homebook.stock.EditImagePage
 import com.fanda.homebook.stock.StockHomePage
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import kotlinx.coroutines.launch
@@ -98,8 +101,8 @@ import kotlinx.coroutines.launch
     }
 
     ModalNavigationDrawer(gesturesEnabled = drawerState.isOpen, drawerState = drawerState, drawerContent = {
-        ModalDrawerSheet(windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-            drawerContainerColor = Color.Transparent, drawerShape = RoundedCornerShape(0.dp)
+        ModalDrawerSheet(
+            windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerContainerColor = Color.Transparent, drawerShape = RoundedCornerShape(0.dp)
         ) {
             ModalDrawerSheet(windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerShape = RoundedCornerShape(0.dp), drawerContainerColor = Color.Transparent) {
                 drawerContent()
@@ -145,8 +148,7 @@ import kotlinx.coroutines.launch
                             Text(
                                 "资产首页-没开发呢...", modifier = Modifier
                                     .fillMaxSize()
-                                    .statusBarsPadding(),
-                                textAlign = TextAlign.Center
+                                    .statusBarsPadding(), textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -156,17 +158,19 @@ import kotlinx.coroutines.launch
                         composable(RoutePath.ClosetHome.route) {
                             ClosetHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
-                        composable(RoutePath.AddCloset.route) {
+                        composable(route = "${RoutePath.AddCloset.route}?imagePath={imagePath}", arguments = listOf(navArgument("imagePath") {
+                            type = NavType.StringType
+                        })) {
                             AddClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
-                        composable(RoutePath.ClosetEditCategory.route) {
+                        composable(RoutePath.EditCategory.route) {
                             EditClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
-                        composable(RoutePath.ClosetEditColor.route) {
-                            EditClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        composable(RoutePath.EditColor.route) {
+                            EditColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
-                        composable(RoutePath.ClosetAddColor.route) {
-                            AddClosetColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        composable(RoutePath.AddColor.route) {
+                            AddColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
                         composable(RoutePath.ClosetDetailCategory.route) {
                             ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
@@ -188,8 +192,12 @@ import kotlinx.coroutines.launch
                         QuickHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
 
-                    composable(RoutePath.EditImage.route) {
-                        EditImagePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    composable(RoutePath.EditProduct.route) {
+                        EditProductPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
+
+                    composable(RoutePath.EditSize.route) {
+                        EditSizePage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
                 }
             }

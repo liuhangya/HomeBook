@@ -35,14 +35,24 @@ import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
 
-@Composable
-inline fun <reified T : Any> GridBottomSheet(initial: T?, title: String, dataSource: List<T>, dpSize: DpSize, column: GridCells, visible: () -> Boolean, crossinline displayText: (T) -> String, noinline onDismiss: () -> Unit, crossinline onConfirm: (T?) -> Unit) {
+@Composable inline fun <reified T : Any> GridBottomSheet(
+    initial: T?,
+    title: String,
+    dataSource: List<T>,
+    dpSize: DpSize,
+    column: GridCells,
+    visible: () -> Boolean,
+    crossinline displayText: (T) -> String,
+    noinline onDismiss: () -> Unit,
+    noinline onSettingClick: (() -> Unit)? = null,
+    crossinline onConfirm: (T?) -> Unit
+) {
     CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
         var selected by remember { mutableStateOf(initial) }
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            SheetTitleWidget(title = title) {
+            SheetTitleWidget(title = title, onSettingClick = onSettingClick) {
                 onConfirm(selected)
                 onDismiss()
             }
@@ -51,7 +61,8 @@ inline fun <reified T : Any> GridBottomSheet(initial: T?, title: String, dataSou
                 modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(start = 24.dp, top = 10.dp, end = 24.dp, bottom = 28.dp),
             ) {
                 items(dataSource, key = { it.hashCode() }) {
-                    SelectableRoundedButton(cornerSize = 8.dp,
+                    SelectableRoundedButton(
+                        cornerSize = 8.dp,
                         fontSize = 14.sp,
                         contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
                         modifier = Modifier.size(dpSize),

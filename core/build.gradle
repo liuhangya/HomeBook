@@ -44,4 +44,5 @@ dependencies {
     api(libs.ucrop)
     api(libs.chat)
     api(libs.coil.compose)
+    api(libs.toaster)
 }

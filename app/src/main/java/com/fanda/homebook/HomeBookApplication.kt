@@ -1,9 +1,11 @@
 package com.fanda.homebook
 
 import android.app.Application
+import android.view.Gravity
 import com.fanda.homebook.data.AppContainer
 import com.fanda.homebook.data.AppContainerImpl
 import com.fanda.homebook.tools.LogUtils
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -19,6 +21,8 @@ class HomeBookApplication : Application() {
         initLoggerLib(this)
         appContainer = AppContainerImpl(this)
         initDefaultDataEntity()
+        Toaster.init(this)
+        Toaster.setGravity(Gravity.BOTTOM,0,300)
     }
 
     /*
@@ -28,6 +32,9 @@ class HomeBookApplication : Application() {
         applicationScope.launch {
             appContainer.seasonRepository.initializeDatabase()
             appContainer.colorTypeRepository.initializeDatabase()
+            appContainer.productRepository.initializeDatabase()
+            appContainer.sizeRepository.initializeDatabase()
+            appContainer.ownerRepository.initializeDatabase()
         }
     }
 

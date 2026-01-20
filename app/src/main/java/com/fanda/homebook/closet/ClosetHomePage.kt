@@ -67,24 +67,24 @@ import com.fanda.homebook.route.RoutePath
                         .background(color = Color.Transparent)
                 ) {
 
-                    Box(modifier = Modifier
-                        .wrapContentWidth()
-                        .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
+                    Box(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
                         .align(Alignment.CenterStart)
-                        .clickable(
-                            // 去掉默认的点击效果
-                            interactionSource = remember { MutableInteractionSource() }, indication = null
-                        ) {
-                            val now = System.currentTimeMillis()
-                            if (now - lastBackPressed > 200 && !expandUserMenu) {
-                                expandUserMenu = true
+                            .clickable(
+                                // 去掉默认的点击效果
+                                interactionSource = remember { MutableInteractionSource() }, indication = null
+                            ) {
+                                val now = System.currentTimeMillis()
+                                if (now - lastBackPressed > 200 && !expandUserMenu) {
+                                    expandUserMenu = true
+                                }
+                                Log.d("ClosetHomePage", "点击了用户名")
                             }
-                            Log.d("ClosetHomePage", "点击了用户名")
-                        }
-                        .padding(start = 0.dp, end = 30.dp)) {
+                            .padding(start = 0.dp, end = 30.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier
-                                .fillMaxHeight()
+                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                         ) {
                             Text(text = curUser.name, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black)
                             Image(modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null)
@@ -113,7 +113,7 @@ import com.fanda.homebook.route.RoutePath
                         }
                         Box(contentAlignment = Alignment.Center, modifier = Modifier
                             .size(44.dp)
-                            .clickable { navController.navigate(RoutePath.ClosetEditCategory.route) }) {
+                            .clickable { navController.navigate(RoutePath.EditCategory.route) }) {
                             Image(
                                 painter = painterResource(id = R.mipmap.icon_setting), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
                             )
@@ -135,10 +135,10 @@ import com.fanda.homebook.route.RoutePath
     }) {
         showSelectImage = false
         // 导航时保存状态
-        navController.currentBackStackEntry?.savedStateHandle?.set(
-            "selectedImageUri", it
-        )
-        navController.navigate(RoutePath.AddCloset.route)
+//        navController.currentBackStackEntry?.savedStateHandle?.set(
+//            "selectedImageUri", it
+//        )
+        navController.navigate("${RoutePath.AddCloset.route}?imagePath=${it}")
     }
 
 }

@@ -29,13 +29,22 @@ import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 import com.fanda.homebook.components.CustomBottomSheet
 
-@Composable fun <T : Any> ListBottomSheet(initial: T, title: String, dataSource: List<T>, visible: () -> Boolean, displayText: (T) -> String, onDismiss: () -> Unit, onConfirm: (T) -> Unit) {
+@Composable inline fun <reified T : Any> ListBottomSheet(
+    initial: T?,
+    title: String,
+    dataSource: List<T>,
+    visible: () -> Boolean,
+    crossinline displayText: (T) -> String,
+    noinline onDismiss: () -> Unit,
+    noinline onSettingClick: (() -> Unit)? = null,
+    crossinline onConfirm: (T?) -> Unit
+) {
     CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
         var selected by remember { mutableStateOf(initial) }
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            SheetTitleWidget(title = title) {
+            SheetTitleWidget(title = title, onSettingClick = onSettingClick) {
                 onConfirm(selected)
                 onDismiss()
             }
@@ -43,7 +52,7 @@ import com.fanda.homebook.components.CustomBottomSheet
                 modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(vertical = 9.dp),
                 flingBehavior = ScrollableDefaults.flingBehavior(), // 使用默认（无弹性）
             ) {
-                items(dataSource, key = { it }) {
+                items(dataSource, key = { it.hashCode() }) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier     // 要注意顺序，先点击事件，后加padding
                             .clickable(onClick = {

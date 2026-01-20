@@ -68,18 +68,12 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         onCheckedChange(it)
                     },
                 )
-                ItemOptionMenu(title = "价格",
-                    showTextField = true,
-                    showRightArrow = false,
-                    removeIndication = true,
-                    inputText = price,
-                    showDivider = true,
-                    showInputTextUnit = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
+                ItemOptionMenu(
+                    title = "价格", showTextField = true, showRightArrow = false, removeIndication = true, inputText = price.ifEmpty {
+                        ""
+                    }, showDivider = true, showInputTextUnit = true, keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done
-                    ),
-                    modifier = itemPadding,
-                    onValueChange = { newText ->
+                    ), modifier = itemPadding, onValueChange = { newText ->
                         // 🔒 限制只能输入数字和一个小数点
                         if (isValidDecimalInput(newText)) {
                             onPriceChange(newText)
@@ -93,7 +87,8 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         GradientRoundedBoxWithStroke(modifier = modifier) {
             Column {
                 SelectTypeWidget(firstType = closetCategory, secondType = closetSubCategory, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.CATEGORY, onClick) })
-                ItemOptionMenu(title = "颜色",
+                ItemOptionMenu(
+                    title = "颜色",
                     showColor = true,
                     inputColor = if (color != -1L) Color(color) else null,
                     showDivider = true,
@@ -101,7 +96,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     onClick = { wrapClick(ShowBottomSheetType.COLOR, onClick) })
                 ItemOptionMenu(title = "季节", showText = true, rightText = season, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.SEASON, onClick) })
                 ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.PRODUCT, onClick) })
-                ItemOptionMenu(title = "尺寸", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.SIZE, onClick) })
+                ItemOptionMenu(title = "尺码", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.SIZE, onClick) })
                 EditCommentsWidget(
                     inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange
                 )

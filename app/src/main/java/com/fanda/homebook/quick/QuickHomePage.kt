@@ -245,7 +245,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PAY_WAY },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        payWay = it
+        payWay = it!!
     }
 
     ListBottomSheet(initial = product,
@@ -254,7 +254,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PRODUCT },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        product = it
+        product = it!!
     }
 
     ListBottomSheet(initial = owner,
@@ -263,7 +263,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.OWNER },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        owner = it
+        owner = it!!
     }
 
     GridBottomSheet(initial = owner,
@@ -311,7 +311,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.STOCK_PRODUCT },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        stockProduct = it
+        stockProduct = it!!
     }
 
     ListBottomSheet(initial = goodsRack, title = "货架", dataSource = LocalDataSource.goodsRackData, visible = { currentShowBottomSheetType == ShowBottomSheetType.GOODS_RACK }, displayText = {
@@ -330,7 +330,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.STOCK_CATEGORY },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        stockCategory = it
+        stockCategory = it!!
     }
 
     ListBottomSheet(initial = period,
@@ -339,7 +339,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PERIOD },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        period = it
+        period = it!!
     }
 
 

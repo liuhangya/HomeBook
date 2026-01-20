@@ -130,23 +130,6 @@ object LocalDataSource {
         "超大",
     )
 
-    val colorData = mutableListOf(
-        // 颜色值要加上透明度值
-        ColorType("棕色系", 0xFF6A3D06),
-        ColorType("黑色系", 0xFF000000),
-        ColorType("蓝色系", 0xFF9CD4EB),
-        ColorType("绿色系", 0xFFA4D66B),
-        ColorType("紫色系", 0xFFB398F1),
-        ColorType("红色系", 0xFFDA4851),
-        ColorType("灰色系", 0xFFDADADA),
-        ColorType("玫红系", 0xFFE360BE),
-        ColorType("橙色系", 0xFFEC9F4C),
-        ColorType("金色系", 0xFFEFDD8B),
-        ColorType("裸色系", 0xFFEFE5CE),
-        ColorType("黄色系", 0xFFF8D854),
-        ColorType("白色系", 0xFFFFFFFF),
-    )
-
     val closetCategoryData = listOf(
         Category(
             "1", "上装", listOf(

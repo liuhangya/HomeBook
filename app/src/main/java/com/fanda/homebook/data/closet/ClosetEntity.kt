@@ -23,7 +23,16 @@ data class ClosetEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String = "",
     val colorTypeId: Int = -1,
-    var seasonId: Int = -1
+    val seasonId: Int = -1,
+    val productId: Int = -1,
+    val sizeId: Int = -1,
+    val ownerId: Int = -1,
+    val date: Long = System.currentTimeMillis(),
+    val imageLocalPath: String = "",
+    val comment: String = "",
+    val syncBook: Boolean = false,
+    val wearCount: Int = 0,
+    val price: String = ""
 )
 
 

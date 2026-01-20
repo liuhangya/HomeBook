@@ -78,7 +78,7 @@ import kotlinx.coroutines.launch
     var color by remember { mutableStateOf(ColorType("", -1L)) }
     var season by remember { mutableStateOf("") }
     var size by remember { mutableStateOf("") }
-    var price by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf(0f) }
     var remain by remember { mutableStateOf("") }
     var usedUpDate by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis(), "yyyy-MM-dd")) }
     var feel by remember { mutableStateOf("") }
@@ -163,7 +163,7 @@ import kotlinx.coroutines.launch
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    WearCountAndCost(price, wearCount) {
+                    WearCountAndCost(price.toString(), wearCount) {
                         focusManager.clearFocus()
                         wearCount++
                     }
@@ -177,7 +177,7 @@ import kotlinx.coroutines.launch
                         date = date,
                         syncBook = syncBook,
                         size = size,
-                        price = price,
+                        price = price.toString(),
                         onCheckedChange = {
                             syncBook = it
                             LogUtils.d("同步至当日账单： $it")
@@ -186,7 +186,7 @@ import kotlinx.coroutines.launch
                             comment = it
                         },
                         onPriceChange = {
-                            price = it
+                            price = it.toFloat()
                         },
                         onClick = {
                             currentShowBottomSheetType = it
@@ -216,7 +216,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PRODUCT },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        product = it
+        product = it!!
     }
 
     ListBottomSheet(initial = owner,
@@ -225,7 +225,7 @@ import kotlinx.coroutines.launch
         visible = { currentShowBottomSheetType == ShowBottomSheetType.OWNER },
         displayText = { it },
         onDismiss = { currentShowBottomSheetType = ShowBottomSheetType.NONE }) {
-        owner = it
+        owner = it!!
     }
 
     GridBottomSheet(initial = owner,

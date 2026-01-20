@@ -108,7 +108,7 @@ fun EditClosetScreen(
                         modifier = itemPadding,
                         onClick = { wrapClick(ShowBottomSheetType.PRODUCT, onClick) })
                     ItemOptionMenu(
-                        title = "尺寸",
+                        title = "尺码",
                         showText = true,
                         rightText = size,
                         showDivider = true,

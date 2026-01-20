@@ -1,5 +1,7 @@
 package com.fanda.homebook.data.season
 
+import kotlinx.coroutines.flow.Flow
+
 interface SeasonRepository {
     suspend fun initializeDatabase()
 
@@ -7,7 +9,7 @@ interface SeasonRepository {
 
     suspend fun getCount(): Int
 
-    suspend fun getSeasonById(id: Int): SeasonEntity?
+     fun getSeasonById(id: Int): Flow<SeasonEntity?>
 }
 
 class LocalSeasonRepository(private val seasonDao: SeasonDao) : SeasonRepository {
@@ -21,7 +23,7 @@ class LocalSeasonRepository(private val seasonDao: SeasonDao) : SeasonRepository
 
     override suspend fun getCount() = seasonDao.getCount()
 
-    override suspend fun getSeasonById(id: Int) = seasonDao.getSeasonTypeById(id)
+    override  fun getSeasonById(id: Int) = seasonDao.getSeasonTypeById(id)
 }
 
 val defaultSeasonData = listOf(

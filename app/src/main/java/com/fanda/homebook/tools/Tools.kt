@@ -16,7 +16,14 @@ fun formatYearMonth(year: Int, month: Int): String =
 fun isValidDecimalInput(text: String): Boolean {
     if (text.isEmpty()) return true
 
-    // 不允许以多个 0 开头（如 "00"、"01"），但允许 "0." 或 "0.1"
+    // 特殊处理：如果整个字符串都是0（包括可能有小数点）
+    // 例如: "0", "00", "000", "0.0", "00.00", ".0" 等都应该被允许
+    if (text.all { it == '0' || it == '.' } && text.any { it.isDigit() }) {
+        // 检查是否有多个小数点
+        return text.count { it == '.' } <= 1
+    }
+
+    // 不允许以多个 0 开头（如 "01"、"001"），但允许 "0." 或 "0.1"
     if (text.length > 1 && text[0] == '0' && text[1] != '.' && text[1] != ',') {
         return false
     }
