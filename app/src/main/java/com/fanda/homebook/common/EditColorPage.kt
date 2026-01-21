@@ -96,7 +96,7 @@ import com.fanda.homebook.tools.LogUtils
 @Composable private fun ColorDragWidget(
     modifier: Modifier = Modifier, colorList: List<ColorTypeEntity>, onEditClick: (ColorTypeEntity) -> Unit, onMove: (from: Int, to: Int, items: MutableList<ColorTypeEntity>) -> Unit
 ) {
-    DragLazyColumn(modifier = modifier, items = colorList.map { it.copy() }.toMutableList(), onMove = onMove) { item, isDragging ->
+    DragLazyColumn(modifier = modifier, items = colorList.map { it.copy() }.toMutableList(), onMove = onMove, key = { it.id }) { item, isDragging ->
         GradientRoundedBoxWithStroke {
             Row(
                 modifier = Modifier

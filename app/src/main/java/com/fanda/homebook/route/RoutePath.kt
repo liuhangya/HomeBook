@@ -16,11 +16,7 @@ sealed class RoutePath(val route: String) {
     data object DashBoarRank : RoutePath("book_graph/dashboard_rank")
     data object DashBoarDetail : RoutePath("book_graph/dashboard_detail")
 
-    data class BookDetail(val id: String) : RoutePath("book_graph/book_detail/$id")
-
     data object DashboardHome : RoutePath("dashboard_graph/dashboard_home")
-
-    data object DashboardSettings : RoutePath("dashboard_graph/dashboard_settings")
 
     data object ClosetHome : RoutePath("closet_graph/closet_home")
 
@@ -44,6 +40,10 @@ sealed class RoutePath(val route: String) {
     data object AddColor : RoutePath("add_color")
 
     data object EditSize : RoutePath("edit_size")
+
+    data object EditSubCategory : RoutePath("edit_sub_category")
+
+
 
 }
 

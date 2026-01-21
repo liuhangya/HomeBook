@@ -1,28 +1,36 @@
 package com.fanda.homebook.components
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.fanda.homebook.entity.ClosetGridEntity
+import com.fanda.homebook.tools.LogUtils
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -33,7 +41,11 @@ import kotlin.math.roundToInt
  * - Item 其他区域点击事件不受影响
  */
 @Composable fun <T> DragLazyColumn(
-    items: MutableList<T>, modifier: Modifier = Modifier, onMove: (from: Int, to: Int, items: MutableList<T>) -> Unit = { _, _, _ -> }, itemContent: @Composable (item: T, isDragging: Boolean) -> Unit
+    items: MutableList<T>,
+    modifier: Modifier = Modifier,
+    onMove: (from: Int, to: Int, items: MutableList<T>) -> Unit = { _, _, _ -> },
+    key: (T) -> Any,
+    itemContent: @Composable (item: T, isDragging: Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
     var draggedIndex by remember { mutableStateOf<Int?>(null) }
@@ -44,7 +56,13 @@ import kotlin.math.roundToInt
     // 拖拽手柄宽度（必须与 UI 中图标区域一致）
     val DRAG_HANDLE_WIDTH_DP = 56.dp
 
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp), state = listState, modifier = modifier.pointerInput(Unit) {
+    val itemsSnapshot = items // 避免在 lambda 中直接引用
+
+    itemsSnapshot.forEach {
+        LogUtils.d("拖动布局： item: $it")
+    }
+    // 关键配置 pointerInput(itemsSnapshot) ，让数据变化时刷新内部闭包内的列表数据
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp), state = listState, modifier = modifier.pointerInput(itemsSnapshot) {
 
         val handleWidthPx = with(this.density) { DRAG_HANDLE_WIDTH_DP.toPx() }.toInt()
 
@@ -55,19 +73,20 @@ import kotlin.math.roundToInt
             val info = visibleItems.find {
                 position.y.toInt() in it.offset..(it.offset + it.size)
             }
-            Log.d("DragLazyColumn", "position: $position, info: ${info?.index} , handleWidthPx: $handleWidthPx")
+            LogUtils.d( "position: $position, info: ${info?.index} , handleWidthPx: $handleWidthPx")
             if (info != null) {
                 // 计算手柄区域：右侧 [viewportEnd - handleWidth, viewportEnd]
                 // viewportEndOffset 是 LazyColumn 内容的总高度，不能用这个参数
 //                val viewportEnd = listState.layoutInfo.viewportEndOffset
                 val viewportEnd = listState.layoutInfo.viewportSize.width
                 val handleLeft = viewportEnd - handleWidthPx
-                Log.d("DragLazyColumn", "viewportEnd: $viewportEnd,handleLeft: $handleLeft")
+                LogUtils.d("viewportEnd: $viewportEnd,handleLeft: $handleLeft")
                 // 只有在手柄区域内才开始拖拽
                 if (position.x.toInt() >= handleLeft) {
                     draggedIndex = info.index
                     dragStartIndex = info.index
                     dragOffsetY = 0f
+                    LogUtils.d("draggedIndex: $draggedIndex, dragStartIndex: $dragStartIndex")
                 }
             }
         }, onDragEnd = {
@@ -78,6 +97,7 @@ import kotlin.math.roundToInt
                     onMove(from, to, items)
                 }
             }
+            LogUtils.d("draggedIndex2: $draggedIndex, dragStartIndex: $dragStartIndex")
             draggedIndex = null
             dragStartIndex = null
             dragOffsetY = 0f
@@ -110,7 +130,7 @@ import kotlin.math.roundToInt
                     val oldIndex = draggedIndex!!
                     val direction = if (dragOffsetY > 0) 1 else -1
                     val newIndex = (oldIndex + direction).coerceIn(0, items.size - 1)
-
+                    LogUtils.d("oldIndex: $oldIndex, newIndex: $newIndex")
                     if (oldIndex != newIndex) {
                         val item = items.removeAt(oldIndex)
                         items.add(newIndex, item)
@@ -123,7 +143,7 @@ import kotlin.math.roundToInt
             }
         })
     }) {
-        itemsIndexed(items = items, key = { _, item -> item.hashCode() } // 必须用唯一 ID
+        itemsIndexed(items = items, key = { _, item -> key(item) } // 必须用唯一 ID
         ) { index, item ->
             val isDragging = draggedIndex == index
             Box(

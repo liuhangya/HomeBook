@@ -7,9 +7,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.fanda.homebook.HomeBookApplication
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
+import com.fanda.homebook.common.viewmodel.CategoryViewModel
 import com.fanda.homebook.common.viewmodel.ColorTypeViewModel
 import com.fanda.homebook.common.viewmodel.ProductViewModel
 import com.fanda.homebook.common.viewmodel.SizeViewModel
+import com.fanda.homebook.common.viewmodel.SubCategoryViewModel
 
 /*
 * 提供所有的 ViewModel 工厂
@@ -29,7 +31,8 @@ object AppViewModelProvider {
                 homeBookApplication().appContainer.seasonRepository,
                 homeBookApplication().appContainer.productRepository,
                 homeBookApplication().appContainer.sizeRepository,
-                homeBookApplication().appContainer.ownerRepository
+                homeBookApplication().appContainer.ownerRepository,
+                homeBookApplication().appContainer.categoryRepository
             )
         }
         initializer {
@@ -37,6 +40,12 @@ object AppViewModelProvider {
         }
         initializer {
             SizeViewModel(homeBookApplication().appContainer.sizeRepository)
+        }
+        initializer {
+            CategoryViewModel(homeBookApplication().appContainer.categoryRepository)
+        }
+        initializer {
+            SubCategoryViewModel(this.createSavedStateHandle(),homeBookApplication().appContainer.categoryRepository)
         }
     }
 }

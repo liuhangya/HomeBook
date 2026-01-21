@@ -22,7 +22,7 @@ class HomeBookApplication : Application() {
         appContainer = AppContainerImpl(this)
         initDefaultDataEntity()
         Toaster.init(this)
-        Toaster.setGravity(Gravity.BOTTOM,0,300)
+        Toaster.setGravity(Gravity.BOTTOM, 0, 300)
     }
 
     /*
@@ -35,6 +35,7 @@ class HomeBookApplication : Application() {
             appContainer.productRepository.initializeDatabase()
             appContainer.sizeRepository.initializeDatabase()
             appContainer.ownerRepository.initializeDatabase()
+            appContainer.categoryRepository.initializeDatabase()
         }
     }
 

@@ -97,7 +97,6 @@ fun ClosetHomePage(
                                 if (now - lastBackPressed > 200 && !expandUserMenu) {
                                     expandUserMenu = true
                                 }
-                                Log.d("ClosetHomePage", "点击了用户名")
                             }
                             .padding(start = 0.dp, end = 30.dp)) {
                         Row(

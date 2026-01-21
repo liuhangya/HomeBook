@@ -48,7 +48,8 @@ import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
 import com.fanda.homebook.closet.ClosetHomePage
-import com.fanda.homebook.closet.EditClosetCategoryPage
+import com.fanda.homebook.closet.EditCategoryPage
+import com.fanda.homebook.closet.EditSubCategoryPage
 import com.fanda.homebook.common.EditColorPage
 import com.fanda.homebook.common.EditProductPage
 import com.fanda.homebook.common.EditSizePage
@@ -164,7 +165,7 @@ import kotlinx.coroutines.launch
                             AddClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
                         composable(RoutePath.EditCategory.route) {
-                            EditClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            EditCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
                         composable(RoutePath.EditColor.route) {
                             EditColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
@@ -198,6 +199,11 @@ import kotlinx.coroutines.launch
 
                     composable(RoutePath.EditSize.route) {
                         EditSizePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    }
+                    composable("${RoutePath.EditSubCategory.route}?categoryId={categoryId}", arguments = listOf(navArgument("categoryId") {
+                        type = NavType.IntType
+                    })) {
+                        EditSubCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
                     }
                 }
             }

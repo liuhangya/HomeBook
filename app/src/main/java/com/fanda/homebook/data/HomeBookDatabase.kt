@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.fanda.homebook.data.category.CategoryDao
+import com.fanda.homebook.data.category.CategoryEntity
+import com.fanda.homebook.data.category.SubCategoryEntity
 import com.fanda.homebook.data.closet.ClosetDao
 import com.fanda.homebook.data.closet.ClosetEntity
 import com.fanda.homebook.data.color.ColorTypeDao
@@ -17,7 +20,11 @@ import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeDao
 import com.fanda.homebook.data.size.SizeEntity
 
-@Database(entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class], version = 6, exportSchema = false) abstract class HomeBookDatabase() : RoomDatabase() {
+@Database(
+    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class],
+    version = 7,
+    exportSchema = false
+) abstract class HomeBookDatabase() : RoomDatabase() {
 
     abstract fun colorTypeDao(): ColorTypeDao
 
@@ -30,6 +37,8 @@ import com.fanda.homebook.data.size.SizeEntity
     abstract fun sizeDao(): SizeDao
 
     abstract fun ownerDao(): OwnerDao
+
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         @Volatile private var Instance: HomeBookDatabase? = null

@@ -103,7 +103,7 @@ import com.fanda.homebook.tools.LogUtils
 @Composable private fun ProductDragWidget(
     modifier: Modifier = Modifier, data: List<ProductEntity>, onEditClick: (ProductEntity) -> Unit, onMove: (from: Int, to: Int, items: MutableList<ProductEntity>) -> Unit
 ) {
-    DragLazyColumn(modifier = modifier, items = data.map { it.copy() }.toMutableList(), onMove = onMove) { item, isDragging ->
+    DragLazyColumn(modifier = modifier, items = data.map { it.copy() }.toMutableList(), onMove = onMove, key = { it.id }) { item, isDragging ->
         GradientRoundedBoxWithStroke {
             Row(
                 modifier = Modifier

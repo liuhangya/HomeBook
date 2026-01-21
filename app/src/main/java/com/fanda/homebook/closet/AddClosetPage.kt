@@ -57,6 +57,7 @@ import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
+import com.fanda.homebook.quick.sheet.CategoryBottomSheet
 import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
 import com.fanda.homebook.quick.sheet.GridBottomSheet
@@ -76,23 +77,22 @@ import kotlinx.coroutines.launch
 @Composable fun AddClosetPage(
     modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
-    var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
-
     // 通过 ViewModel 状态管理进行数据绑定
     val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
     val colorTypes by addClosetViewModel.colorTypes.collectAsState()
     val products by addClosetViewModel.products.collectAsState()
     val sizes by addClosetViewModel.sizes.collectAsState()
+    val categories by addClosetViewModel.categories.collectAsState()
 
     val colorType by addClosetViewModel.colorType.collectAsState()
     val season by addClosetViewModel.season.collectAsState()
     val product by addClosetViewModel.product.collectAsState()
     val size by addClosetViewModel.size.collectAsState()
     val owner by addClosetViewModel.owner.collectAsState()
+    val category by addClosetViewModel.category.collectAsState()
+    val subCategory by addClosetViewModel.subCategory.collectAsState()
 
     LogUtils.d("AddClosetPage: addClosetUiState: $addClosetUiState")
-    val scope = rememberCoroutineScope()
-    val snackBarHostState = remember { SnackbarHostState() }
 
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
@@ -100,9 +100,7 @@ import kotlinx.coroutines.launch
     val context = LocalContext.current
 
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
-    Scaffold(modifier = modifier.statusBarsPadding(), snackbarHost = {
-        SnackbarHost(hostState = snackBarHostState)
-    }
+    Scaffold(modifier = modifier.statusBarsPadding()
 //        ,
 //        floatingActionButton = {
 //        FloatingActionButton(containerColor = Color.Black, contentColor = Color.White, onClick = {
@@ -180,8 +178,8 @@ import kotlinx.coroutines.launch
                     Spacer(modifier = Modifier.height(12.dp))
                     ClosetInfoScreen(
                         bottomComment = addClosetUiState.closetEntity.comment,
-                        closetCategory = currentClosetCategory?.categoryName ?: "",
-                        closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
+                        closetCategory = category?.name ?: "",
+                        closetSubCategory = subCategory?.name ?: "",
                         product = product?.name ?: "",
                         color = colorType?.color ?: -1,
                         season = season?.name ?: "",
@@ -278,15 +276,21 @@ import kotlinx.coroutines.launch
         navController.navigate(RoutePath.EditColor.route)
     })
 
-    ClosetTypeBottomSheet(
-        categories = LocalDataSource.closetCategoryData,
-        currentCategory = currentClosetCategory,
+    CategoryBottomSheet(
+        categories = categories,
+        categoryEntity = category,
+        subCategoryEntity = subCategory,
         visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY) },
         onDismiss = {
             addClosetViewModel.dismissBottomSheet()
         },
-        onConfirm = {
-            currentClosetCategory = it
+        onSettingClick = {
+            addClosetViewModel.dismissBottomSheet()
+            navController.navigate(RoutePath.EditCategory.route)
+        },
+        onConfirm = { category, subCategory ->
+            LogUtils.i("选中的分类： $category, $subCategory")
+            addClosetViewModel.updateSelectedCategory(category, subCategory)
         })
 
 

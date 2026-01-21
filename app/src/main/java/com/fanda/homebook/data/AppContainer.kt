@@ -1,6 +1,8 @@
 package com.fanda.homebook.data
 
 import android.content.Context
+import com.fanda.homebook.data.category.CategoryRepository
+import com.fanda.homebook.data.category.LocalCategoryRepository
 import com.fanda.homebook.data.closet.ClosetRepository
 import com.fanda.homebook.data.closet.LocalClosetRepository
 import com.fanda.homebook.data.color.ColorTypeRepository
@@ -24,6 +26,7 @@ interface AppContainer {
     val productRepository: ProductRepository
     val sizeRepository: SizeRepository
     val ownerRepository: OwnerRepository
+    val categoryRepository: CategoryRepository
 }
 
 class AppContainerImpl(private val context: Context) : AppContainer {
@@ -46,6 +49,10 @@ class AppContainerImpl(private val context: Context) : AppContainer {
 
     override val ownerRepository: OwnerRepository by lazy {
         LocalOwnerRepository(HomeBookDatabase.getDatabase(context).ownerDao())
+    }
+
+    override val categoryRepository: CategoryRepository by lazy {
+        LocalCategoryRepository(HomeBookDatabase.getDatabase(context).categoryDao())
     }
 
 }
