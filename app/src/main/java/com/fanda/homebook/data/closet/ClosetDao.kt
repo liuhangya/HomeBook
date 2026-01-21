@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.Flow
 
     @Query("DELETE FROM closet WHERE id = :id") suspend fun deleteById(id: Int): Int
 
-    @Query("SELECT * FROM closet") fun getClosets(): Flow<List<ClosetEntity>>
+    @Transaction @Query("SELECT * FROM closet WHERE ownerId = :ownerId") fun getClosets(ownerId: Int): Flow<List<AddClosetEntity>>
 
     // 关联查询对象
     @Transaction @Query("SELECT * FROM closet WHERE id = :id") fun getClosetById(id: Int): Flow<AddClosetEntity>

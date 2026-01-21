@@ -44,6 +44,7 @@ import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.closet.ui.ClosetGridWidget
 import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
+import com.fanda.homebook.closet.ui.ClosetHomeGridWidget
 import com.fanda.homebook.closet.ui.UserDropdownMenu
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
 import com.fanda.homebook.components.CustomDropdownMenu
@@ -54,6 +55,7 @@ import com.fanda.homebook.data.owner.OwnerEntity
 import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.tools.LogUtils
 
 /*
 *
@@ -71,6 +73,9 @@ fun ClosetHomePage(
 
     val curSelectOwner by closetViewModel.curSelectOwner.collectAsState()
     val closetUiState by closetViewModel.addClosetUiState.collectAsState()
+    val groupedClosets by closetViewModel.groupedClosets.collectAsState()
+
+    LogUtils.i("closets",groupedClosets)
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopAppBar(
@@ -165,7 +170,7 @@ fun ClosetHomePage(
             colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
         )
     }) { padding ->
-        ClosetGridWidget(modifier = Modifier.padding(padding)) {
+        ClosetHomeGridWidget(data = groupedClosets, modifier = Modifier.padding(padding)) {
             navController.navigate(RoutePath.ClosetDetailCategory.route)
         }
     }
@@ -176,10 +181,6 @@ fun ClosetHomePage(
             closetViewModel.dismissBottomSheet()
         }) {
         closetViewModel.dismissBottomSheet()
-        // 导航时保存状态
-//        navController.currentBackStackEntry?.savedStateHandle?.set(
-//            "selectedImageUri", it
-//        )
         navController.navigate("${RoutePath.AddCloset.route}?imagePath=${it}")
     }
 

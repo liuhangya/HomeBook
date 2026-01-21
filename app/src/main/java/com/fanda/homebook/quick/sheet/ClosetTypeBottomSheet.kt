@@ -1,6 +1,7 @@
 package com.fanda.homebook.quick.sheet
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -53,6 +54,7 @@ import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.category.CategoryEntity
 import com.fanda.homebook.data.category.CategoryWithSubCategories
 import com.fanda.homebook.data.category.SubCategoryEntity
+import com.hjq.toast.Toaster
 
 data class Category(
     val id: String, val name: String, val children: List<SubCategory> = emptyList()
@@ -190,9 +192,13 @@ data class SelectedCategory(
             modifier = Modifier.fillMaxWidth()
         ) {
             SheetTitleWidget(title = "分类", onSettingClick = onSettingClick) {
-                selectedCategory?.let {
-                    onConfirm(selectedCategory, selectedSubCategory)
-                    onDismiss()
+                if (selectedCategory != null && selectedSubCategory == null && categories.find { it.category.id == selectedCategory?.id && it.subCategories.isNotEmpty() } != null) {
+                    Toaster.show("请选择子分类")
+                }else {
+                    selectedCategory?.let {
+                        onConfirm(selectedCategory, selectedSubCategory)
+                        onDismiss()
+                    }
                 }
             }
             LazyColumn(contentPadding = PaddingValues(bottom = 10.dp)) {

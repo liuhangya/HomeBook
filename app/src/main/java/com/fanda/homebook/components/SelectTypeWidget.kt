@@ -51,22 +51,32 @@ import com.fanda.homebook.R
                 )
                 Spacer(modifier = Modifier.weight(1f))
 
-                if (firstType.isNotEmpty() && secondType.isNotEmpty()) {
-                    Text(
-                        style = TextStyle.Default, text = firstType, color = colorResource(R.color.color_333333), fontSize = 16.sp
-                    )
-                    Image(
-                        painter = painterResource(R.mipmap.icon_right),
-                        contentDescription = null,
-                        modifier = Modifier.padding(horizontal = 7.dp),
-                        colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
-                    )
-                    Text(
-                        style = TextStyle.Default, text = secondType, color = colorResource(R.color.color_333333), fontSize = 16.sp
-                    )
-                    Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null, modifier = Modifier.padding(start = 9.dp))
-                } else {
+                if (firstType.isEmpty() && secondType.isEmpty()) {
                     Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null)
+
+
+                } else {
+                    if (firstType.isNotEmpty() && secondType.isNotEmpty()){
+                        Text(
+                            style = TextStyle.Default, text = firstType, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                        )
+                        Image(
+                            painter = painterResource(R.mipmap.icon_right),
+                            contentDescription = null,
+                            modifier = Modifier.padding(horizontal = 7.dp),
+                            colorFilter = ColorFilter.tint(colorResource(R.color.color_CFD5DE))
+                        )
+                        Text(
+                            style = TextStyle.Default, text = secondType, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                        )
+                        Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null, modifier = Modifier.padding(start = 9.dp))
+                    }else if (firstType.isNotEmpty() && secondType.isEmpty()){
+                        // 只有一级
+                        Text(
+                            style = TextStyle.Default, text = firstType, color = colorResource(R.color.color_333333), fontSize = 16.sp
+                        )
+                        Image(painter = painterResource(R.mipmap.icon_right), contentDescription = null, modifier = Modifier.padding(start = 9.dp))
+                    }
                 }
             }
         }

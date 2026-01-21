@@ -92,6 +92,8 @@ import kotlinx.coroutines.launch
     val category by addClosetViewModel.category.collectAsState()
     val subCategory by addClosetViewModel.subCategory.collectAsState()
 
+    LogUtils.d("category: $category")
+    LogUtils.d("subCategory: $subCategory")
     LogUtils.d("AddClosetPage: addClosetUiState: $addClosetUiState")
 
     // 获取焦点管理器
@@ -121,7 +123,9 @@ import kotlinx.coroutines.launch
                 rightText = "保存",
                 onRightActionClick = {
                     focusManager.clearFocus()
-                    addClosetViewModel.saveCloset(context)
+                    addClosetViewModel.saveClosetEntityDatabase(context){
+                        navController.navigateUp()
+                    }
                 },
                 backIconPainter = painterResource(R.mipmap.icon_back),
             )
