@@ -319,19 +319,22 @@ class WatchAndEditClosetViewModel(
         viewModelScope.launch {
             _addClosetUiState.update {
                 it.copy(
-                    closetEntity = it.closetEntity.copy(moveToTrash = !it.closetEntity.moveToTrash),
+                    closetEntity = it.closetEntity.copy(moveToTrash = move),
                 )
+            }
+            if (move){
+                updateEditState(false)
             }
             // 更新数据库
             updateClosetEntityDatabase()
         }
     }
 
-    fun updateEditState() {
+    fun updateEditState(state: Boolean) {
         viewModelScope.launch {
             _addClosetUiState.update {
                 it.copy(
-                    isEditState = true,
+                    isEditState = state,
                 )
             }
         }

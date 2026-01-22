@@ -128,9 +128,10 @@ import com.hjq.toast.Toaster
                     addClosetViewModel.updateClosetEntityDatabase {
                         focusManager.clearFocus()
                         navController.navigateUp()
+                        Toaster.show("编辑成功")
                     }
                 } else {
-                    addClosetViewModel.updateEditState()
+                    addClosetViewModel.updateEditState(true)
                 }
             },
             backIconPainter = painterResource(R.mipmap.icon_back),
