@@ -44,7 +44,7 @@ import com.fanda.homebook.tools.LogUtils
         })
     }) { padding ->
         ClosetCategoryGridWidget(data = groupedClosets, modifier = Modifier.padding(padding)) {
-            navController.navigate("${RoutePath.ClosetDetailCategory.route}?categoryId=-1&subCategoryId=${it.category.id}&categoryName=${it.category.name}")
+            navController.navigate("${RoutePath.ClosetDetailCategory.route}?categoryId=-1&subCategoryId=${it.category.id}&categoryName=${it.category.name}&moveToTrash=false")
         }
     }
 

@@ -90,7 +90,7 @@ import com.fanda.homebook.tools.LogUtils
     }
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopIconAppBar(
-            title = uiState.categoryName,
+            title =  if (uiState.moveToTrash) "垃圾桶" else uiState.categoryName,
             onBackClick = {
                 if (uiState.isEditState) {
                     closetViewModel.toggleEditState(false)

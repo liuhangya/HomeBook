@@ -101,7 +101,7 @@ data class AddClosetEntity(
 )
 
 data class ClosetGridItem(
-    val imageLocalPath: String, val category: CategoryEntity, val count: Int
+    val imageLocalPath: String, val category: CategoryEntity, val count: Int ,val moveToTrash: Boolean = false
 )
 
 data class ClosetSubCategoryGridItem(

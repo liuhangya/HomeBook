@@ -30,6 +30,7 @@ import com.fanda.homebook.data.size.SizeRepository
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
+import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.saveUriToFilesDir
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -65,12 +66,11 @@ class WatchAndEditClosetViewModel(
     // 公开只读对象，用于读取UI状态
     val addClosetUiState = _addClosetUiState.asStateFlow()
 
-
     init {
         viewModelScope.launch {
             seasons = seasonRepository.getSeasons()
             owners = ownerRepository.getItems()
-            val item = closetRepository.getClosetById(closetId)
+            val item = closetRepository.getClosetById(UserCache.ownerId,closetId)
             _addClosetUiState.update {
                 it.copy(closetEntity = item.closet)
             }

@@ -45,8 +45,47 @@ class HomeClosetViewModel(
         scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
     )
 
+    // 当 curSelectOwner 变化时，重新查询 moveToTrashClosets ， 用于显示垃圾桶的数据
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val moveToTrashClosets: StateFlow<List<AddClosetEntity>> =
+        curSelectOwner.flatMapLatest { owner ->
+            if (owner == null) {
+                flowOf(emptyList())
+            } else {
+                // 缓存起来全局使用
+                UserCache.ownerId = owner.id
+                closetRepository.getClosets(owner.id, moveToTrash = true).catch { e ->
+                    // 处理错误
+                    LogUtils.e("查询失败: ${e.message}")
+                    emit(emptyList())
+                }
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+            initialValue = emptyList()
+        )
+
+    // 垃圾桶转换的显示数据
+    val trashData: StateFlow<ClosetGridItem?> =
+        moveToTrashClosets.map { closetsList ->
+            closetsList.lastOrNull()?.let { lastEntity ->
+                ClosetGridItem(
+                    imageLocalPath = lastEntity.closet.imageLocalPath,
+                    category = lastEntity.category ?: CategoryEntity(name = "垃圾桶"),
+                    count = closetsList.size,
+                    moveToTrash = true
+                )
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+            initialValue = null
+        )
+
     // 当 curSelectOwner 变化时，重新查询 closets
-    @OptIn(ExperimentalCoroutinesApi::class) val closets: StateFlow<List<AddClosetEntity>> = curSelectOwner.flatMapLatest { owner ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val closets: StateFlow<List<AddClosetEntity>> = curSelectOwner.flatMapLatest { owner ->
         if (owner == null) {
             flowOf(emptyList())
         } else {
@@ -59,7 +98,9 @@ class HomeClosetViewModel(
             }
         }
     }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+        initialValue = emptyList()
     )
 
     // 分组后的衣橱数据
@@ -70,11 +111,15 @@ class HomeClosetViewModel(
         }.map { (categoryEntity, list) ->
             val lastEntity = list.last()
             ClosetGridItem(
-                imageLocalPath = lastEntity.closet.imageLocalPath, category = categoryEntity, count = list.size
+                imageLocalPath = lastEntity.closet.imageLocalPath,
+                category = categoryEntity,
+                count = list.size
             )
         }.sortedBy { it.category.sortOrder }
     }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+        initialValue = emptyList()
     )
 
     // 归属列表
@@ -106,7 +151,10 @@ class HomeClosetViewModel(
 
     fun hasClosetsWithSubcategory(categoryId: Int, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            val result = closetRepository.hasClosetsWithSubcategory(curSelectOwner.value?.id ?: -1, categoryId)
+            val result = closetRepository.hasClosetsWithSubcategory(
+                curSelectOwner.value?.id ?: -1,
+                categoryId
+            )
             onResult(result)
         }
     }

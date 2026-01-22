@@ -12,5 +12,6 @@ data class CategoryDetailClosetUiState(
     val subCategoryId: Int = -1,
     val categoryName: String = "",
     val isEditState: Boolean = false,
+    val moveToTrash: Boolean = false,
     val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE,
 )

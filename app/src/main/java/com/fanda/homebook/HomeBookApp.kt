@@ -70,7 +70,8 @@ import kotlinx.coroutines.launch
 /*
 * 应用入口
 * */
-@Composable fun HomeBookApp() {
+@Composable
+fun HomeBookApp() {
     val context = LocalContext.current
     val navController: NavHostController = rememberNavController()
     var lastBackPressed by remember { mutableLongStateOf(0L) }
@@ -104,15 +105,24 @@ import kotlinx.coroutines.launch
         }
     }
 
-    ModalNavigationDrawer(gesturesEnabled = drawerState.isOpen, drawerState = drawerState, drawerContent = {
-        ModalDrawerSheet(
-            windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerContainerColor = Color.Transparent, drawerShape = RoundedCornerShape(0.dp)
-        ) {
-            ModalDrawerSheet(windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerShape = RoundedCornerShape(0.dp), drawerContainerColor = Color.Transparent) {
-                drawerContent()
+    ModalNavigationDrawer(
+        gesturesEnabled = drawerState.isOpen,
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+                drawerContainerColor = Color.Transparent,
+                drawerShape = RoundedCornerShape(0.dp)
+            ) {
+                ModalDrawerSheet(
+                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+                    drawerShape = RoundedCornerShape(0.dp),
+                    drawerContainerColor = Color.Transparent
+                ) {
+                    drawerContent()
+                }
             }
-        }
-    }) {
+        }) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -123,31 +133,52 @@ import kotlinx.coroutines.launch
                     .fillMaxWidth()
             ) {
                 NavHost(
-                    navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.fillMaxSize()
+                    navController = navController,
+                    startDestination = RoutePath.BookGraph.route,
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     // ====== 账本 Tab 嵌套 Graph ======
-                    navigation(startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route) {
+                    navigation(
+                        startDestination = RoutePath.BookHome.route,
+                        route = RoutePath.BookGraph.route
+                    ) {
                         composable(RoutePath.BookHome.route) {
-                            BookHomePage(modifier = Modifier.fillMaxSize(), navController = navController, onShowDrawer = { content ->
-                                drawerContent = content
-                                scope.launch { drawerState.open() }
-                            }, onCloseDrawer = {
-                                scope.launch { drawerState.close() }
-                            })
+                            BookHomePage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController,
+                                onShowDrawer = { content ->
+                                    drawerContent = content
+                                    scope.launch { drawerState.open() }
+                                },
+                                onCloseDrawer = {
+                                    scope.launch { drawerState.close() }
+                                })
                         }
                         composable(RoutePath.DashBoar.route) {
-                            DashBoarPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            DashBoarPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                         composable(RoutePath.DashBoarRank.route) {
-                            DashBoarRankPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            DashBoarRankPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                         composable(RoutePath.DashBoarDetail.route) {
-                            DashBoarDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            DashBoarDetailPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                     }
 
                     // ====== 看板 Tab ======
-                    navigation(startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route) {
+                    navigation(
+                        startDestination = RoutePath.DashboardHome.route,
+                        route = RoutePath.DashboardGraph.route
+                    ) {
                         composable(RoutePath.DashboardHome.route) {
                             Text(
                                 "资产首页-没开发呢...", modifier = Modifier
@@ -158,93 +189,160 @@ import kotlinx.coroutines.launch
                     }
 
                     // ====== 衣橱 Tab ======
-                    navigation(startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route) {
+                    navigation(
+                        startDestination = RoutePath.ClosetHome.route,
+                        route = RoutePath.ClosetGraph.route
+                    ) {
                         composable(RoutePath.ClosetHome.route) {
-                            ClosetHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            ClosetHomePage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
-                        composable(route = "${RoutePath.AddCloset.route}?imagePath={imagePath}", arguments = listOf(navArgument("imagePath") {
-                            type = NavType.StringType
-                        })) {
-                            AddClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        composable(
+                            route = "${RoutePath.AddCloset.route}?imagePath={imagePath}",
+                            arguments = listOf(navArgument("imagePath") {
+                                type = NavType.StringType
+                            })
+                        ) {
+                            AddClosetPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                         composable(RoutePath.EditCategory.route) {
-                            EditCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            EditCategoryPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                         composable(RoutePath.EditColor.route) {
-                            EditColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            EditColorPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                         composable(RoutePath.AddColor.route) {
-                            AddColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
-                        }
-
-                        composable("${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}", arguments = listOf(navArgument("categoryEntity") {
-                            type = NavType.StringType
-                        })) {
-                            ClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            AddColorPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
 
                         composable(
-                            "${RoutePath.ClosetDetailCategory.route}?categoryId={categoryId}&subCategoryId={subCategoryId}&categoryName={categoryName}", arguments = listOf(navArgument("categoryId") {
+                            "${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}",
+                            arguments = listOf(navArgument("categoryEntity") {
+                                type = NavType.StringType
+                            })
+                        ) {
+                            ClosetCategoryPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
+                        }
+
+                        composable(
+                            "${RoutePath.ClosetDetailCategory.route}?categoryId={categoryId}&subCategoryId={subCategoryId}&categoryName={categoryName}&moveToTrash={moveToTrash}",
+                            arguments = listOf(navArgument("categoryId") {
                                 type = NavType.IntType
                             }, navArgument("subCategoryId") {
                                 type = NavType.IntType
                             }, navArgument("categoryName") {
                                 type = NavType.StringType
+                            }, navArgument("moveToTrash") {
+                                type = NavType.BoolType
                             })
                         ) {
-                            ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            ClosetCategoryDetailPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
 
-                        composable("${RoutePath.WatchAndEditCloset.route}?closetId={closetId}", arguments = listOf(navArgument("closetId") {
-                            type = NavType.IntType
-                        })) {
-                            WatchAndEditClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        composable(
+                            "${RoutePath.WatchAndEditCloset.route}?closetId={closetId}",
+                            arguments = listOf(navArgument("closetId") {
+                                type = NavType.IntType
+                            })
+                        ) {
+                            WatchAndEditClosetPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
 
 
                     }
 
                     // ====== 囤货 Tab ======
-                    navigation(startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route) {
+                    navigation(
+                        startDestination = RoutePath.StockHome.route,
+                        route = RoutePath.StockGraph.route
+                    ) {
                         composable(RoutePath.StockHome.route) {
-                            StockHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            StockHomePage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                         composable(RoutePath.AddStock.route) {
-                            AddStockPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                            AddStockPage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController
+                            )
                         }
                     }
 
                     // ====== 全局页面（不属于任何 Tab）======
                     composable(RoutePath.QuickAdd.route) {
-                        QuickHomePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        QuickHomePage(
+                            modifier = Modifier.fillMaxSize(),
+                            navController = navController
+                        )
                     }
 
                     composable(RoutePath.EditProduct.route) {
-                        EditProductPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        EditProductPage(
+                            modifier = Modifier.fillMaxSize(),
+                            navController = navController
+                        )
                     }
 
                     composable(RoutePath.EditSize.route) {
-                        EditSizePage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        EditSizePage(
+                            modifier = Modifier.fillMaxSize(),
+                            navController = navController
+                        )
                     }
-                    composable("${RoutePath.EditSubCategory.route}?categoryId={categoryId}", arguments = listOf(navArgument("categoryId") {
-                        type = NavType.IntType
-                    })) {
-                        EditSubCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                    composable(
+                        "${RoutePath.EditSubCategory.route}?categoryId={categoryId}",
+                        arguments = listOf(navArgument("categoryId") {
+                            type = NavType.IntType
+                        })
+                    ) {
+                        EditSubCategoryPage(
+                            modifier = Modifier.fillMaxSize(),
+                            navController = navController
+                        )
                     }
                 }
             }
 
             if (isTabRoute) {
                 // 确保在有手势导航的设备上留出安全区
-                CustomBottomBar(modifier = Modifier.navigationBarsPadding(), selectedTab = selectedTab, onTabClick = { tab ->
-                    navController.navigate(tab.route) {
-                        launchSingleTop = true
-                        restoreState = true
-                        popUpTo(navController.graph.id) { saveState = true }
-                    }
-                }, onQuickAddClick = {
-                    navController.navigate(RoutePath.QuickAdd.route)
-                })
+                CustomBottomBar(
+                    modifier = Modifier.navigationBarsPadding(),
+                    selectedTab = selectedTab,
+                    onTabClick = { tab ->
+                        navController.navigate(tab.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                            popUpTo(navController.graph.id) { saveState = true }
+                        }
+                    },
+                    onQuickAddClick = {
+                        navController.navigate(RoutePath.QuickAdd.route)
+                    })
             }
         }
     }
@@ -258,7 +356,8 @@ import kotlinx.coroutines.launch
  * @param navController 导航控制器
  * @param defaultTab 默认选中的 Tab（通常为首页）
  */
-@Composable private fun rememberSelectedTab(
+@Composable
+private fun rememberSelectedTab(
     navController: NavController, defaultTab: String = RoutePath.BookGraph.route
 ): Pair<String, Boolean> {
     val currentEntry by navController.currentBackStackEntryAsState()
@@ -271,12 +370,17 @@ import kotlinx.coroutines.launch
         selectedTab = routePrefix
     }
     isTabRoute = currentRoute in tabRootRoutes
-    Log.d("HomeBookApp", "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute")
+    Log.d(
+        "HomeBookApp",
+        "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute"
+    )
 
     return Pair(selectedTab, isTabRoute)
 }
 
-@Composable @Preview(showBackground = true) private fun HomeBookAppPreview() {
+@Composable
+@Preview(showBackground = true)
+private fun HomeBookAppPreview() {
     HomeBookTheme {
         HomeBookApp()
     }

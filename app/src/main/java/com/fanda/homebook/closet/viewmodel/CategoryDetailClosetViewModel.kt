@@ -35,12 +35,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CategoryDetailClosetViewModel(
-    savedStateHandle: SavedStateHandle, private val closetRepository: ClosetRepository, private val categoryRepository: CategoryRepository
+    savedStateHandle: SavedStateHandle,
+    private val closetRepository: ClosetRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val categoryId = savedStateHandle.get<Int>("categoryId") ?: -1
     private val subCategoryId = savedStateHandle.get<Int>("subCategoryId") ?: -1
     private val categoryName = savedStateHandle.get<String>("categoryName") ?: ""
+    private val moveToTrash = savedStateHandle.get<Boolean>("moveToTrash") ?: false
 
     // 私有可变对象，用于保存UI状态
     private val _uiState = MutableStateFlow(CategoryDetailClosetUiState())
@@ -51,21 +54,26 @@ class CategoryDetailClosetViewModel(
     init {
         _uiState.update {
             it.copy(
-                categoryId = categoryId, categoryName = categoryName, subCategoryId = subCategoryId
+                categoryId = categoryId, categoryName =  categoryName, subCategoryId = subCategoryId,
+                moveToTrash = moveToTrash
             )
         }
     }
 
     // 分类列表
-    val categories: StateFlow<List<CategoryWithSubCategories>> = categoryRepository.getAllItemsWithSub().stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
-    )
+    val categories: StateFlow<List<CategoryWithSubCategories>> =
+        categoryRepository.getAllItemsWithSub().stateIn(
+            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+        )
 
     // 原始数据流
-    @OptIn(ExperimentalCoroutinesApi::class) private val rawClosets = _uiState.map {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val rawClosets = _uiState.map {
         it.categoryId
     }.flatMapLatest { categoryId ->
-        if (categoryId == -1) {
+        if (_uiState.value.moveToTrash) {
+            closetRepository.getClosets(UserCache.ownerId, moveToTrash = true)
+        } else if (categoryId == -1) {
             closetRepository.getClosetsBySubCategory(
                 UserCache.ownerId, _uiState.value.subCategoryId
             )
@@ -94,7 +102,9 @@ class CategoryDetailClosetViewModel(
             item.copyWithSelected(selectedIds.contains(item.addClosetEntity.closet.id))
         }
     }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+        initialValue = emptyList()
     )
 
     // 获取选中项
@@ -103,12 +113,16 @@ class CategoryDetailClosetViewModel(
     ) { items, selectedIds ->
         items.filter { it.isSelected }.map { it.addClosetEntity }
     }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+        initialValue = emptyList()
     )
 
     // 选中项数量
     val selectedCount: StateFlow<Int> = _selectedIds.map { it.size }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = 0
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+        initialValue = 0
     )
 
     fun updateSheetType(type: ShowBottomSheetType) {
@@ -152,7 +166,12 @@ class CategoryDetailClosetViewModel(
     fun updateEntityDatabase(category: CategoryEntity?, subCategory: SubCategoryEntity?) {
         if (category != null) {
             viewModelScope.launch {
-                closetRepository.updateAll(selectedItems.value.map { it.closet.copy(categoryId = category.id, subCategoryId = subCategory?.id) })
+                closetRepository.updateAll(selectedItems.value.map {
+                    it.closet.copy(
+                        categoryId = category.id,
+                        subCategoryId = subCategory?.id
+                    )
+                })
                 Toaster.show("移动成功")
                 clearAllSelection()
             }

@@ -59,8 +59,12 @@ import com.fanda.homebook.tools.toJson
 *
 * 衣橱页面
 * */
-@OptIn(ExperimentalMaterial3Api::class) @Composable fun ClosetHomePage(
-    modifier: Modifier = Modifier, navController: NavController, closetViewModel: HomeClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClosetHomePage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    closetViewModel: HomeClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     var expandUserMenu by remember { mutableStateOf(false) }
     //  记录上次的返回时间
@@ -69,8 +73,10 @@ import com.fanda.homebook.tools.toJson
     val curSelectOwner by closetViewModel.curSelectOwner.collectAsState()
     val closetUiState by closetViewModel.addClosetUiState.collectAsState()
     val groupedClosets by closetViewModel.groupedClosets.collectAsState()
+    val trashData by closetViewModel.trashData.collectAsState()
 
     LogUtils.i("closets", groupedClosets)
+    LogUtils.i("groupedTrashClosets", trashData)
 
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
@@ -88,10 +94,11 @@ import com.fanda.homebook.tools.toJson
                         modifier = Modifier
                             .wrapContentWidth()
                             .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
-                        .align(Alignment.CenterStart)
+                            .align(Alignment.CenterStart)
                             .clickable(
                                 // 去掉默认的点击效果
-                                interactionSource = remember { MutableInteractionSource() }, indication = null
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
                             ) {
                                 val now = System.currentTimeMillis()
                                 if (now - lastBackPressed > 200 && !expandUserMenu) {
@@ -100,25 +107,39 @@ import com.fanda.homebook.tools.toJson
                             }
                             .padding(start = 0.dp, end = 30.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxHeight()
                         ) {
                             Text(
-                                text = curSelectOwner?.name ?: "", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                                text = curSelectOwner?.name ?: "",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp,
+                                color = Color.Black
                             )
                             Image(
-                                modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null
+                                modifier = Modifier.padding(start = 6.dp),
+                                painter = painterResource(id = R.mipmap.icon_arrow_down_black),
+                                contentDescription = null
                             )
                         }
-                        OwnerDropdownMenu(owner = curSelectOwner, data = closetViewModel.owners, expanded = expandUserMenu, dpOffset = DpOffset(0.dp, 50.dp), onDismiss = {
-                            lastBackPressed = System.currentTimeMillis()
-                            expandUserMenu = false
-                        }, onConfirm = {
-                            expandUserMenu = false
-                            closetViewModel.updateSelectedOwner(it)
-                        })
+                        OwnerDropdownMenu(
+                            owner = curSelectOwner,
+                            data = closetViewModel.owners,
+                            expanded = expandUserMenu,
+                            dpOffset = DpOffset(0.dp, 50.dp),
+                            onDismiss = {
+                                lastBackPressed = System.currentTimeMillis()
+                                expandUserMenu = false
+                            },
+                            onConfirm = {
+                                expandUserMenu = false
+                                closetViewModel.updateSelectedOwner(it)
+                            })
                     }
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterEnd)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center, modifier = Modifier
@@ -127,7 +148,10 @@ import com.fanda.homebook.tools.toJson
                                     closetViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
                                 }) {
                             Image(
-                                painter = painterResource(id = R.mipmap.icon_add_grady), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
+                                painter = painterResource(id = R.mipmap.icon_add_grady),
+                                contentDescription = "Action",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                         Box(
@@ -135,7 +159,10 @@ import com.fanda.homebook.tools.toJson
                                 .size(44.dp)
                                 .clickable { navController.navigate(RoutePath.EditCategory.route) }) {
                             Image(
-                                painter = painterResource(id = R.mipmap.icon_setting), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
+                                painter = painterResource(id = R.mipmap.icon_setting),
+                                contentDescription = "Action",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -145,7 +172,17 @@ import com.fanda.homebook.tools.toJson
             colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
         )
     }) { padding ->
-        ClosetHomeGridWidget(data = groupedClosets, modifier = Modifier.padding(padding)) {
+        ClosetHomeGridWidget(
+            data = groupedClosets,
+            trashData = trashData,
+            modifier = Modifier.padding(padding)
+        ) {
+            if (it.moveToTrash) {
+                // 垃圾桶数据，直接到详细列表页面，然后只查垃圾桶数据
+                // 没有子分类，跳转到详细列表页面
+                navController.navigate("${RoutePath.ClosetDetailCategory.route}?categoryId=${it.category.id}&subCategoryId=-1&categoryName=${it.category.name}&moveToTrash=true")
+                return@ClosetHomeGridWidget
+            }
             closetViewModel.hasClosetsWithSubcategory(it.category.id) { has ->
                 LogUtils.d("是否存在子分类： $has")
                 if (has) {
@@ -153,7 +190,7 @@ import com.fanda.homebook.tools.toJson
                     navController.navigate("${RoutePath.ClosetCategory.route}?categoryEntity=${it.category.toJson()}")
                 } else {
                     // 没有子分类，跳转到详细列表页面
-                    navController.navigate("${RoutePath.ClosetDetailCategory.route}?categoryId=${it.category.id}&subCategoryId=-1&categoryName=${it.category.name}")
+                    navController.navigate("${RoutePath.ClosetDetailCategory.route}?categoryId=${it.category.id}&subCategoryId=-1&categoryName=${it.category.name}&moveToTrash=false")
                 }
             }
         }
@@ -169,8 +206,15 @@ import com.fanda.homebook.tools.toJson
 
 }
 
-@Composable fun OwnerDropdownMenu(
-    owner: OwnerEntity?, data: List<OwnerEntity>, modifier: Modifier = Modifier, dpOffset: DpOffset, expanded: Boolean, onDismiss: (() -> Unit), onConfirm: (OwnerEntity) -> Unit
+@Composable
+fun OwnerDropdownMenu(
+    owner: OwnerEntity?,
+    data: List<OwnerEntity>,
+    modifier: Modifier = Modifier,
+    dpOffset: DpOffset,
+    expanded: Boolean,
+    onDismiss: (() -> Unit),
+    onConfirm: (OwnerEntity) -> Unit
 ) {
     CustomDropdownMenu(
         modifier = modifier, dpOffset = dpOffset, expanded = expanded, onDismissRequest = onDismiss
@@ -185,7 +229,9 @@ import com.fanda.homebook.tools.toJson
     }
 }
 
-@Composable @Preview(showBackground = true) fun ClosetHomePagePreview() {
+@Composable
+@Preview(showBackground = true)
+fun ClosetHomePagePreview() {
     ClosetHomePage(
         modifier = Modifier
             .fillMaxWidth()
