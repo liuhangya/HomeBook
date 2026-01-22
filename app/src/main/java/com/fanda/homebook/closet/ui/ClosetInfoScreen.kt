@@ -34,6 +34,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     date: String = "",
     syncBook: Boolean,
     price: String = "",
+    isEditState: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
     onBottomCommentChange: (String) -> Unit,
     onPriceChange: (String) -> Unit,
@@ -57,6 +58,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     title = "同步至当日账单",
                     showSwitch = true,
                     showRightArrow = false,
+                    isEditState = isEditState,
                     showDivider = true,
                     checked = syncBook,
                     removeIndication = true,
@@ -69,7 +71,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     },
                 )
                 ItemOptionMenu(
-                    title = "价格", showTextField = true, showRightArrow = false, removeIndication = true, inputText = price.ifEmpty {
+                    title = "价格", showTextField = true,isEditState = isEditState, showRightArrow = false, removeIndication = true, inputText = price.ifEmpty {
                         ""
                     }, showDivider = true, showInputTextUnit = true, keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done
@@ -98,6 +100,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.PRODUCT, onClick) })
                 ItemOptionMenu(title = "尺码", showText = true, rightText = size, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.SIZE, onClick) })
                 EditCommentsWidget(
+                    isEditState = isEditState,
                     inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange
                 )
             }

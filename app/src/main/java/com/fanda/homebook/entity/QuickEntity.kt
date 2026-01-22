@@ -13,19 +13,6 @@ enum class TransactionType {
 data class TransactionCategory(val name: String, @DrawableRes val icon: Int, val type: TransactionType)
 
 enum class ShowBottomSheetType {
-    PAY_WAY,
-    PRODUCT,
-    STOCK_PRODUCT,
-    GOODS_RACK,
-    STOCK_CATEGORY,
-    PERIOD ,
-    CATEGORY,
-    COLOR,
-    SEASON,
-    SIZE,
-    OWNER,
-    BUY_DATE,
-    SELECT_IMAGE,
-    NONE,
+    PAY_WAY, PRODUCT, STOCK_PRODUCT, GOODS_RACK, STOCK_CATEGORY, PERIOD, CATEGORY, COLOR, SEASON, SIZE, OWNER, BUY_DATE, SELECT_IMAGE, DELETE, COPY, MOVE, ALL_SELECTED, NONE,
 
 }

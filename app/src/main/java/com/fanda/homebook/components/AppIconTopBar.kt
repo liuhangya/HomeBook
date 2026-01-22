@@ -33,7 +33,7 @@ import com.fanda.homebook.R
 @Composable fun TopIconAppBar(
     title: String, modifier: Modifier = Modifier, showBackButton: Boolean = true, backIconPainter: Painter = painterResource(id = R.mipmap.icon_back), onBackClick: (() -> Unit)? = null,
 
-    rightText: String? = null, rightIconPainter: Painter? = null, rightNextIconPainter: Painter? = null, onRightActionClick: (() -> Unit)? = null, onRightNextActionClick: (() -> Unit)? = null,
+    rightText: String? = null, rightIconPainter: Painter? = null, rightNextIconPainter: Painter? = null, onRightActionClick: ((isTextButton: Boolean) -> Unit)? = null, onRightNextActionClick: (() -> Unit)? = null,
     // 样式
     titleStyle: TextStyle = TextStyle.Default.copy(
         fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.Medium
@@ -73,7 +73,7 @@ import com.fanda.homebook.R
                 Box(contentAlignment = Alignment.Center, modifier = Modifier
                     .size(44.dp)
                     .then(if (onRightActionClick != null) {
-                        Modifier.clickable { onRightActionClick() }
+                        Modifier.clickable { onRightActionClick(false) }
                     } else Modifier)) {
                     Image(
                         painter = rightIconPainter, contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
@@ -92,7 +92,7 @@ import com.fanda.homebook.R
                 }
             }
             if (!rightText.isNullOrBlank()) {
-                TextButton(onClick = { onRightActionClick?.invoke() }) {
+                TextButton(onClick = { onRightActionClick?.invoke(true) }) {
                     Text(
                         text = rightText, style = TextStyle.Default.copy(
                             fontSize = 16.sp, color = colorResource(id = R.color.color_333333)

@@ -22,46 +22,32 @@ import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 
 
-@Composable
-fun EditCommentsWidget(
-    modifier: Modifier = Modifier, inputText: String = "", onValueChange: (String) -> Unit
+@Composable fun EditCommentsWidget(
+    modifier: Modifier = Modifier, isEditState: Boolean = true, inputText: String = "", onValueChange: (String) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.Center, modifier = modifier
     ) {
         Text(
-            style = TextStyle.Default,
-            text = "备注",
-            color = Color.Black,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp
+            style = TextStyle.Default, text = "备注", color = Color.Black, fontWeight = FontWeight.Medium, fontSize = 16.sp
         )
         BasicTextField(
-            value = inputText,
-            onValueChange = { newText ->
+            enabled = isEditState,
+            value = inputText, onValueChange = { newText ->
                 // 否则忽略非法输入
                 onValueChange(newText)
-            },
-            singleLine = true,
-            modifier = Modifier
+            }, singleLine = true, modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 20.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(
+                .padding(top = 8.dp, bottom = 20.dp), keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
-            ),
-            textStyle = TextStyle.Default.copy(
-                color = colorResource(R.color.color_333333),
-                fontSize = 14.sp,
-                textAlign = TextAlign.Start
-            ),
-            decorationBox = { innerTextField ->
+            ), textStyle = TextStyle.Default.copy(
+                color = colorResource(R.color.color_333333), fontSize = 14.sp, textAlign = TextAlign.Start
+            ), decorationBox = { innerTextField ->
                 Box() {
                     // 占位文本
                     if (inputText.isEmpty()) {
                         Text(
-                            text = "请输入备注信息",
-                            color = colorResource(R.color.color_83878C),
-                            fontSize = 14.sp
+                            text = "请输入备注信息", color = colorResource(R.color.color_83878C), fontSize = 14.sp
                         )
                     }
                     // 输入框内容

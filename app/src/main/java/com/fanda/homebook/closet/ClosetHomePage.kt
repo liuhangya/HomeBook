@@ -1,6 +1,5 @@
 package com.fanda.homebook.closet
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,30 +41,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
-import com.fanda.homebook.closet.ui.ClosetGridWidget
 import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.closet.ui.ClosetHomeGridWidget
-import com.fanda.homebook.closet.ui.UserDropdownMenu
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
+import com.fanda.homebook.closet.viewmodel.HomeClosetViewModel
 import com.fanda.homebook.components.CustomDropdownMenu
 import com.fanda.homebook.components.MenuItem
 import com.fanda.homebook.data.AppViewModelProvider
-import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.owner.OwnerEntity
-import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
+import com.fanda.homebook.tools.UserCache
+import com.fanda.homebook.tools.toJson
 
 /*
 *
 * 衣橱页面
 * */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ClosetHomePage(
-    modifier: Modifier = Modifier, navController: NavController,
-    closetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+@OptIn(ExperimentalMaterial3Api::class) @Composable fun ClosetHomePage(
+    modifier: Modifier = Modifier, navController: NavController, closetViewModel: HomeClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     var expandUserMenu by remember { mutableStateOf(false) }
     //  记录上次的返回时间
@@ -75,7 +70,8 @@ fun ClosetHomePage(
     val closetUiState by closetViewModel.addClosetUiState.collectAsState()
     val groupedClosets by closetViewModel.groupedClosets.collectAsState()
 
-    LogUtils.i("closets",groupedClosets)
+    LogUtils.i("closets", groupedClosets)
+
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopAppBar(
@@ -92,11 +88,10 @@ fun ClosetHomePage(
                         modifier = Modifier
                             .wrapContentWidth()
                             .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
-                            .align(Alignment.CenterStart)
+                        .align(Alignment.CenterStart)
                             .clickable(
                                 // 去掉默认的点击效果
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
+                                interactionSource = remember { MutableInteractionSource() }, indication = null
                             ) {
                                 val now = System.currentTimeMillis()
                                 if (now - lastBackPressed > 200 && !expandUserMenu) {
@@ -105,39 +100,25 @@ fun ClosetHomePage(
                             }
                             .padding(start = 0.dp, end = 30.dp)) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxHeight()
+                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                         ) {
                             Text(
-                                text = curSelectOwner?.name ?: "",
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 18.sp,
-                                color = Color.Black
+                                text = curSelectOwner?.name ?: "", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
                             )
                             Image(
-                                modifier = Modifier.padding(start = 6.dp),
-                                painter = painterResource(id = R.mipmap.icon_arrow_down_black),
-                                contentDescription = null
+                                modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null
                             )
                         }
-                        OwnerDropdownMenu(
-                            owner = curSelectOwner,
-                            data = closetViewModel.owners,
-                            expanded = expandUserMenu,
-                            dpOffset = DpOffset(0.dp, 50.dp),
-                            onDismiss = {
-                                lastBackPressed = System.currentTimeMillis()
-                                expandUserMenu = false
-                            },
-                            onConfirm = {
-                                expandUserMenu = false
-                                closetViewModel.updateSelectedOwner(it)
-                            })
+                        OwnerDropdownMenu(owner = curSelectOwner, data = closetViewModel.owners, expanded = expandUserMenu, dpOffset = DpOffset(0.dp, 50.dp), onDismiss = {
+                            lastBackPressed = System.currentTimeMillis()
+                            expandUserMenu = false
+                        }, onConfirm = {
+                            expandUserMenu = false
+                            closetViewModel.updateSelectedOwner(it)
+                        })
                     }
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.align(Alignment.CenterEnd)
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center, modifier = Modifier
@@ -146,10 +127,7 @@ fun ClosetHomePage(
                                     closetViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
                                 }) {
                             Image(
-                                painter = painterResource(id = R.mipmap.icon_add_grady),
-                                contentDescription = "Action",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(24.dp)
+                                painter = painterResource(id = R.mipmap.icon_add_grady), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
                             )
                         }
                         Box(
@@ -157,10 +135,7 @@ fun ClosetHomePage(
                                 .size(44.dp)
                                 .clickable { navController.navigate(RoutePath.EditCategory.route) }) {
                             Image(
-                                painter = painterResource(id = R.mipmap.icon_setting),
-                                contentDescription = "Action",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(24.dp)
+                                painter = painterResource(id = R.mipmap.icon_setting), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -171,13 +146,21 @@ fun ClosetHomePage(
         )
     }) { padding ->
         ClosetHomeGridWidget(data = groupedClosets, modifier = Modifier.padding(padding)) {
-            navController.navigate(RoutePath.ClosetDetailCategory.route)
+            closetViewModel.hasClosetsWithSubcategory(it.category.id) { has ->
+                LogUtils.d("是否存在子分类： $has")
+                if (has) {
+                    // 有子分类，跳转到子分类分组页面
+                    navController.navigate("${RoutePath.ClosetCategory.route}?categoryEntity=${it.category.toJson()}")
+                } else {
+                    // 没有子分类，跳转到详细列表页面
+                    navController.navigate("${RoutePath.ClosetDetailCategory.route}?categoryId=${it.category.id}&subCategoryId=-1&categoryName=${it.category.name}")
+                }
+            }
         }
     }
 
     SelectPhotoBottomSheet(
-        visible = closetUiState.sheetType == ShowBottomSheetType.SELECT_IMAGE,
-        onDismiss = {
+        visible = closetUiState.sheetType == ShowBottomSheetType.SELECT_IMAGE, onDismiss = {
             closetViewModel.dismissBottomSheet()
         }) {
         closetViewModel.dismissBottomSheet()
@@ -186,21 +169,11 @@ fun ClosetHomePage(
 
 }
 
-@Composable
-fun OwnerDropdownMenu(
-    owner: OwnerEntity?,
-    data: List<OwnerEntity>,
-    modifier: Modifier = Modifier,
-    dpOffset: DpOffset,
-    expanded: Boolean,
-    onDismiss: (() -> Unit),
-    onConfirm: (OwnerEntity) -> Unit
+@Composable fun OwnerDropdownMenu(
+    owner: OwnerEntity?, data: List<OwnerEntity>, modifier: Modifier = Modifier, dpOffset: DpOffset, expanded: Boolean, onDismiss: (() -> Unit), onConfirm: (OwnerEntity) -> Unit
 ) {
     CustomDropdownMenu(
-        modifier = modifier,
-        dpOffset = dpOffset,
-        expanded = expanded,
-        onDismissRequest = onDismiss
+        modifier = modifier, dpOffset = dpOffset, expanded = expanded, onDismissRequest = onDismiss
     ) {
         Column {
             data.forEach {
@@ -212,9 +185,7 @@ fun OwnerDropdownMenu(
     }
 }
 
-@Composable
-@Preview(showBackground = true)
-fun ClosetHomePagePreview() {
+@Composable @Preview(showBackground = true) fun ClosetHomePagePreview() {
     ClosetHomePage(
         modifier = Modifier
             .fillMaxWidth()

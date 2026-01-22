@@ -43,100 +43,76 @@ data class AddClosetEntity(
 
     @Relation(
         parentColumn = "categoryId", entityColumn = "id"
-    ) val category: CategoryEntity?,
-    @Relation(
+    ) val category: CategoryEntity?, @Relation(
         parentColumn = "subCategoryId", entityColumn = "id"
     ) val subCategory: SubCategoryEntity?
 )
 
 @Entity(
-    tableName = "closet",
-    foreignKeys = [
+    tableName = "closet", foreignKeys = [
         // 关联颜色类型表
         ForeignKey(
-            entity = ColorTypeEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["colorTypeId"],
-            onDelete = ForeignKey.SET_NULL
+            entity = ColorTypeEntity::class, parentColumns = ["id"], childColumns = ["colorTypeId"], onDelete = ForeignKey.SET_NULL
         ),
         // 关联季节表
         ForeignKey(
-            entity = SeasonEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["seasonId"],
-            onDelete = ForeignKey.SET_NULL
+            entity = SeasonEntity::class, parentColumns = ["id"], childColumns = ["seasonId"], onDelete = ForeignKey.SET_NULL
         ),
         // 关联产品表
         ForeignKey(
-            entity = ProductEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["productId"],
-            onDelete = ForeignKey.SET_NULL
+            entity = ProductEntity::class, parentColumns = ["id"], childColumns = ["productId"], onDelete = ForeignKey.SET_NULL
         ),
         // 关联尺码表
         ForeignKey(
-            entity = SizeEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["sizeId"],
-            onDelete = ForeignKey.SET_NULL
+            entity = SizeEntity::class, parentColumns = ["id"], childColumns = ["sizeId"], onDelete = ForeignKey.SET_NULL
         ),
         // 关联用户表
         ForeignKey(
-            entity = OwnerEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["ownerId"],
-            onDelete = ForeignKey.CASCADE
+            entity = OwnerEntity::class, parentColumns = ["id"], childColumns = ["ownerId"], onDelete = ForeignKey.CASCADE
         ),
         // 关联分类表
         ForeignKey(
-            entity = CategoryEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["categoryId"],
-            onDelete = ForeignKey.SET_NULL
+            entity = CategoryEntity::class, parentColumns = ["id"], childColumns = ["categoryId"], onDelete = ForeignKey.SET_NULL
         ),
         // 关联子分类表
         ForeignKey(
-            entity = SubCategoryEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["subCategoryId"],
-            onDelete = ForeignKey.SET_NULL
-        )
-    ],
-    indices = [
+            entity = SubCategoryEntity::class, parentColumns = ["id"], childColumns = ["subCategoryId"], onDelete = ForeignKey.SET_NULL
+        )], indices = [
         // 为所有外键字段创建索引
-        Index(value = ["colorTypeId"]),
-        Index(value = ["seasonId"]),
-        Index(value = ["productId"]),
-        Index(value = ["sizeId"]),
-        Index(value = ["ownerId"]),
-        Index(value = ["categoryId"]),
-        Index(value = ["subCategoryId"]),
+        Index(value = ["colorTypeId"]), Index(value = ["seasonId"]), Index(value = ["productId"]), Index(value = ["sizeId"]), Index(value = ["ownerId"]), Index(value = ["categoryId"]), Index(value = ["subCategoryId"]),
         // 复合索引用于常用查询
-        Index(value = ["ownerId", "categoryId"]),
-        Index(value = ["ownerId", "seasonId", "categoryId"])
-    ]
-)
-data class ClosetEntity(
+        Index(value = ["ownerId", "categoryId"]), Index(value = ["ownerId", "seasonId", "categoryId"])]
+) data class ClosetEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val colorTypeId: Int = -1,
-    val seasonId: Int = -1,
-    val productId: Int = -1,
-    val sizeId: Int = -1,
-    val ownerId: Int = -1,
+    val colorTypeId: Int = 0,
+    val seasonId: Int = 0,
+    val productId: Int = 0,
+    val sizeId: Int = 0,
+    val ownerId: Int = 0,
     val date: Long = System.currentTimeMillis(),
     val imageLocalPath: String = "",
     val comment: String = "",
     val syncBook: Boolean = false,
-    val wearCount: Int = 0,
+    val wearCount: Int = 1,
     val price: String = "",
-    val categoryId: Int = -1,
-    val subCategoryId: Int = -1
+    val categoryId: Int = 0,
+    val subCategoryId: Int? = null,
+    val moveToTrash: Boolean = false
 )
 
 data class ClosetGridItem(
-    val imageLocalPath: String,
-    val category: CategoryEntity,
-    val count: Int
+    val imageLocalPath: String, val category: CategoryEntity, val count: Int
 )
+
+data class ClosetSubCategoryGridItem(
+    val imageLocalPath: String, val category: SubCategoryEntity, val count: Int
+)
+
+data class ClosetDetailGridItem(val addClosetEntity: AddClosetEntity, var isSelected: Boolean = false) {
+    // 提供一个复制方法，方便更新选中状态
+    fun copyWithSelected(newSelected: Boolean): ClosetDetailGridItem {
+        return this.copy(isSelected = newSelected)
+    }
+}
 
 

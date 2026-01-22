@@ -1,5 +1,10 @@
 package com.fanda.homebook.closet
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -18,17 +23,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -46,36 +44,29 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
 import com.fanda.homebook.closet.ui.ClosetInfoScreen
-import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
+import com.fanda.homebook.closet.viewmodel.WatchAndEditClosetViewModel
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.AppViewModelProvider
-import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.owner.OwnerEntity
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.CategoryBottomSheet
-import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
 import com.fanda.homebook.quick.sheet.GridBottomSheet
 import com.fanda.homebook.quick.sheet.ListBottomSheet
-import com.fanda.homebook.quick.sheet.SelectedCategory
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
-import kotlinx.coroutines.launch
+import com.hjq.toast.Toaster
 
-
-/*
-* 添加衣橱页面
-* */
-@Composable fun AddClosetPage(
-    modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+@Composable fun WatchAndEditClosetPage(
+    modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: WatchAndEditClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     // 通过 ViewModel 状态管理进行数据绑定
     val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
@@ -99,26 +90,52 @@ import kotlinx.coroutines.launch
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
 
-    val context = LocalContext.current
-
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
-    Scaffold(modifier = modifier.statusBarsPadding()
-        , topBar = {
-            TopIconAppBar(
-                title = "单品信息",
-                onBackClick = {
-                    navController.navigateUp()
-                },
-                rightText = "保存",
-                onRightActionClick = {
-                    focusManager.clearFocus()
-                    addClosetViewModel.saveClosetEntityDatabase(context){
+    Scaffold(modifier = modifier.statusBarsPadding(), floatingActionButton = {
+        AnimatedVisibility(
+            visible = !addClosetUiState.isEditState , enter = fadeIn() + scaleIn(), exit = fadeOut() + scaleOut()
+        ) {
+            FloatingActionButton(
+                containerColor = Color.Black, contentColor = Color.White, onClick = {
+                    if (addClosetUiState.closetEntity.moveToTrash){
+                        addClosetViewModel.toggleMoveToTrash(false)
+                        Toaster.show("从垃圾桶恢复啦")
+                    }else{
+                        addClosetViewModel.toggleMoveToTrash(true)
+                        Toaster.show("移动到垃圾桶啦")
+                    }
+
+                }, modifier = Modifier.padding(5.dp)
+            ) {
+                Text(text = if (addClosetUiState.closetEntity.moveToTrash) "恢复" else "不穿了")
+            }
+        }
+    }, topBar = {
+        TopIconAppBar(
+            title = "单品信息",
+            onBackClick = {
+                navController.navigateUp()
+            },
+            rightText = if (addClosetUiState.closetEntity.moveToTrash) {
+                ""
+            } else if (addClosetUiState.isEditState) {
+                "保存"
+            } else {
+                "编辑"
+            },
+            onRightActionClick = {
+                if (addClosetUiState.isEditState) {
+                    addClosetViewModel.updateClosetEntityDatabase {
+                        focusManager.clearFocus()
                         navController.navigateUp()
                     }
-                },
-                backIconPainter = painterResource(R.mipmap.icon_back),
-            )
-        }) { padding ->
+                } else {
+                    addClosetViewModel.updateEditState()
+                }
+            },
+            backIconPainter = painterResource(R.mipmap.icon_back),
+        )
+    }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
         Box(modifier = Modifier
@@ -142,7 +159,7 @@ import kotlinx.coroutines.launch
                 ) {
                     AsyncImage(
                         contentScale = ContentScale.Crop,
-                        model = addClosetUiState.imageUri,
+                        model = addClosetUiState.closetEntity.imageLocalPath,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -164,6 +181,11 @@ import kotlinx.coroutines.launch
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
+                    WearCountAndCost(addClosetUiState.closetEntity.price, addClosetUiState.closetEntity.wearCount) {
+                        focusManager.clearFocus()
+                        addClosetViewModel.plusClosetWearCount()
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                     ClosetInfoScreen(
                         bottomComment = addClosetUiState.closetEntity.comment,
                         closetCategory = category?.name ?: "",
@@ -174,6 +196,7 @@ import kotlinx.coroutines.launch
                         date = convertMillisToDate(addClosetUiState.closetEntity.date, "yyyy-MM-dd"),
                         syncBook = addClosetUiState.closetEntity.syncBook,
                         size = size?.name ?: "",
+                        isEditState = addClosetUiState.isEditState,
                         price = addClosetUiState.closetEntity.price,
                         onCheckedChange = {
                             addClosetViewModel.updateClosetSyncBook(it)
@@ -284,9 +307,41 @@ import kotlinx.coroutines.launch
 
 }
 
+@Composable fun WearCountAndCost(
+    price: String, wearCount: Int, modifier: Modifier = Modifier, onPlusClick: (() -> Unit)
+) {
+    val itemPadding = Modifier.padding(
+        20.dp, 20.dp, 20.dp, 20.dp
+    )
+    val showPrice = if (price.isEmpty()) {
+        ""
+    } else {
+        "${String.format("%.1f", price.toFloat() / wearCount)}元/次"
+    }
+    GradientRoundedBoxWithStroke(modifier = modifier) {
+        Column {
+            ItemOptionMenu(
+                title = "穿着次数：${wearCount}次",
+                showText = true,
+                showRightArrow = false,
+                rightText = "",
+                showPlus = true,
+                showDivider = true,
+                modifier = itemPadding,
+                onPlusClick = onPlusClick,
+                removeIndication = true
+            )
 
-@Composable @Preview(showBackground = true) fun AddClosetPagePreview() {
+            ItemOptionMenu(
+                title = "穿着成本", showText = true, rightText = showPrice, showDivider = false, showRightArrow = false, modifier = itemPadding, removeIndication = true
+            )
+        }
+    }
+}
+
+
+@Composable @Preview(showBackground = true) fun WatchAndEditClosetPagePreview() {
     HomeBookTheme {
-        AddClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
+        WatchAndEditClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }
 }

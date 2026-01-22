@@ -45,4 +45,10 @@ dependencies {
     api(libs.chat)
     api(libs.coil.compose)
     api(libs.toaster)
+    // 工具类
+    api 'com.github.DylanCaiCoding.Longan:longan:1.1.1'
+    // 缓存
+    api 'com.github.DylanCaiCoding:MMKV-KTX:2.0.1'
+
+    api 'com.google.code.gson:gson:2.13.2'
 }

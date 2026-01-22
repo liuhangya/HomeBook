@@ -9,6 +9,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fanda.homebook.closet.state.AddClosetUiState
+import com.fanda.homebook.closet.state.WatchAndEditClosetUiState
 import com.fanda.homebook.data.category.CategoryEntity
 import com.fanda.homebook.data.category.CategoryRepository
 import com.fanda.homebook.data.category.CategoryWithSubCategories
@@ -45,7 +46,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class AddClosetViewModel(
+class WatchAndEditClosetViewModel(
     savedStateHandle: SavedStateHandle,
     private val colorTypeRepository: ColorTypeRepository,
     private val closetRepository: ClosetRepository,
@@ -56,13 +57,25 @@ class AddClosetViewModel(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
-    private val imageUri: String = savedStateHandle["imagePath"] ?: ""
+    private val closetId: Int = savedStateHandle["closetId"] ?: -1
 
     // 私有可变对象，用于保存UI状态
-    private val _addClosetUiState = MutableStateFlow(AddClosetUiState())
+    private val _addClosetUiState = MutableStateFlow(WatchAndEditClosetUiState())
 
     // 公开只读对象，用于读取UI状态
     val addClosetUiState = _addClosetUiState.asStateFlow()
+
+
+    init {
+        viewModelScope.launch {
+            seasons = seasonRepository.getSeasons()
+            owners = ownerRepository.getItems()
+            val item = closetRepository.getClosetById(closetId)
+            _addClosetUiState.update {
+                it.copy(closetEntity = item.closet)
+            }
+        }
+    }
 
     // 当前选中的颜色
     @OptIn(ExperimentalCoroutinesApi::class) val colorType: StateFlow<ColorTypeEntity?> = _addClosetUiState.map { it.closetEntity.colorTypeId }.distinctUntilChanged()              // 避免重复 ID 触发
@@ -148,14 +161,6 @@ class AddClosetViewModel(
     var owners by mutableStateOf(emptyList<OwnerEntity>())
         private set
 
-    init {
-        viewModelScope.launch {
-            _addClosetUiState.update { it.copy(imageUri = imageUri.toUri()) }
-            seasons = seasonRepository.getSeasons()
-            owners = ownerRepository.getItems()
-        }
-    }
-
     fun updateClosetColor(colorType: ColorTypeEntity?) {
         colorType?.let {
             _addClosetUiState.update {
@@ -228,6 +233,10 @@ class AddClosetViewModel(
                 closetEntity = it.closetEntity.copy(wearCount = it.closetEntity.wearCount + 1)
             )
         }
+        // 实时更新数据库
+        viewModelScope.launch {
+            updateClosetEntityDatabase()
+        }
     }
 
     fun updateClosetSyncBook(syncBook: Boolean) {
@@ -247,7 +256,10 @@ class AddClosetViewModel(
     }
 
     fun updateSheetType(type: ShowBottomSheetType) {
-        _addClosetUiState.update { it.copy(sheetType = type) }
+        // 编辑状态才允许切换
+        if (addClosetUiState.value.isEditState) {
+            _addClosetUiState.update { it.copy(sheetType = type) }
+        }
     }
 
     fun showBottomSheet(type: ShowBottomSheetType) = _addClosetUiState.value.sheetType == type
@@ -256,7 +268,7 @@ class AddClosetViewModel(
         _addClosetUiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
     }
 
-    fun saveClosetEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
+    fun updateClosetEntityDatabase(onResult: (Boolean) -> Unit = {}) {
         val entity = addClosetUiState.value.closetEntity
         if (entity.ownerId == 0) {
             Toaster.show("请选择归属")
@@ -276,14 +288,8 @@ class AddClosetViewModel(
             Toaster.show("请输入备注")
         } else {
             viewModelScope.launch {
-                val imageFile = saveUriToFilesDir(context, addClosetUiState.value.imageUri!!)
-                if (imageFile != null) {
-                    closetRepository.insert(entity.copy(imageLocalPath = imageFile.absolutePath))
-                    Toaster.show("保存成功")
-                    onResult(true)
-                } else {
-                    Toaster.show("保存失败")
-                }
+                closetRepository.update(entity)
+                onResult(true)
             }
         }
 
@@ -306,6 +312,28 @@ class AddClosetViewModel(
             it.copy(
                 closetEntity = it.closetEntity.copy(subCategoryId = subCategoryEntity?.id)
             )
+        }
+    }
+
+    fun toggleMoveToTrash(move: Boolean) {
+        viewModelScope.launch {
+            _addClosetUiState.update {
+                it.copy(
+                    closetEntity = it.closetEntity.copy(moveToTrash = !it.closetEntity.moveToTrash),
+                )
+            }
+            // 更新数据库
+            updateClosetEntityDatabase()
+        }
+    }
+
+    fun updateEditState() {
+        viewModelScope.launch {
+            _addClosetUiState.update {
+                it.copy(
+                    isEditState = true,
+                )
+            }
         }
     }
 

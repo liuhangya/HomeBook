@@ -53,6 +53,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     modifier: Modifier = Modifier,
     rightText: String = "",
     inputText: String = "",
+    isEditState: Boolean = true,
     showSwitch: Boolean = false,
     showText: Boolean = false,
     showPlus: Boolean = false,
@@ -100,7 +101,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 Spacer(modifier = Modifier.weight(1f))
                 if (showSwitch) {
                     Switch(
-                        modifier = Modifier.scale(0.8f), checked = checked, onCheckedChange = {
+                        modifier = Modifier.scale(0.8f),enabled = isEditState,  checked = checked, onCheckedChange = {
                             onCheckedChange?.invoke(it)
                         }, colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
@@ -126,7 +127,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 }
 
                 if (showTextField) {
-                    BasicTextField(value = inputText, onValueChange = { newText ->
+                    BasicTextField(enabled = isEditState, value = inputText, onValueChange = { newText ->
                         // 否则忽略非法输入
                         onValueChange?.invoke(newText)
                     }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = keyboardOptions, textStyle = TextStyle.Default.copy(

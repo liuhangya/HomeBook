@@ -12,7 +12,7 @@ enum class ClosetCategoryBottomMenuType {
     ALL_SELECTED, MOVE, COPY, DELETE,
 }
 
-data class CategoryBottomMenuEntity(val name: String, @DrawableRes val icon: Int, val type: ClosetCategoryBottomMenuType)
+data class CategoryBottomMenuEntity(val name: String, @DrawableRes val icon: Int, val type: ShowBottomSheetType)
 
 
 

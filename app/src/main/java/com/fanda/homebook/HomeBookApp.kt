@@ -47,9 +47,11 @@ import com.fanda.homebook.book.DashBoarRankPage
 import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
+import com.fanda.homebook.closet.ClosetCategoryPage
 import com.fanda.homebook.closet.ClosetHomePage
 import com.fanda.homebook.closet.EditCategoryPage
 import com.fanda.homebook.closet.EditSubCategoryPage
+import com.fanda.homebook.closet.WatchAndEditClosetPage
 import com.fanda.homebook.common.EditColorPage
 import com.fanda.homebook.common.EditProductPage
 import com.fanda.homebook.common.EditSizePage
@@ -61,6 +63,7 @@ import com.fanda.homebook.route.tabRootRoutes
 import com.fanda.homebook.stock.AddStockPage
 import com.fanda.homebook.stock.StockHomePage
 import com.fanda.homebook.ui.theme.HomeBookTheme
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.launch
 
 
@@ -96,7 +99,7 @@ import kotlinx.coroutines.launch
                 (context as? Activity)?.finishAffinity()
             } else {
                 lastBackPressed = now
-                Toast.makeText(context, "再按一次退出应用", Toast.LENGTH_SHORT).show()
+                Toaster.show("再按一次退出应用")
             }
         }
     }
@@ -173,9 +176,32 @@ import kotlinx.coroutines.launch
                         composable(RoutePath.AddColor.route) {
                             AddColorPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
-                        composable(RoutePath.ClosetDetailCategory.route) {
+
+                        composable("${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}", arguments = listOf(navArgument("categoryEntity") {
+                            type = NavType.StringType
+                        })) {
+                            ClosetCategoryPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+
+                        composable(
+                            "${RoutePath.ClosetDetailCategory.route}?categoryId={categoryId}&subCategoryId={subCategoryId}&categoryName={categoryName}", arguments = listOf(navArgument("categoryId") {
+                                type = NavType.IntType
+                            }, navArgument("subCategoryId") {
+                                type = NavType.IntType
+                            }, navArgument("categoryName") {
+                                type = NavType.StringType
+                            })
+                        ) {
                             ClosetCategoryDetailPage(modifier = Modifier.fillMaxSize(), navController = navController)
                         }
+
+                        composable("${RoutePath.WatchAndEditCloset.route}?closetId={closetId}", arguments = listOf(navArgument("closetId") {
+                            type = NavType.IntType
+                        })) {
+                            WatchAndEditClosetPage(modifier = Modifier.fillMaxSize(), navController = navController)
+                        }
+
+
                     }
 
                     // ====== 囤货 Tab ======

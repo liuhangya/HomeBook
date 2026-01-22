@@ -9,6 +9,7 @@ import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.entity.DailyAmountEntity
 import com.fanda.homebook.entity.DailyItemEntity
 import com.fanda.homebook.entity.DashBoarItemEntity
+import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.entity.StateMenuEntity
 import com.fanda.homebook.entity.StockGridEntity
 import com.fanda.homebook.entity.StockState
@@ -237,10 +238,10 @@ object LocalDataSource {
     }
 
     val closetCategoryBottomMenuList = listOf(
-        CategoryBottomMenuEntity("全选", R.mipmap.icon_bottom_all_select, ClosetCategoryBottomMenuType.ALL_SELECTED),
-        CategoryBottomMenuEntity("复制", R.mipmap.icon_bottom_copy, ClosetCategoryBottomMenuType.COPY),
-        CategoryBottomMenuEntity("移动", R.mipmap.icon_bottom_move, ClosetCategoryBottomMenuType.MOVE),
-        CategoryBottomMenuEntity("删除", R.mipmap.icon_bottom_delete, ClosetCategoryBottomMenuType.DELETE)
+        CategoryBottomMenuEntity("全选", R.mipmap.icon_bottom_all_select, ShowBottomSheetType.ALL_SELECTED),
+        CategoryBottomMenuEntity("复制", R.mipmap.icon_bottom_copy, ShowBottomSheetType.COPY),
+        CategoryBottomMenuEntity("移动", R.mipmap.icon_bottom_move, ShowBottomSheetType.MOVE),
+        CategoryBottomMenuEntity("删除", R.mipmap.icon_bottom_delete, ShowBottomSheetType.DELETE)
 
     )
 

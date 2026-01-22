@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,96 +43,150 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
+import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
+import com.fanda.homebook.closet.viewmodel.CategoryClosetViewModel
+import com.fanda.homebook.closet.viewmodel.CategoryDetailClosetViewModel
 import com.fanda.homebook.components.ConfirmDialog
 import com.fanda.homebook.components.TopIconAppBar
+import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.data.closet.AddClosetEntity
+import com.fanda.homebook.data.closet.ClosetDetailGridItem
 import com.fanda.homebook.entity.CategoryBottomMenuEntity
 import com.fanda.homebook.entity.ClosetCategoryBottomMenuType
 import com.fanda.homebook.entity.ClosetGridEntity
+import com.fanda.homebook.entity.ShowBottomSheetType
+import com.fanda.homebook.quick.sheet.CategoryBottomSheet
+import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.tools.LogUtils
 
 /*
 *
 * 衣橱详情页面
 * */
-@Composable fun ClosetCategoryDetailPage(modifier: Modifier = Modifier, navController: NavController) {
-    var isEditState by remember { mutableStateOf(false) }
-    var showCopyDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var category by remember { mutableStateOf(ClosetGridEntity("", 0, "")) }
+@Composable fun ClosetCategoryDetailPage(
+    modifier: Modifier = Modifier, navController: NavController, closetViewModel: CategoryDetailClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
+
+    val uiState by closetViewModel.uiState.collectAsState()
+    val closets by closetViewModel.closets.collectAsState()
+    val selectedItems by closetViewModel.selectedItems.collectAsState()
+    val categories by closetViewModel.categories.collectAsState()
+
+    LogUtils.i("衣橱详细对象: $uiState")
+    LogUtils.i("衣橱详细列表: $closets")
 
     BackHandler {
-        if (isEditState) {
-            isEditState = false
+        if (uiState.isEditState) {
+            closetViewModel.toggleEditState(false)
         } else {
             navController.navigateUp()
         }
     }
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
-        TopIconAppBar(title = "上装",
+        TopIconAppBar(
+            title = uiState.categoryName,
             onBackClick = {
-                if (isEditState) {
-                    isEditState = false
+                if (uiState.isEditState) {
+                    closetViewModel.toggleEditState(false)
                 } else {
                     navController.navigateUp()
                 }
             },
-            rightIconPainter = if (isEditState) null else painterResource(R.mipmap.icon_add_grady),
-            rightNextIconPainter = if (isEditState) null else painterResource(R.mipmap.icon_edit_menu),
-            rightText = if (isEditState) "取消" else "",
-            onRightActionClick = {
-                isEditState = false
+            rightIconPainter = if (uiState.isEditState) null else painterResource(R.mipmap.icon_add_grady),
+            rightNextIconPainter = if (uiState.isEditState) null else painterResource(R.mipmap.icon_edit_menu),
+            rightText = if (uiState.isEditState) "取消" else "",
+            onRightActionClick = { isTextButton ->
+                if (isTextButton) {
+                    closetViewModel.toggleEditState(false)
+                    closetViewModel.clearAllSelection()
+                } else {
+                    closetViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
+                }
             },
             onRightNextActionClick = {
-                isEditState = true
+                closetViewModel.toggleEditState(true)
             })
     }, bottomBar = {
-        EditCategoryBottomBar(visible = isEditState, onItemClick = {
+        EditCategoryBottomBar(visible = uiState.isEditState, onItemClick = {
             when (it.type) {
-                ClosetCategoryBottomMenuType.COPY -> {
-                    showCopyDialog = true
+                ShowBottomSheetType.COPY -> {
+                    closetViewModel.updateSheetType(ShowBottomSheetType.COPY)
                 }
 
-                ClosetCategoryBottomMenuType.DELETE -> {
-                    showDeleteDialog = true
+                ShowBottomSheetType.DELETE -> {
+                    closetViewModel.updateSheetType(ShowBottomSheetType.DELETE)
                 }
 
-                ClosetCategoryBottomMenuType.MOVE -> {
-                    Log.d("EditClosetCategoryPage", "点击了移动")
+                ShowBottomSheetType.MOVE -> {
+                    closetViewModel.updateSheetType(ShowBottomSheetType.CATEGORY)
                 }
 
-                ClosetCategoryBottomMenuType.ALL_SELECTED -> {}
+                ShowBottomSheetType.ALL_SELECTED -> {
+                    closetViewModel.updateAllSelection()
+                }
+
+                else -> {}
             }
         })
     }) { padding ->
-        ClosetDetailGridWidget(Modifier.padding(padding), onItemClick = {
-            category = it
-        }, isEditState = isEditState)
+        ClosetDetailGridWidget(data = closets, Modifier.padding(padding), onItemClick = {
+            if (uiState.isEditState) {
+                closetViewModel.toggleSelection(it.addClosetEntity.closet.id)
+            } else {
+                // 跳转到详细页面 
+                navController.navigate("${RoutePath.WatchAndEditCloset.route}?closetId=${it.addClosetEntity.closet.id}")
+            }
+
+        }, isEditState = uiState.isEditState)
     }
 
-    if (showCopyDialog) {
+    if (closetViewModel.showBottomSheet(ShowBottomSheetType.COPY)) {
         ConfirmDialog(title = "复制单品到当前分类？", onDismissRequest = {
-            showCopyDialog = false
+            closetViewModel.dismissBottomSheet()
         }, onConfirm = {
-            showCopyDialog = false
-            Log.d("EditClosetCategoryPage", "点击了确定")
+            closetViewModel.dismissBottomSheet()
+            closetViewModel.copyEntityDatabase()
         })
     }
-    if (showDeleteDialog) {
+    if (closetViewModel.showBottomSheet(ShowBottomSheetType.DELETE)) {
         ConfirmDialog(title = "是否确认删除？", onDismissRequest = {
-            showDeleteDialog = false
+            closetViewModel.dismissBottomSheet()
         }, onConfirm = {
-            showDeleteDialog = false
-            Log.d("EditClosetCategoryPage", "点击了确定")
+            closetViewModel.dismissBottomSheet()
+            closetViewModel.deleteEntityDatabase()
         })
     }
+
+    SelectPhotoBottomSheet(
+        visible = uiState.sheetType == ShowBottomSheetType.SELECT_IMAGE, onDismiss = {
+            closetViewModel.dismissBottomSheet()
+        }) {
+        closetViewModel.dismissBottomSheet()
+        navController.navigate("${RoutePath.AddCloset.route}?imagePath=${it}")
+    }
+
+    CategoryBottomSheet(
+        categories = categories,
+        categoryEntity = selectedItems.firstOrNull()?.category,
+        subCategoryEntity = selectedItems.firstOrNull()?.subCategory,
+        visible = { uiState.sheetType == ShowBottomSheetType.CATEGORY },
+        onDismiss = {
+            closetViewModel.dismissBottomSheet()
+        },
+        onConfirm = { category, subCategory ->
+            LogUtils.i("选中的分类： $category, $subCategory")
+            closetViewModel.updateEntityDatabase(category, subCategory)
+        })
 
 }
 
-@Composable fun ClosetDetailGridWidget(modifier: Modifier = Modifier, onItemClick: (ClosetGridEntity) -> Unit, isEditState: Boolean = false) {
+@Composable fun ClosetDetailGridWidget(data: List<ClosetDetailGridItem> = emptyList(), modifier: Modifier = Modifier, onItemClick: (ClosetDetailGridItem) -> Unit, isEditState: Boolean = false) {
     LazyVerticalGrid(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
         columns = GridCells.Fixed(3),
@@ -139,27 +194,31 @@ import com.fanda.homebook.entity.ClosetGridEntity
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(LocalDataSource.closetDetailGridList) {
+        items(data) {
             ClosetDetailGridItem(item = it, onItemClick, isEditState)
         }
     }
 }
 
 
-@Composable fun ClosetDetailGridItem(item: ClosetGridEntity, onItemClick: (ClosetGridEntity) -> Unit, isEditState: Boolean = false) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(
-        // 去掉默认的点击效果
-        interactionSource = remember { MutableInteractionSource() }, indication = null
-    ) {
-        onItemClick(item)
-    }) {
+@Composable fun ClosetDetailGridItem(item: ClosetDetailGridItem, onItemClick: (ClosetDetailGridItem) -> Unit, isEditState: Boolean = false) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(
+            // 去掉默认的点击效果
+            interactionSource = remember { MutableInteractionSource() }, indication = null
+        ) {
+            onItemClick(item)
+        }) {
         Box(
             modifier = Modifier
                 .border(1.dp, Color.White, shape = RoundedCornerShape(8.dp))
                 .background(Color.White.copy(alpha = 0.4f), shape = RoundedCornerShape(12.dp))
         ) {
             AsyncImage(
-                contentScale = ContentScale.Crop, model = R.mipmap.bg_closet_dufault, contentDescription = null, modifier = Modifier
+                contentScale = ContentScale.Crop,
+                model = item.addClosetEntity.closet.imageLocalPath,
+                contentDescription = null,
+                modifier = Modifier
                     .height(100.dp)
                     .width(96.dp)
                     .clip(RoundedCornerShape(8.dp))
