@@ -86,18 +86,18 @@ data class AddClosetEntity(
         Index(value = ["ownerId", "categoryId"]), Index(value = ["ownerId", "seasonId", "categoryId"])]
 ) data class ClosetEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val colorTypeId: Int = 0,
-    val seasonId: Int = 0,
+    val colorTypeId: Int? = null,
+    val seasonId: Int? = null,
     val productId: Int? = null,
-    val sizeId: Int = 0,
+    val sizeId: Int? = null,
     val ownerId: Int = 0,
-    val date: Long = System.currentTimeMillis(),
+    val date: Long = -1L,
     val imageLocalPath: String = "",
     val comment: String = "",
     val syncBook: Boolean = false,
     val wearCount: Int = 1,
     val price: String = "",
-    val categoryId: Int = 0,
+    val categoryId: Int? = null,
     val subCategoryId: Int? = null,
     val moveToTrash: Boolean = false
 )

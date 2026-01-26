@@ -12,6 +12,7 @@ interface ClosetRepository {
     suspend fun deleteAll(closet: List<ClosetEntity>): Int
     suspend fun updateAll(closet: List<ClosetEntity>): Int
     fun getClosets(ownerId: Int, moveToTrash: Boolean = false): Flow<List<AddClosetEntity>>
+    fun getNoCategoryClosets(ownerId: Int): Flow<List<AddClosetEntity>>
     fun getClosetsByCategory(
         ownerId: Int,
         categoryId: Int,
@@ -44,6 +45,8 @@ class LocalClosetRepository(private val closetDao: ClosetDao) : ClosetRepository
 
     override fun getClosets(ownerId: Int, moveToTrash: Boolean): Flow<List<AddClosetEntity>> =
         closetDao.getClosets(ownerId, moveToTrash)
+
+    override fun getNoCategoryClosets(ownerId: Int): Flow<List<AddClosetEntity>> = closetDao.getNoCategoryClosets(ownerId)
 
     override fun getClosetsByCategory(
         ownerId: Int,

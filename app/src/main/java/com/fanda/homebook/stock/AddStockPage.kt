@@ -1,6 +1,7 @@
 package com.fanda.homebook.stock
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
+import com.fanda.homebook.book.sheet.MonthBottomSheet
+import com.fanda.homebook.book.sheet.YearMonthBottomSheet
+import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
@@ -125,6 +129,9 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                             .padding(horizontal = 20.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color.White)
+                            .clickable {
+                                stockViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
+                            }
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -159,9 +166,10 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         subCategory = subCategory?.name ?: "",
                         product = product?.name ?: "",
                         usagePeriod = period?.name ?: "",
+                        shelfMonth = uiState.stockEntity.shelfMonth,
                         date = convertMillisToDate(uiState.stockEntity.buyDate, "yyyy-MM-dd"),
-                        openDate = if (uiState.stockEntity.openDate == -1L) "" else convertMillisToDate(uiState.stockEntity.openDate, "yyyy-MM-dd"),
-                        expireDate = if (uiState.stockEntity.expireDate == -1L) "" else convertMillisToDate(uiState.stockEntity.expireDate, "yyyy-MM-dd"),
+                        openDate =  convertMillisToDate(uiState.stockEntity.openDate, "yyyy-MM-dd"),
+                        expireDate = convertMillisToDate(uiState.stockEntity.expireDate, "yyyy-MM-dd"),
                         syncBook = uiState.stockEntity.syncBook,
                         price = uiState.stockEntity.price,
                         onCheckedChange = {
@@ -251,6 +259,23 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
         }, onDismiss = {
             stockViewModel.dismissBottomSheet()
         })
+    }
+
+    MonthBottomSheet( month = uiState.stockEntity.shelfMonth, visible =  stockViewModel.showBottomSheet(ShowBottomSheetType.SHELF_MONTH), onDismiss = {
+        stockViewModel.dismissBottomSheet()
+    }) {  month ->
+        stockViewModel.dismissBottomSheet()
+        stockViewModel.updateShelfMonth(month)
+        LogUtils.d("选中的月: $month")
+    }
+
+    SelectPhotoBottomSheet(
+        visible = stockViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE),
+        onDismiss = {
+            stockViewModel.dismissBottomSheet()
+        }) {
+        stockViewModel.dismissBottomSheet()
+        stockViewModel.updateImageUrl(it)
     }
 
 }

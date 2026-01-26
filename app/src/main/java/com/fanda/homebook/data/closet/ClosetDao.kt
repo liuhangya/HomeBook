@@ -43,6 +43,10 @@ interface ClosetDao {
     fun getClosets(ownerId: Int, moveToTrash: Boolean = false): Flow<List<AddClosetEntity>>
 
     @Transaction
+    @Query("SELECT * FROM closet WHERE ownerId = :ownerId AND categoryId IS NULL AND subCategoryId IS NULL")
+    fun getNoCategoryClosets(ownerId: Int): Flow<List<AddClosetEntity>>
+
+    @Transaction
     @Query("SELECT * FROM closet WHERE ownerId = :ownerId AND categoryId = :categoryId AND moveToTrash = :moveToTrash")
     fun getClosetsByCategory(ownerId: Int, categoryId: Int, moveToTrash: Boolean = false): Flow<List<AddClosetEntity>>
 

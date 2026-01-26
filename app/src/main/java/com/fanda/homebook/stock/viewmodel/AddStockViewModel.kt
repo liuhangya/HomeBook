@@ -1,6 +1,7 @@
 package com.fanda.homebook.stock.viewmodel
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -77,44 +78,55 @@ class AddStockViewModel(
     }
 
     // 当前选中的货架的子分类列表
-    @OptIn(ExperimentalCoroutinesApi::class) val rackSubCategoryList: StateFlow<List<RackSubCategoryEntity>> = _uiState.map { it.stockEntity.rackId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            rackRepository.getAllSubItemsById(id)
-        }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val rackSubCategoryList: StateFlow<List<RackSubCategoryEntity>> =
+        _uiState.map { it.stockEntity.rackId }.distinctUntilChanged()              // 避免重复 ID 触发
+            .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+                rackRepository.getAllSubItemsById(id)
+            }.stateIn(
+                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+            )
 
     // 当前选中的货架
-    @OptIn(ExperimentalCoroutinesApi::class) val rackEntity: StateFlow<RackEntity?> = _uiState.map { it.stockEntity.rackId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            rackRepository.getItemById(id)
-        }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val rackEntity: StateFlow<RackEntity?> =
+        _uiState.map { it.stockEntity.rackId }.distinctUntilChanged()              // 避免重复 ID 触发
+            .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+                rackRepository.getItemById(id)
+            }.stateIn(
+                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            )
 
     // 当前选中的货架子分类
-    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<RackSubCategoryEntity?> = _uiState.map { it.stockEntity.subCategoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            rackRepository.getSubItemById(id)
-        }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val subCategory: StateFlow<RackSubCategoryEntity?> =
+        _uiState.map { it.stockEntity.subCategoryId }
+            .distinctUntilChanged()              // 避免重复 ID 触发
+            .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+                rackRepository.getSubItemById(id)
+            }.stateIn(
+                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            )
 
     // 当前选中的产品
-    @OptIn(ExperimentalCoroutinesApi::class) val product: StateFlow<ProductEntity?> = _uiState.map { it.stockEntity.productId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            productRepository.getItemById(id)
-        }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val product: StateFlow<ProductEntity?> =
+        _uiState.map { it.stockEntity.productId }.distinctUntilChanged()              // 避免重复 ID 触发
+            .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+                productRepository.getItemById(id)
+            }.stateIn(
+                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            )
 
     // 当前选中的时段
-    @OptIn(ExperimentalCoroutinesApi::class) val period: StateFlow<PeriodEntity?> = _uiState.map { it.stockEntity.periodId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            periodRepository.getTypeById(id)
-        }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val period: StateFlow<PeriodEntity?> =
+        _uiState.map { it.stockEntity.periodId }.distinctUntilChanged()              // 避免重复 ID 触发
+            .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+                periodRepository.getTypeById(id)
+            }.stateIn(
+                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            )
 
 
     fun updateSheetType(type: ShowBottomSheetType) {
@@ -223,6 +235,18 @@ class AddStockViewModel(
                 )
             }
         }
+    }
+
+    fun updateShelfMonth(month: Int) {
+        _uiState.update {
+            it.copy(
+                stockEntity = it.stockEntity.copy(shelfMonth = month)
+            )
+        }
+    }
+
+    fun updateImageUrl(imageUri: Uri) {
+        _uiState.update { it.copy(imageUri = imageUri) }
     }
 
     fun saveStockEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {

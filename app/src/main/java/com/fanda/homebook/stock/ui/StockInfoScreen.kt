@@ -22,7 +22,8 @@ import com.fanda.homebook.tools.isValidDecimalInput
 import com.fanda.homebook.ui.theme.HomeBookTheme
 
 
-@Composable fun StockInfoScreen(
+@Composable
+fun StockInfoScreen(
     bottomComment: String,
     modifier: Modifier = Modifier,
     subCategory: String = "",
@@ -32,6 +33,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     openDate: String = "",
     expireDate: String = "",
     syncBook: Boolean,
+    shelfMonth: Int = 0,
     price: String = "",
     isEditState: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
@@ -45,11 +47,12 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     )
 
     // 包装原始点击事件，先关闭键盘
-    val wrapClick: (ShowBottomSheetType, (ShowBottomSheetType) -> Unit) -> Unit = { type, original ->
-        focusManager.clearFocus()
-        original(type)
+    val wrapClick: (ShowBottomSheetType, (ShowBottomSheetType) -> Unit) -> Unit =
+        { type, original ->
+            focusManager.clearFocus()
+            original(type)
 
-    }
+        }
     Column {
         GradientRoundedBoxWithStroke(modifier = modifier) {
             Column {
@@ -70,41 +73,102 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                     },
                 )
                 ItemOptionMenu(
-                    title = "价格", showTextField = true,isEditState = isEditState, showRightArrow = false, removeIndication = true, inputText = price.ifEmpty {
+                    title = "价格",
+                    showTextField = true,
+                    isEditState = isEditState,
+                    showRightArrow = false,
+                    removeIndication = true,
+                    inputText = price.ifEmpty {
                         ""
-                    }, showDivider = true, showInputTextUnit = true, keyboardOptions = KeyboardOptions.Default.copy(
+                    },
+                    showDivider = true,
+                    showInputTextUnit = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done
-                    ), modifier = itemPadding, onValueChange = { newText ->
+                    ),
+                    modifier = itemPadding,
+                    onValueChange = { newText ->
                         // 🔒 限制只能输入数字和一个小数点
                         if (isValidDecimalInput(newText)) {
                             onPriceChange(newText)
                         }
                         // 否则忽略非法输入
                     })
-                ItemOptionMenu(title = "购入时间", showText = true, rightText = date, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.BUY_DATE, onClick) })
+                ItemOptionMenu(
+                    title = "购入时间",
+                    showText = true,
+                    rightText = date,
+                    showDivider = true,
+                    modifier = itemPadding,
+                    onClick = { wrapClick(ShowBottomSheetType.BUY_DATE, onClick) })
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
         GradientRoundedBoxWithStroke(modifier = modifier) {
             Column {
-                ItemOptionMenu(title = "品牌", showText = true, rightText = product, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.PRODUCT, onClick) })
-                ItemOptionMenu(title = "类别", showText = true, rightText = subCategory, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.CATEGORY, onClick) })
-                ItemOptionMenu(title = "使用时段", showText = true, rightText = usagePeriod, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.USAGE_PERIOD, onClick) })
-                ItemOptionMenu(title = "开封日期", showText = true, rightText = openDate, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.OPEN_DATE, onClick) })
-               // todo 暂时不知道怎么显示
-                ItemOptionMenu(title = "开封后保鲜期", showText = true, rightText = "", showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.SIZE, onClick) })
-                ItemOptionMenu(title = "过期日期", showText = true, rightText = expireDate, showDivider = true, modifier = itemPadding, onClick = { wrapClick(ShowBottomSheetType.EXPIRE_DATE, onClick) })
+                ItemOptionMenu(
+                    title = "品牌",
+                    showText = true,
+                    rightText = product,
+                    showDivider = true,
+                    modifier = itemPadding,
+                    onClick = { wrapClick(ShowBottomSheetType.PRODUCT, onClick) })
+                ItemOptionMenu(
+                    title = "类别",
+                    showText = true,
+                    rightText = subCategory,
+                    showDivider = true,
+                    modifier = itemPadding,
+                    onClick = { wrapClick(ShowBottomSheetType.CATEGORY, onClick) })
+                ItemOptionMenu(
+                    title = "使用时段",
+                    showText = true,
+                    rightText = usagePeriod,
+                    showDivider = true,
+                    modifier = itemPadding,
+                    onClick = { wrapClick(ShowBottomSheetType.USAGE_PERIOD, onClick) })
+                ItemOptionMenu(
+                    title = "开封日期",
+                    showText = true,
+                    rightText = openDate,
+                    showDivider = true,
+                    modifier = itemPadding,
+                    onClick = { wrapClick(ShowBottomSheetType.OPEN_DATE, onClick) })
+                ItemOptionMenu(
+                    title = "开封后保鲜期",
+                    showText = true,
+                    rightText = if (shelfMonth > 0) "${shelfMonth}个月" else "",
+                    showDivider = true,
+                    modifier = itemPadding,
+                    onClick = { wrapClick(ShowBottomSheetType.SHELF_MONTH, onClick) })
+                ItemOptionMenu(
+                    title = "过期日期",
+                    showText = true,
+                    rightText = expireDate,
+                    showDivider = true,
+                    modifier = itemPadding,
+                    onClick = { wrapClick(ShowBottomSheetType.EXPIRE_DATE, onClick) })
                 EditCommentsWidget(
                     isEditState = isEditState,
-                    inputText = bottomComment, modifier = itemPadding, onValueChange = onBottomCommentChange
+                    inputText = bottomComment,
+                    modifier = itemPadding,
+                    onValueChange = onBottomCommentChange
                 )
             }
         }
     }
 }
 
-@Composable @Preview(showBackground = true) fun StockInfoScreenPreview() {
+@Composable
+@Preview(showBackground = true)
+fun StockInfoScreenPreview() {
     HomeBookTheme {
-        StockInfoScreen(syncBook = true, bottomComment = "", onCheckedChange = {}, onBottomCommentChange = {}, onClick = {}, onPriceChange = {})
+        StockInfoScreen(
+            syncBook = true,
+            bottomComment = "",
+            onCheckedChange = {},
+            onBottomCommentChange = {},
+            onClick = {},
+            onPriceChange = {})
     }
 }

@@ -183,6 +183,7 @@ fun ClosetHomePage(
                 navController.navigate("${RoutePath.ClosetDetailCategory.route}?categoryId=${it.category.id}&subCategoryId=-1&categoryName=${it.category.name}&moveToTrash=true")
                 return@ClosetHomeGridWidget
             }
+            LogUtils.d("点击了： ${it.category}")
             closetViewModel.hasClosetsWithSubcategory(it.category.id) { has ->
                 LogUtils.d("是否存在子分类： $has")
                 if (has) {

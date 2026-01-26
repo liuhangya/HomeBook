@@ -1,6 +1,7 @@
 package com.fanda.homebook.closet
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
+import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.closet.ui.ClosetInfoScreen
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
@@ -74,8 +76,11 @@ import kotlinx.coroutines.launch
 /*
 * 添加衣橱页面
 * */
-@Composable fun AddClosetPage(
-    modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+@Composable
+fun AddClosetPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     // 通过 ViewModel 状态管理进行数据绑定
     val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
@@ -102,31 +107,34 @@ import kotlinx.coroutines.launch
     val context = LocalContext.current
 
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
-    Scaffold(modifier = modifier.statusBarsPadding()
-        , topBar = {
-            TopIconAppBar(
-                title = "单品信息",
-                onBackClick = {
+    Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
+        TopIconAppBar(
+            title = "单品信息",
+            onBackClick = {
+                navController.navigateUp()
+            },
+            rightText = "保存",
+            onRightActionClick = {
+                focusManager.clearFocus()
+                addClosetViewModel.saveClosetEntityDatabase(context) {
                     navController.navigateUp()
-                },
-                rightText = "保存",
-                onRightActionClick = {
-                    focusManager.clearFocus()
-                    addClosetViewModel.saveClosetEntityDatabase(context){
-                        navController.navigateUp()
-                    }
-                },
-                backIconPainter = painterResource(R.mipmap.icon_back),
-            )
-        }) { padding ->
+                }
+            },
+            backIconPainter = painterResource(R.mipmap.icon_back),
+        )
+    }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
-            }
-            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+                    detectTapGestures(
+                        onTap = { focusManager.clearFocus() },
+                        onDoubleTap = { focusManager.clearFocus() },
+                        onLongPress = { focusManager.clearFocus() })
+                }
+                .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
             // 为了让 padding 内容能滑动，所以用 Column 包起来
             Column(
@@ -150,12 +158,18 @@ import kotlinx.coroutines.launch
                             .padding(horizontal = 20.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color.White)
+                            .clickable {
+                                addClosetViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
+                            }
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
-                            title = "归属", rightText = owner?.name ?: "", showText = true, modifier = Modifier
+                            title = "归属",
+                            rightText = owner?.name ?: "",
+                            showText = true,
+                            modifier = Modifier
                                 .height(64.dp)
                                 .padding(start = 20.dp, end = 20.dp)
                         ) {
@@ -171,7 +185,10 @@ import kotlinx.coroutines.launch
                         product = product?.name ?: "",
                         color = colorType?.color ?: -1,
                         season = season?.name ?: "",
-                        date = convertMillisToDate(addClosetUiState.closetEntity.date, "yyyy-MM-dd"),
+                        date = convertMillisToDate(
+                            addClosetUiState.closetEntity.date,
+                            "yyyy-MM-dd"
+                        ),
                         syncBook = addClosetUiState.closetEntity.syncBook,
                         size = size?.name ?: "",
                         price = addClosetUiState.closetEntity.price,
@@ -255,14 +272,20 @@ import kotlinx.coroutines.launch
     }
 
 
-    ColorTypeBottomSheet(color = colorType, colorList = colorTypes, visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) }, onDismiss = {
-        addClosetViewModel.dismissBottomSheet()
-    }, onConfirm = {
-        addClosetViewModel.updateClosetColor(it)
-    }, onSettingClick = {
-        addClosetViewModel.dismissBottomSheet()
-        navController.navigate(RoutePath.EditColor.route)
-    })
+    ColorTypeBottomSheet(
+        color = colorType,
+        colorList = colorTypes,
+        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) },
+        onDismiss = {
+            addClosetViewModel.dismissBottomSheet()
+        },
+        onConfirm = {
+            addClosetViewModel.updateClosetColor(it)
+        },
+        onSettingClick = {
+            addClosetViewModel.dismissBottomSheet()
+            navController.navigate(RoutePath.EditColor.route)
+        })
 
     CategoryBottomSheet(
         categories = categories,
@@ -281,11 +304,20 @@ import kotlinx.coroutines.launch
             addClosetViewModel.updateSelectedCategory(category, subCategory)
         })
 
-
+    SelectPhotoBottomSheet(
+        visible = addClosetViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE),
+        onDismiss = {
+            addClosetViewModel.dismissBottomSheet()
+        }) {
+        addClosetViewModel.dismissBottomSheet()
+        addClosetViewModel.updateImageUrl(it)
+    }
 }
 
 
-@Composable @Preview(showBackground = true) fun AddClosetPagePreview() {
+@Composable
+@Preview(showBackground = true)
+fun AddClosetPagePreview() {
     HomeBookTheme {
         AddClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }

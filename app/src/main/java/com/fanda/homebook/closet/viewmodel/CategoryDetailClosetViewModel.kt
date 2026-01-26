@@ -73,7 +73,9 @@ class CategoryDetailClosetViewModel(
     }.flatMapLatest { categoryId ->
         if (_uiState.value.moveToTrash) {
             closetRepository.getClosets(UserCache.ownerId, moveToTrash = true)
-        } else if (categoryId == -1) {
+        }else if (categoryId <=0 && subCategoryId <= 0) {
+            closetRepository.getNoCategoryClosets(UserCache.ownerId)
+        }else if (categoryId == -1) {
             closetRepository.getClosetsBySubCategory(
                 UserCache.ownerId, _uiState.value.subCategoryId
             )

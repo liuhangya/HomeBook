@@ -212,7 +212,7 @@ import java.io.File
             )
             Box(modifier = Modifier.padding(24.dp)) {
                 SelectableRoundedButton(
-                    text = "取消", selected = false, onClick = onDismiss, cornerSize = 27.dp, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(vertical = 16.dp), fontSize = 16.sp
+                    text = "取消", selected = false, onClick = onDismiss, cornerSize = 27.dp, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(vertical = 16.dp), fontSize = 16.sp, interaction = true
                 )
             }
         }

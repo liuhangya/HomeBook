@@ -1,6 +1,7 @@
 package com.fanda.homebook.closet.viewmodel
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -65,23 +66,30 @@ class AddClosetViewModel(
     val addClosetUiState = _addClosetUiState.asStateFlow()
 
     // 当前选中的颜色
-    @OptIn(ExperimentalCoroutinesApi::class) val colorType: StateFlow<ColorTypeEntity?> = _addClosetUiState.map { it.closetEntity.colorTypeId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（id）变化，就取消之前的 getItemById 流，启动新的
-            colorTypeRepository.getItemById(id)
-        }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val colorType: StateFlow<ColorTypeEntity?> =
+        _addClosetUiState.map { it.closetEntity.colorTypeId }
+            .distinctUntilChanged()              // 避免重复 ID 触发
+            .flatMapLatest { id ->     // 每当上游（id）变化，就取消之前的 getItemById 流，启动新的
+                colorTypeRepository.getItemById(id ?: 0)
+            }.stateIn(
+                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            )
 
     // 当前选中的季节
-    @OptIn(ExperimentalCoroutinesApi::class) val season: StateFlow<SeasonEntity?> = _addClosetUiState.map { it.closetEntity.seasonId }.distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val season: StateFlow<SeasonEntity?> = _addClosetUiState.map { it.closetEntity.seasonId }
+        .distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游变化，就取消之前的 getItemById 流，启动新的
-            seasonRepository.getSeasonById(id)
+            seasonRepository.getSeasonById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的产品
-    @OptIn(ExperimentalCoroutinesApi::class) val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }.distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }
+        .distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
             productRepository.getItemById(id ?: 0)
         }.stateIn(
@@ -89,15 +97,19 @@ class AddClosetViewModel(
         )
 
     // 当前选中的尺码
-    @OptIn(ExperimentalCoroutinesApi::class) val size: StateFlow<SizeEntity?> = _addClosetUiState.map { it.closetEntity.sizeId }.distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val size: StateFlow<SizeEntity?> = _addClosetUiState.map { it.closetEntity.sizeId }
+        .distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            sizeRepository.getItemById(id)
+            sizeRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的归属
-    @OptIn(ExperimentalCoroutinesApi::class) val owner: StateFlow<OwnerEntity?> = _addClosetUiState.map { it.closetEntity.ownerId }.distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val owner: StateFlow<OwnerEntity?> = _addClosetUiState.map { it.closetEntity.ownerId }
+        .distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
             ownerRepository.getItemById(id)
         }.stateIn(
@@ -105,20 +117,25 @@ class AddClosetViewModel(
         )
 
     // 当前选中的一级分类
-    @OptIn(ExperimentalCoroutinesApi::class) val category: StateFlow<CategoryEntity?> = _addClosetUiState.map { it.closetEntity.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val category: StateFlow<CategoryEntity?> = _addClosetUiState.map { it.closetEntity.categoryId }
+        .distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            categoryRepository.getItemById(id)
+            categoryRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的二级分类
-    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<SubCategoryEntity?> = _addClosetUiState.map { it.closetEntity.subCategoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            categoryRepository.getSubItemById(id ?: -1)
-        }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val subCategory: StateFlow<SubCategoryEntity?> =
+        _addClosetUiState.map { it.closetEntity.subCategoryId }
+            .distinctUntilChanged()              // 避免重复 ID 触发
+            .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+                categoryRepository.getSubItemById(id ?: -1)
+            }.stateIn(
+                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            )
 
     // 颜色列表
     val colorTypes: StateFlow<List<ColorTypeEntity>> = colorTypeRepository.getItems().stateIn(
@@ -131,9 +148,10 @@ class AddClosetViewModel(
     )
 
     // 分类列表
-    val categories: StateFlow<List<CategoryWithSubCategories>> = categoryRepository.getAllItemsWithSub().stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
-    )
+    val categories: StateFlow<List<CategoryWithSubCategories>> =
+        categoryRepository.getAllItemsWithSub().stateIn(
+            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+        )
 
     // 尺码列表
     val sizes: StateFlow<List<SizeEntity>> = sizeRepository.getItems().stateIn(
@@ -260,18 +278,6 @@ class AddClosetViewModel(
         val entity = addClosetUiState.value.closetEntity
         if (entity.ownerId == 0) {
             Toaster.show("请选择归属")
-        } else if (entity.price.isEmpty()) {
-            Toaster.show("请输入价格")
-        } else if (entity.categoryId == 0) {
-            Toaster.show("请选择分类")
-        } else if (entity.colorTypeId == 0) {
-            Toaster.show("请选择颜色")
-        } else if (entity.seasonId == 0) {
-            Toaster.show("请选择季节")
-        } else if (entity.sizeId == 0) {
-            Toaster.show("请选择尺码")
-        } else if (entity.comment.isEmpty()) {
-            Toaster.show("请输入备注")
         } else {
             viewModelScope.launch {
                 val imageFile = saveUriToFilesDir(context, addClosetUiState.value.imageUri!!)
@@ -305,6 +311,10 @@ class AddClosetViewModel(
                 closetEntity = it.closetEntity.copy(subCategoryId = subCategoryEntity?.id)
             )
         }
+    }
+
+    fun updateImageUrl(imageUri: Uri) {
+        _addClosetUiState.update { it.copy(imageUri = imageUri) }
     }
 
 }
