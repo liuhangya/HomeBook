@@ -1,5 +1,6 @@
 package com.fanda.homebook.data.closet
 
+import androidx.annotation.DrawableRes
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -13,6 +14,7 @@ import com.fanda.homebook.data.owner.OwnerEntity
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeEntity
+import com.fanda.homebook.entity.ShowBottomSheetType
 
 
 /*
@@ -86,7 +88,7 @@ data class AddClosetEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val colorTypeId: Int = 0,
     val seasonId: Int = 0,
-    val productId: Int = 0,
+    val productId: Int? = null,
     val sizeId: Int = 0,
     val ownerId: Int = 0,
     val date: Long = System.currentTimeMillis(),
@@ -114,5 +116,7 @@ data class ClosetDetailGridItem(val addClosetEntity: AddClosetEntity, var isSele
         return this.copy(isSelected = newSelected)
     }
 }
+
+data class CategoryBottomMenuEntity(val name: String, @DrawableRes val icon: Int, val type: ShowBottomSheetType)
 
 

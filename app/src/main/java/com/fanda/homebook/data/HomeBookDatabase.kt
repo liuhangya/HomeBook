@@ -13,16 +13,23 @@ import com.fanda.homebook.data.color.ColorTypeDao
 import com.fanda.homebook.data.color.ColorTypeEntity
 import com.fanda.homebook.data.owner.OwnerDao
 import com.fanda.homebook.data.owner.OwnerEntity
+import com.fanda.homebook.data.period.PeriodDao
+import com.fanda.homebook.data.period.PeriodEntity
 import com.fanda.homebook.data.product.ProductDao
 import com.fanda.homebook.data.product.ProductEntity
+import com.fanda.homebook.data.rack.RackDao
+import com.fanda.homebook.data.rack.RackEntity
+import com.fanda.homebook.data.rack.RackSubCategoryEntity
 import com.fanda.homebook.data.season.SeasonDao
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeDao
 import com.fanda.homebook.data.size.SizeEntity
+import com.fanda.homebook.data.stock.StockDao
+import com.fanda.homebook.data.stock.StockEntity
 
 @Database(
-    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class],
-    version = 7,
+    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class, RackEntity::class, RackSubCategoryEntity::class, PeriodEntity::class, StockEntity::class],
+    version = 9,
     exportSchema = false
 ) abstract class HomeBookDatabase() : RoomDatabase() {
 
@@ -39,6 +46,12 @@ import com.fanda.homebook.data.size.SizeEntity
     abstract fun ownerDao(): OwnerDao
 
     abstract fun categoryDao(): CategoryDao
+
+    abstract fun rackDao(): RackDao
+
+    abstract fun periodDao(): PeriodDao
+
+    abstract fun stockDao(): StockDao
 
     companion object {
         @Volatile private var Instance: HomeBookDatabase? = null

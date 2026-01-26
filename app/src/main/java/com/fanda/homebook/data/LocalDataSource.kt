@@ -1,11 +1,9 @@
 package com.fanda.homebook.data
 
 import com.fanda.homebook.R
+import com.fanda.homebook.data.closet.CategoryBottomMenuEntity
 import com.fanda.homebook.entity.AmountItemEntity
 import com.fanda.homebook.entity.BaseCategoryEntity
-import com.fanda.homebook.entity.CategoryBottomMenuEntity
-import com.fanda.homebook.entity.ClosetCategoryBottomMenuType
-import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.entity.DailyAmountEntity
 import com.fanda.homebook.entity.DailyItemEntity
 import com.fanda.homebook.entity.DashBoarItemEntity
@@ -15,9 +13,7 @@ import com.fanda.homebook.entity.StockGridEntity
 import com.fanda.homebook.entity.StockState
 import com.fanda.homebook.entity.TransactionCategory
 import com.fanda.homebook.entity.TransactionType
-import com.fanda.homebook.entity.UserEntity
 import com.fanda.homebook.quick.sheet.Category
-import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.SubCategory
 
 object LocalDataSource {
@@ -216,32 +212,10 @@ object LocalDataSource {
         ),
     )
 
-    //  =========================== 衣橱
-    val closetGridList = mutableListOf<ClosetGridEntity>().apply {
-        repeat(20) {
-            add(
-                ClosetGridEntity(
-                    name = "上装$it", count = 10, photoUrl = ""
-                )
-            )
-        }
-    }
-
-    val closetDetailGridList = mutableListOf<ClosetGridEntity>().apply {
-        repeat(20) {
-            add(
-                ClosetGridEntity(
-                    name = "上装$it", count = 10, photoUrl = "", isSelected = false
-                )
-            )
-        }
-    }
-
     val closetCategoryBottomMenuList = listOf(
         CategoryBottomMenuEntity("全选", R.mipmap.icon_bottom_all_select, ShowBottomSheetType.ALL_SELECTED),
         CategoryBottomMenuEntity("复制", R.mipmap.icon_bottom_copy, ShowBottomSheetType.COPY),
-        CategoryBottomMenuEntity("移动", R.mipmap.icon_bottom_move, ShowBottomSheetType.MOVE),
-        CategoryBottomMenuEntity("删除", R.mipmap.icon_bottom_delete, ShowBottomSheetType.DELETE)
+        CategoryBottomMenuEntity("移动", R.mipmap.icon_bottom_move, ShowBottomSheetType.MOVE), CategoryBottomMenuEntity("删除", R.mipmap.icon_bottom_delete, ShowBottomSheetType.DELETE)
 
     )
 

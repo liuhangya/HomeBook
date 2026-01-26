@@ -9,12 +9,18 @@ import com.fanda.homebook.data.color.ColorTypeRepository
 import com.fanda.homebook.data.color.LocalColorTypeRepository
 import com.fanda.homebook.data.owner.LocalOwnerRepository
 import com.fanda.homebook.data.owner.OwnerRepository
+import com.fanda.homebook.data.period.LocalPeriodRepository
+import com.fanda.homebook.data.period.PeriodRepository
 import com.fanda.homebook.data.product.LocalProductRepository
 import com.fanda.homebook.data.product.ProductRepository
+import com.fanda.homebook.data.rack.LocalRackRepository
+import com.fanda.homebook.data.rack.RackRepository
 import com.fanda.homebook.data.season.LocalSeasonRepository
 import com.fanda.homebook.data.season.SeasonRepository
 import com.fanda.homebook.data.size.LocalSizeRepository
 import com.fanda.homebook.data.size.SizeRepository
+import com.fanda.homebook.data.stock.LocalStockRepository
+import com.fanda.homebook.data.stock.StockRepository
 
 /*
 * 依赖注入容器类
@@ -27,6 +33,9 @@ interface AppContainer {
     val sizeRepository: SizeRepository
     val ownerRepository: OwnerRepository
     val categoryRepository: CategoryRepository
+    val rackRepository: RackRepository
+    val periodRepository: PeriodRepository
+    val stockRepository: StockRepository
 }
 
 class AppContainerImpl(private val context: Context) : AppContainer {
@@ -53,6 +62,19 @@ class AppContainerImpl(private val context: Context) : AppContainer {
 
     override val categoryRepository: CategoryRepository by lazy {
         LocalCategoryRepository(HomeBookDatabase.getDatabase(context).categoryDao())
+    }
+
+    override val rackRepository: RackRepository by lazy {
+        LocalRackRepository(HomeBookDatabase.getDatabase(context).rackDao())
+    }
+
+    override val periodRepository: PeriodRepository by lazy {
+        LocalPeriodRepository(HomeBookDatabase.getDatabase(context).periodDao())
+    }
+
+    override val stockRepository: StockRepository by lazy {
+        LocalStockRepository(HomeBookDatabase.getDatabase(context).stockDao())
+
     }
 
 }

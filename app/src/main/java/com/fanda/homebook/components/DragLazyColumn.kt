@@ -28,8 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.tools.LogUtils
 import kotlinx.coroutines.launch
 import kotlin.math.abs

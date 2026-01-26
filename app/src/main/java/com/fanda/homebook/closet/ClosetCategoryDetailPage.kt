@@ -55,11 +55,8 @@ import com.fanda.homebook.components.ConfirmDialog
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
-import com.fanda.homebook.data.closet.AddClosetEntity
+import com.fanda.homebook.data.closet.CategoryBottomMenuEntity
 import com.fanda.homebook.data.closet.ClosetDetailGridItem
-import com.fanda.homebook.entity.CategoryBottomMenuEntity
-import com.fanda.homebook.entity.ClosetCategoryBottomMenuType
-import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.CategoryBottomSheet
 import com.fanda.homebook.route.RoutePath

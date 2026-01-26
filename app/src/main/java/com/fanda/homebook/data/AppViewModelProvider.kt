@@ -16,6 +16,8 @@ import com.fanda.homebook.common.viewmodel.ColorTypeViewModel
 import com.fanda.homebook.common.viewmodel.ProductViewModel
 import com.fanda.homebook.common.viewmodel.SizeViewModel
 import com.fanda.homebook.common.viewmodel.SubCategoryViewModel
+import com.fanda.homebook.stock.viewmodel.AddStockViewModel
+import com.fanda.homebook.stock.viewmodel.StockHomeViewModel
 
 /*
 * 提供所有的 ViewModel 工厂
@@ -58,6 +60,15 @@ object AppViewModelProvider {
             )
         }
         initializer {
+            AddStockViewModel(
+                this.createSavedStateHandle(),
+                homeBookApplication().appContainer.stockRepository,
+                homeBookApplication().appContainer.rackRepository,
+                homeBookApplication().appContainer.productRepository,
+                homeBookApplication().appContainer.periodRepository
+            )
+        }
+        initializer {
             CategoryClosetViewModel(this.createSavedStateHandle(), homeBookApplication().appContainer.closetRepository)
         }
         initializer {
@@ -73,8 +84,13 @@ object AppViewModelProvider {
             SubCategoryViewModel(this.createSavedStateHandle(), homeBookApplication().appContainer.categoryRepository)
         }
         initializer {
-            CategoryDetailClosetViewModel(this.createSavedStateHandle(), homeBookApplication().appContainer.closetRepository,
-                homeBookApplication().appContainer.categoryRepository)
+            CategoryDetailClosetViewModel(
+                this.createSavedStateHandle(), homeBookApplication().appContainer.closetRepository, homeBookApplication().appContainer.categoryRepository
+            )
+        }
+
+        initializer {
+            StockHomeViewModel(homeBookApplication().appContainer.rackRepository)
         }
     }
 }

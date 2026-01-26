@@ -1,6 +1,5 @@
 package com.fanda.homebook.closet.ui
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,38 +26,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import com.fanda.homebook.data.LocalDataSource
-import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.R
 import com.fanda.homebook.data.closet.ClosetGridItem
 
-@Composable
-fun ClosetGridWidget(modifier: Modifier = Modifier, onItemClick: (ClosetGridEntity) -> Unit) {
-    LazyVerticalGrid(
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
-        columns = GridCells.Fixed(3),
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        items(LocalDataSource.closetGridList) {
-            ClosetGridItem(item = it, onItemClick)
-        }
-    }
-}
-
 // 衣橱首页面用到的列表
-@Composable
-fun ClosetHomeGridWidget(
-    data: List<ClosetGridItem>,
-    trashData: ClosetGridItem?,
-    modifier: Modifier = Modifier,
-    onItemClick: (ClosetGridItem) -> Unit
+@Composable fun ClosetHomeGridWidget(
+    data: List<ClosetGridItem>, trashData: ClosetGridItem?, modifier: Modifier = Modifier, onItemClick: (ClosetGridItem) -> Unit
 ) {
     LazyVerticalGrid(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
@@ -79,8 +55,7 @@ fun ClosetHomeGridWidget(
 }
 
 
-@Composable
-fun ClosetGridItemWidget(item: ClosetGridItem, onItemClick: (ClosetGridItem) -> Unit) {
+@Composable fun ClosetGridItemWidget(item: ClosetGridItem, onItemClick: (ClosetGridItem) -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(
             // 去掉默认的点击效果
@@ -94,10 +69,7 @@ fun ClosetGridItemWidget(item: ClosetGridItem, onItemClick: (ClosetGridItem) -> 
                 .background(Color.White.copy(alpha = 0.4f), shape = RoundedCornerShape(12.dp))
         ) {
             AsyncImage(
-                contentScale = ContentScale.Crop,
-                model = item.imageLocalPath,
-                contentDescription = null,
-                modifier = Modifier
+                contentScale = ContentScale.Crop, model = item.imageLocalPath, contentDescription = null, modifier = Modifier
                     .height(100.dp)
                     .width(96.dp)
                     .clip(RoundedCornerShape(12.dp))
@@ -108,93 +80,21 @@ fun ClosetGridItemWidget(item: ClosetGridItem, onItemClick: (ClosetGridItem) -> 
                     .padding(6.dp)
             ) {
                 Text(
-                    text = item.count.toString(),
-                    style = TextStyle.Default.copy(
+                    text = item.count.toString(), style = TextStyle.Default.copy(
                         platformStyle = PlatformTextStyle(
                             includeFontPadding = false
                         )
-                    ),
-                    modifier = Modifier
+                    ), modifier = Modifier
                         .background(
-                            color = Color.White.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(8.dp)
+                            color = Color.White.copy(alpha = 0.2f), shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
-                    fontSize = 8.sp,
-                    color = Color.Black
+                        .padding(horizontal = 4.dp, vertical = 2.dp), fontSize = 8.sp, color = Color.Black
                 )
             }
         }
         Text(
-            text = if (item.moveToTrash) "垃圾桶" else item.category.name,
-            modifier = Modifier.padding(top = 8.dp),
-            fontSize = 14.sp,
-            color = colorResource(id = R.color.color_333333)
+            text = if (item.moveToTrash) "垃圾桶" else item.category.name, modifier = Modifier.padding(top = 8.dp), fontSize = 14.sp, color = colorResource(id = R.color.color_333333)
         )
     }
 }
 
-
-@Composable
-fun ClosetGridItem(item: ClosetGridEntity, onItemClick: (ClosetGridEntity) -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable(
-            // 去掉默认的点击效果
-            interactionSource = remember { MutableInteractionSource() }, indication = null
-        ) {
-            onItemClick(item)
-        }) {
-        Box(
-            modifier = Modifier
-                .border(1.dp, Color.White, shape = RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.4f), shape = RoundedCornerShape(12.dp))
-        ) {
-            AsyncImage(
-                contentScale = ContentScale.Crop,
-                model = R.mipmap.bg_closet_dufault,
-                contentDescription = null,
-                modifier = Modifier
-                    .height(100.dp)
-                    .width(96.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(6.dp)
-            ) {
-                Text(
-                    text = item.count.toString(),
-                    style = TextStyle.Default.copy(
-                        platformStyle = PlatformTextStyle(
-                            includeFontPadding = false
-                        )
-                    ),
-                    modifier = Modifier
-                        .background(
-                            color = Color.White.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
-                    fontSize = 8.sp,
-                    color = Color.Black
-                )
-            }
-        }
-        Text(
-            text = item.name,
-            modifier = Modifier.padding(top = 8.dp),
-            fontSize = 14.sp,
-            color = colorResource(id = R.color.color_333333)
-        )
-    }
-}
-
-
-@Composable
-@Preview(showBackground = true)
-fun ClosetGridWidgetPreview() {
-    ClosetGridWidget() {
-
-    }
-}

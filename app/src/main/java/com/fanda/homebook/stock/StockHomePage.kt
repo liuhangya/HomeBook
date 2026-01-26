@@ -1,6 +1,7 @@
 package com.fanda.homebook.stock
 
 import android.util.Log
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,35 +44,47 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
-import com.fanda.homebook.closet.ui.ClosetGridWidget
 import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
-import com.fanda.homebook.closet.ui.UserDropdownMenu
+import com.fanda.homebook.components.CustomDropdownMenu
+import com.fanda.homebook.components.MenuItem
 import com.fanda.homebook.components.SelectableRoundedButton
+import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
-import com.fanda.homebook.entity.BaseCategoryEntity
+import com.fanda.homebook.data.rack.RackEntity
+import com.fanda.homebook.data.rack.RackSubCategoryEntity
+import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.entity.StateMenuEntity
-import com.fanda.homebook.quick.sheet.SubCategory
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.stock.ui.StockGridWidget
+import com.fanda.homebook.stock.viewmodel.StockHomeViewModel
 import com.fanda.homebook.tools.LogUtils
 
 /*
 *
 * 囤货页面
 * */
-@OptIn(ExperimentalMaterial3Api::class) @Composable fun StockHomePage(modifier: Modifier = Modifier, navController: NavController) {
-    var showSelectImage by remember { mutableStateOf(false) }
+@OptIn(ExperimentalMaterial3Api::class) @Composable fun StockHomePage(
+    modifier: Modifier = Modifier, navController: NavController, stockHomeViewModel: StockHomeViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
     var expandUserMenu by remember { mutableStateOf(false) }
-    var curGoodRack by remember { mutableStateOf(LocalDataSource.goodsRackData.first()) }
     //  记录上次的返回时间
     var lastBackPressed by remember { mutableLongStateOf(0L) }
 
     var curStateMenu by remember { mutableStateOf(LocalDataSource.stockStateList.first()) }
 
-    var subCategory by remember { mutableStateOf(SubCategory("", "全部")) }
+    val uiState by stockHomeViewModel.uiState.collectAsState()
+
+    val curSelectRack by stockHomeViewModel.curSelectRack.collectAsState()
+
+    val rackSubCategoryList by stockHomeViewModel.rackSubCategoryList.collectAsState()
+
+    LogUtils.d("rackSubCategoryList： ${rackSubCategoryList.size}")
+
+    LogUtils.d("uiState: $uiState")
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopAppBar(
@@ -83,33 +97,34 @@ import com.fanda.homebook.tools.LogUtils
                         .background(color = Color.Transparent)
                 ) {
 
-                    Box(modifier = Modifier
-                        .wrapContentWidth()
-                        .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
+                    Box(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
                         .align(Alignment.CenterStart)
-                        .clickable(
-                            // 去掉默认的点击效果
-                            interactionSource = remember { MutableInteractionSource() }, indication = null
-                        ) {
-                            val now = System.currentTimeMillis()
-                            if (now - lastBackPressed > 200 && !expandUserMenu) {
-                                expandUserMenu = true
+                            .clickable(
+                                // 去掉默认的点击效果
+                                interactionSource = remember { MutableInteractionSource() }, indication = null
+                            ) {
+                                val now = System.currentTimeMillis()
+                                if (now - lastBackPressed > 200 && !expandUserMenu) {
+                                    expandUserMenu = true
+                                }
+                                Log.d("ClosetHomePage", "点击了用户名")
                             }
-                            Log.d("ClosetHomePage", "点击了用户名")
-                        }
-                        .padding(start = 0.dp, end = 30.dp)) {
+                            .padding(start = 0.dp, end = 30.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                         ) {
-                            Text(text = curGoodRack.name, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black)
+                            Text(text = curSelectRack?.name ?: "", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black)
                             Image(modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null)
                         }
-                        UserDropdownMenu(curUser = curGoodRack, data = LocalDataSource.goodsRackData, expanded = expandUserMenu, dpOffset = DpOffset(0.dp, 50.dp), onDismiss = {
+                        RackDropdownMenu(curMenu = curSelectRack, data = stockHomeViewModel.racks, expanded = expandUserMenu, dpOffset = DpOffset(0.dp, 50.dp), onDismiss = {
                             lastBackPressed = System.currentTimeMillis()
                             expandUserMenu = false
                         }, onConfirm = {
                             expandUserMenu = false
-                            curGoodRack = it
+                            stockHomeViewModel.updateSelectedRack(it)
                         })
                     }
                     Row(
@@ -118,7 +133,7 @@ import com.fanda.homebook.tools.LogUtils
                         Box(contentAlignment = Alignment.Center, modifier = Modifier
                             .size(44.dp)
                             .clickable {
-                                showSelectImage = true
+                                stockHomeViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
                             }) {
                             Image(
                                 painter = painterResource(id = R.mipmap.icon_add_grady), contentDescription = "Action", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
@@ -135,15 +150,9 @@ import com.fanda.homebook.tools.LogUtils
             StateMenu(curMenuEntity = curStateMenu) {
                 curStateMenu = it
             }
-            val list = LocalDataSource.stockCategoryData.find { it.name == curGoodRack.name }?.children ?: emptyList()
-            LabelMenu(list = list, subCategory = subCategory) {
-                val selected = subCategory.selected
-                subCategory = if (subCategory.id == it.id) {
-                    it.copy(selected = !selected)
-                } else {
-                    it.copy(selected = true)
-                }
-                LogUtils.i("LabelMenu", "点击了标签 $subCategory")
+            LabelMenu(list = rackSubCategoryList, selectedRackCategory = uiState.curSelectRackSubCategory) {
+                stockHomeViewModel.updateSelectedSubRackCategory(it)
+                LogUtils.i("LabelMenu", "点击了标签 $it")
             }
 
             StockGridWidget {
@@ -153,11 +162,11 @@ import com.fanda.homebook.tools.LogUtils
 
     }
 
-    SelectPhotoBottomSheet(visible = showSelectImage, onDismiss = {
-        showSelectImage = false
+    SelectPhotoBottomSheet(visible = uiState.sheetType == ShowBottomSheetType.SELECT_IMAGE, onDismiss = {
+        stockHomeViewModel.dismissBottomSheet()
     }) {
-        showSelectImage = false
-        navController.navigate(RoutePath.AddStock.route)
+        stockHomeViewModel.dismissBottomSheet()
+        navController.navigate("${RoutePath.AddStock.route}?imagePath=${it}")
     }
 
 }
@@ -169,7 +178,8 @@ import com.fanda.homebook.tools.LogUtils
             .padding(horizontal = 10.dp)
     ) {
         LocalDataSource.stockStateList.forEach {
-            Text(text = "${it.name}(${it.count})",
+            Text(
+                text = "${it.name}(${it.count})",
                 modifier = Modifier
                     .weight(1f)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
@@ -184,13 +194,26 @@ import com.fanda.homebook.tools.LogUtils
     }
 }
 
-@Composable fun LabelMenu(modifier: Modifier = Modifier, list: List<SubCategory>, subCategory: SubCategory, onLabelChange: (SubCategory) -> Unit) {
-    LazyRow(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(20.dp)) {
+@Composable fun LabelMenu(modifier: Modifier = Modifier, list: List<RackSubCategoryEntity>, selectedRackCategory: RackSubCategoryEntity?, onLabelChange: (RackSubCategoryEntity) -> Unit) {
+    LazyRow(modifier = modifier.fillMaxWidth().height(60.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
         items(list) {
-            LogUtils.d("item: ${it.id} , $subCategory - ${(subCategory.id == it.id && subCategory.selected)}")
-            SelectableRoundedButton(text = it.name, selected = (subCategory.id == it.id && subCategory.selected), onClick = {
+            SelectableRoundedButton(text = it.name, selected = it.id == selectedRackCategory?.id, onClick = {
                 onLabelChange(it)
-            })
+            },modifier = Modifier.animateItem())    // 添加 Item 加载的动画
+        }
+    }
+}
+
+@Composable fun RackDropdownMenu(
+    curMenu: RackEntity?, data: List<RackEntity>, modifier: Modifier = Modifier, dpOffset: DpOffset, expanded: Boolean, onDismiss: (() -> Unit), onConfirm: (RackEntity) -> Unit
+) {
+    CustomDropdownMenu(modifier = modifier, dpOffset = dpOffset, expanded = expanded, onDismissRequest = onDismiss) {
+        Column {
+            data.forEach {
+                MenuItem(text = it.name, selected = it.id == curMenu?.id) {
+                    onConfirm(it)
+                }
+            }
         }
     }
 }

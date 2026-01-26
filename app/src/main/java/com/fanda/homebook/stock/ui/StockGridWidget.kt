@@ -34,9 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.fanda.homebook.data.LocalDataSource
-import com.fanda.homebook.entity.ClosetGridEntity
 import com.fanda.homebook.R
 import com.fanda.homebook.entity.StockGridEntity
 

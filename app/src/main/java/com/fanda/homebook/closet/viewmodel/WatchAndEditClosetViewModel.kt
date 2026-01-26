@@ -70,7 +70,7 @@ class WatchAndEditClosetViewModel(
         viewModelScope.launch {
             seasons = seasonRepository.getSeasons()
             owners = ownerRepository.getItems()
-            val item = closetRepository.getClosetById(UserCache.ownerId,closetId)
+            val item = closetRepository.getClosetById(UserCache.ownerId, closetId)
             _addClosetUiState.update {
                 it.copy(closetEntity = item.closet)
             }
@@ -96,7 +96,7 @@ class WatchAndEditClosetViewModel(
     // 当前选中的产品
     @OptIn(ExperimentalCoroutinesApi::class) val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            productRepository.getItemById(id)
+            productRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
@@ -322,7 +322,7 @@ class WatchAndEditClosetViewModel(
                     closetEntity = it.closetEntity.copy(moveToTrash = move),
                 )
             }
-            if (move){
+            if (move) {
                 updateEditState(false)
             }
             // 更新数据库

@@ -83,7 +83,7 @@ class AddClosetViewModel(
     // 当前选中的产品
     @OptIn(ExperimentalCoroutinesApi::class) val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            productRepository.getItemById(id)
+            productRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
@@ -268,8 +268,6 @@ class AddClosetViewModel(
             Toaster.show("请选择颜色")
         } else if (entity.seasonId == 0) {
             Toaster.show("请选择季节")
-        } else if (entity.productId == 0) {
-            Toaster.show("请选择品牌")
         } else if (entity.sizeId == 0) {
             Toaster.show("请选择尺码")
         } else if (entity.comment.isEmpty()) {
