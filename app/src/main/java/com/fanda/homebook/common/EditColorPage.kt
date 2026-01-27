@@ -42,7 +42,12 @@ import com.fanda.homebook.data.color.defaultColorData
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 
-@Composable fun EditColorPage(modifier: Modifier = Modifier, navController: NavController, colorTypeViewModel: ColorTypeViewModel = viewModel(factory = AppViewModelProvider.factory)) {
+@Composable
+fun EditColorPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    colorTypeViewModel: ColorTypeViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
 
     // 通过 ViewModel 状态管理进行数据绑定
     val colorTypes by colorTypeViewModel.colorTypes.collectAsState()
@@ -59,7 +64,7 @@ import com.fanda.homebook.tools.LogUtils
             },
             rightIconPainter = painterResource(R.mipmap.icon_add_grady),
             onRightActionClick = {
-                navController.navigate(RoutePath.AddColor.route)
+                navController.navigate("${RoutePath.AddColor.route}?colorId=-1")
             },
             backIconPainter = painterResource(R.mipmap.icon_back),
         )
@@ -73,30 +78,34 @@ import com.fanda.homebook.tools.LogUtils
         }
     }
 
-    if (uiState.editDialog) {
-        EditDialog(title = "重命名", value = uiState.entity?.name ?: "", placeholder = "不能与已有名称重复", onDismissRequest = {
-            colorTypeViewModel.toggleEditDialog(false)
-        }, onConfirm = {
-            colorTypeViewModel.toggleEditDialog(false)
-            colorTypeViewModel.updateEntityDatabase(it)
-        })
-    }
-    RenameOrDeleteBottomSheet(visible = uiState.renameOrDeleteBottomSheet, onDismiss = {
-        colorTypeViewModel.toggleRenameOrDeleteBottomSheet(false)
-    }) {
+    RenameOrDeleteBottomSheet(
+        firstMenuText = "编辑",
+        visible = uiState.renameOrDeleteBottomSheet,
+        onDismiss = {
+            colorTypeViewModel.toggleRenameOrDeleteBottomSheet(false)
+        }) {
         colorTypeViewModel.toggleRenameOrDeleteBottomSheet(false)
         if (it == RenameOrDeleteType.RENAME) {
-            colorTypeViewModel.toggleEditDialog(true)
+            navController.navigate("${RoutePath.AddColor.route}?colorId=${uiState.entity?.id}")
+
         } else {
             colorTypeViewModel.deleteEntityDatabase()
         }
     }
 }
 
-@Composable private fun ColorDragWidget(
-    modifier: Modifier = Modifier, colorList: List<ColorTypeEntity>, onEditClick: (ColorTypeEntity) -> Unit, onMove: (from: Int, to: Int, items: MutableList<ColorTypeEntity>) -> Unit
+@Composable
+private fun ColorDragWidget(
+    modifier: Modifier = Modifier,
+    colorList: List<ColorTypeEntity>,
+    onEditClick: (ColorTypeEntity) -> Unit,
+    onMove: (from: Int, to: Int, items: MutableList<ColorTypeEntity>) -> Unit
 ) {
-    DragLazyColumn(modifier = modifier, items = colorList.map { it.copy() }.toMutableList(), onMove = onMove, key = { it.id }) { item, isDragging ->
+    DragLazyColumn(
+        modifier = modifier,
+        items = colorList.map { it.copy() }.toMutableList(),
+        onMove = onMove,
+        key = { it.id }) { item, isDragging ->
         GradientRoundedBoxWithStroke {
             Row(
                 modifier = Modifier
@@ -105,7 +114,10 @@ import com.fanda.homebook.tools.LogUtils
                     .height(64.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ColoredCircleWithBorder(color = Color(item.color), modifier = Modifier.padding(start = 16.dp, end = 12.dp))
+                ColoredCircleWithBorder(
+                    color = Color(item.color),
+                    modifier = Modifier.padding(start = 16.dp, end = 12.dp)
+                )
                 Text(text = item.name, fontSize = 16.sp, color = Color.Black)
                 Spacer(modifier = Modifier.weight(1f))
                 Image(
@@ -113,12 +125,22 @@ import com.fanda.homebook.tools.LogUtils
                     contentDescription = null,
                     modifier = Modifier
                         .padding(7.dp)
-                        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
                             onEditClick(item)
                         })
 
                 Image(
-                    painter = painterResource(id = R.mipmap.icon_drag), contentDescription = null, modifier = Modifier.padding(start = 7.dp, top = 7.dp, end = 22.dp, bottom = 7.dp)
+                    painter = painterResource(id = R.mipmap.icon_drag),
+                    contentDescription = null,
+                    modifier = Modifier.padding(
+                        start = 7.dp,
+                        top = 7.dp,
+                        end = 22.dp,
+                        bottom = 7.dp
+                    )
                 )
 
             }
@@ -126,13 +148,21 @@ import com.fanda.homebook.tools.LogUtils
     }
 }
 
-@Composable @Preview(showBackground = true) fun ColorDragWidgetPreview() {
-    ColorDragWidget(modifier = Modifier
-        .fillMaxWidth()
-        .statusBarsPadding(), colorList = defaultColorData, onEditClick = {}, onMove = { _, _, _ -> })
+@Composable
+@Preview(showBackground = true)
+fun ColorDragWidgetPreview() {
+    ColorDragWidget(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding(),
+        colorList = defaultColorData,
+        onEditClick = {},
+        onMove = { _, _, _ -> })
 }
 
-@Composable @Preview(showBackground = true) fun EditColorPagePreview() {
+@Composable
+@Preview(showBackground = true)
+fun EditColorPagePreview() {
     EditColorPage(
         modifier = Modifier
             .fillMaxWidth()

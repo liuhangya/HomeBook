@@ -56,9 +56,9 @@ import kotlin.math.roundToInt
 
     val itemsSnapshot = items // 避免在 lambda 中直接引用
 
-    itemsSnapshot.forEach {
-        LogUtils.d("拖动布局： item: $it")
-    }
+//    itemsSnapshot.forEach {
+//        LogUtils.d("拖动布局： item: $it")
+//    }
     // 关键配置 pointerInput(itemsSnapshot) ，让数据变化时刷新内部闭包内的列表数据
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp), state = listState, modifier = modifier.pointerInput(itemsSnapshot) {
 

@@ -21,9 +21,25 @@ class ColorTypeViewModel(
     savedStateHandle: SavedStateHandle, private val colorTypeRepository: ColorTypeRepository
 ) : ViewModel() {
 
+    private val colorId: Int = savedStateHandle["colorId"] ?: -1
+
+    init {
+        viewModelScope.launch {
+            if (colorId != -1) {
+                colorTypeRepository.getItemById(colorId).collect { colorType ->
+                    _uiState.update {
+                        it.copy(entity = colorType)
+                    }
+                }
+            }
+        }
+    }
+
     // 颜色列表
     val colorTypes: StateFlow<List<ColorTypeEntity>> = colorTypeRepository.getItems().stateIn(
-        scope = viewModelScope, SharingStarted.Companion.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+        scope = viewModelScope,
+        SharingStarted.Companion.WhileSubscribed(TIMEOUT_MILLIS),
+        emptyList()
     )
 
     private val _uiState = MutableStateFlow(ColorUiState())
@@ -48,16 +64,27 @@ class ColorTypeViewModel(
         }
     }
 
-    fun toggleEditDialog(visible: Boolean) {
-        _uiState.update {
-            it.copy(editDialog = visible)
-        }
-    }
-
-    fun updateEntityDatabase(name: String) {
-        updateEntity(name)
-        viewModelScope.launch {
-            colorTypeRepository.update(_uiState.value.entity!!)
+    fun updateEntityDatabase(result: (success: Boolean) -> Unit) {
+        if (_uiState.value.entity != null) {
+            if (_uiState.value.entity!!.name.isNotEmpty()) {
+                viewModelScope.launch {
+                    val existItem = colorTypeRepository.getItemByName(_uiState.value.entity!!.name)
+                    if (existItem != null && existItem.id != _uiState.value.entity!!.id) {
+                        Toaster.show("名称已存在")
+                        result(false)
+                        return@launch
+                    }
+                    colorTypeRepository.update(_uiState.value.entity!!)
+                    result(true)
+                    Toaster.show("编辑成功")
+                }
+            } else {
+                Toaster.show("请输入名称")
+                result(false)
+            }
+        } else {
+            Toaster.show("编辑异常")
+            result(false)
         }
     }
 
@@ -81,6 +108,12 @@ class ColorTypeViewModel(
     fun updateAddEntity(name: String) {
         _uiState.update {
             it.copy(addEntity = it.addEntity.copy(name = name))
+        }
+    }
+
+    fun updateEntity(color: Long) {
+        _uiState.update {
+            it.copy(entity = it.entity?.copy(color = color))
         }
     }
 

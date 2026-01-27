@@ -48,7 +48,7 @@ import com.fanda.homebook.tools.LogUtils
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopIconAppBar(
-            title = "分类管理",
+            title = uiState.categoryName,
             onBackClick = {
                 navController.navigateUp()
             },

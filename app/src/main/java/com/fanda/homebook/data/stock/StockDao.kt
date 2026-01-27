@@ -11,25 +11,38 @@ import androidx.room.Update
 import androidx.sqlite.db.SimpleSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 
-@Dao interface StockDao {
+@Dao
+interface StockDao {
 
     // 在发生冲突时覆盖之前的数据
-    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: StockEntity): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entity: StockEntity): Long
 
-    @Delete suspend fun delete(entity: StockEntity): Int
+    @Delete
+    suspend fun delete(entity: StockEntity): Int
 
-    @Update suspend fun update(entity: StockEntity): Int
+    @Update
+    suspend fun update(entity: StockEntity): Int
 
-    @Query("DELETE FROM stock WHERE id = :id") suspend fun deleteById(id: Int): Int
+    @Query("DELETE FROM stock WHERE id = :id")
+    suspend fun deleteById(id: Int): Int
 
     // 关联查询对象
-    @Transaction @Query("SELECT * FROM stock WHERE  id = :id") suspend fun getStockById(id: Int): AddStockEntity
+    @Transaction
+    @Query("SELECT * FROM stock WHERE  id = :id")
+    suspend fun getStockById(id: Int): AddStockEntity
 
-    @Transaction @RawQuery fun getStocksByDynamicQuery(query: SimpleSQLiteQuery): Flow<List<AddStockEntity>>
+    @Transaction
+    @RawQuery
+    fun getStocksByDynamicQuery(query: SimpleSQLiteQuery): Flow<List<AddStockEntity>>
 
     companion object {
         // 动态查询，根据参数动态生成SQL语句
-        fun getStocksByRackAndSubCategory(rackId: Int, subCategoryId: Int?, useStatus: Int?): SimpleSQLiteQuery {
+        fun getStocksByRackAndSubCategory(
+            rackId: Int,
+            subCategoryId: Int?,
+            useStatus: Int?
+        ): SimpleSQLiteQuery {
             val query = StringBuilder("SELECT * FROM stock WHERE rackId = ?")
             val args = mutableListOf<Any>()
             args.add(rackId)
@@ -38,9 +51,17 @@ import kotlinx.coroutines.flow.Flow
                 query.append(" AND subCategoryId = ?")
                 args.add(subCategoryId)
             }
-            if (useStatus != null && useStatus != StockUseStatus.ALL.code) {
-                query.append(" AND useStatus = ?")
-                args.add(useStatus)
+            if (useStatus != null) {
+                if (useStatus == StockUseStatus.ALL.code) {
+                    // 查询 useStatus 为 0 或 1 的记录
+                    query.append(" AND (useStatus = ? OR useStatus = ?)")
+                    args.add(StockUseStatus.NO_USE.code)
+                    args.add(StockUseStatus.USING.code)
+                } else {
+                    // 查询特定的 useStatus
+                    query.append(" AND useStatus = ?")
+                    args.add(useStatus)
+                }
             }
 
             // 添加排序规则：优先按过期时间，其次购买时间，最后创建时间
@@ -70,5 +91,6 @@ import kotlinx.coroutines.flow.Flow
         FROM stock
         WHERE rackId = :rackId
     """
-    ) fun getStockStatusCounts(rackId: Int): Flow<StockStatusCounts?>
+    )
+    fun getStockStatusCounts(rackId: Int): Flow<StockStatusCounts?>
 }

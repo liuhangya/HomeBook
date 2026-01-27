@@ -19,15 +19,17 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.fanda.homebook.tools.LogUtils
 
 @Composable
 fun HSVColorPicker(
     modifier: Modifier = Modifier,
     onColorSelected: (Color) -> Unit,
     initialColor: Color = Color.Red,
-    selectorSize: Dp = 15.dp  // 稍微增大选择器大小
+    selectorSize: Dp = 15.dp
 ) {
     val hsv = FloatArray(3)
+    LogUtils.d("initialColor: ${initialColor.toArgb()}")
     android.graphics.Color.colorToHSV(initialColor.toArgb(), hsv)
 
     // 默认居中：S=0.5, V=0.5
@@ -35,12 +37,37 @@ fun HSVColorPicker(
     var saturation by remember { mutableFloatStateOf(hsv[1].takeIf { it > 0f } ?: 0.5f) }
     var value by remember { mutableFloatStateOf(hsv[2].takeIf { it > 0f } ?: 0.5f) }
 
+    // 添加用户交互标志
+    var isUserInteraction by remember { mutableStateOf(false) }
+
+    // 存储上一次的 initialColor，用于比较
+    var previousInitialColor by remember { mutableStateOf(initialColor) }
+
+    // 当 initialColor 改变且不是用户交互时，更新内部状态
+    LaunchedEffect(initialColor) {
+        if (initialColor != previousInitialColor && !isUserInteraction) {
+            LogUtils.d("外部 initialColor 改变，更新内部状态")
+            val newHsv = FloatArray(3)
+            android.graphics.Color.colorToHSV(initialColor.toArgb(), newHsv)
+
+            hue = newHsv[0]
+            saturation = newHsv[1].takeIf { it > 0f } ?: 0.5f
+            value = newHsv[2].takeIf { it > 0f } ?: 0.5f
+
+            previousInitialColor = initialColor
+        }
+    }
+
     val currentColor = remember(hue, saturation, value) {
         Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, saturation, value)))
     }
 
+    // 只在用户交互时触发回调
     LaunchedEffect(currentColor) {
-        onColorSelected(currentColor)
+        if (isUserInteraction) {
+            LogUtils.d("用户交互，触发回调: $currentColor")
+            onColorSelected(currentColor)
+        }
     }
 
     Box(
@@ -62,6 +89,7 @@ fun HSVColorPicker(
                     saturation = saturation,
                     value = value,
                     onSaturationValueChange = { s, v ->
+                        isUserInteraction = true  // 标记为用户交互
                         saturation = s.coerceIn(0f, 1f)
                         value = v.coerceIn(0f, 1f)
                     },
@@ -71,16 +99,17 @@ fun HSVColorPicker(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Hue 条 - 增加宽度
+            // Hue 条
             Box(
                 modifier = Modifier
-                    .width(80.dp)  // 从30dp增加到40dp，更容易点击
+                    .width(80.dp)
                     .height(290.dp)
                     .border(1.dp, Color.Gray)
             ) {
                 HueBar(
                     hue = hue,
                     onHueChange = { newHue ->
+                        isUserInteraction = true  // 标记为用户交互
                         hue = newHue.coerceIn(0f, 360f)
                     }
                 )
@@ -127,7 +156,6 @@ private fun SVPlane(
         // 绘制 S-V 平面
         val pureColor = Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 1f, 1f)))
 
-        // 方法1：使用多个矩形叠加实现 S-V 平面
         // 先绘制从左到右的渐变：白色 -> 纯色
         drawRect(
             brush = Brush.horizontalGradient(
@@ -137,24 +165,23 @@ private fun SVPlane(
             )
         )
 
-        // 再从上到下叠加黑色渐变（使用 alpha 通道模拟混合）
+        // 再从上到下叠加黑色渐变
         drawRect(
             brush = Brush.verticalGradient(
                 0.0f to Color.Transparent,
                 1.0f to Color.Black
             ),
-            // 使用 Compose 的方式叠加颜色
             blendMode = androidx.compose.ui.graphics.BlendMode.Multiply
         )
 
         // 计算选择器位置
         val pointX = saturation * size.width
-        val pointY = (1f - value) * size.height  // 注意：Y轴方向，顶部V=1，底部V=0
+        val pointY = (1f - value) * size.height
 
         // 绘制选择器
         val outerRadius = selectorSize.toPx() / 2
-        val middleRadius = selectorSize.toPx() * 0.35f  // 中间圈半径
-        val innerRadius = selectorSize.toPx() * 0.2f    // 内圈半径
+        val middleRadius = selectorSize.toPx() * 0.35f
+        val innerRadius = selectorSize.toPx() * 0.2f
 
         // 外圈1（白色粗边框）
         drawCircle(
@@ -164,7 +191,7 @@ private fun SVPlane(
             style = androidx.compose.ui.graphics.drawscope.Stroke(width = 6f)
         )
 
-        // 外圈2（黑色细边框，增加层次感）
+        // 外圈2（黑色细边框）
         drawCircle(
             color = Color.Black,
             radius = outerRadius - 1.5f,
@@ -172,7 +199,7 @@ private fun SVPlane(
             style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f)
         )
 
-        // 中圈（当前颜色，增加边框效果）
+        // 中圈（当前颜色）
         val currentColor = Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, saturation, value)))
         drawCircle(
             color = currentColor,
@@ -187,26 +214,17 @@ private fun SVPlane(
             radius = middleRadius - 2f,
             center = Offset(pointX, pointY)
         )
-
-        // 中心点（对比色）
-//        val centerColor = if (value > 0.5f) Color.Black else Color.White
-//        drawCircle(
-//            color = centerColor,
-//            radius = innerRadius,
-//            center = Offset(pointX, pointY)
-//        )
     }
 }
 
 private fun updateSVFromPosition(position: Offset, size: IntSize, onSaturationValueChange: (Float, Float) -> Unit) {
     if (size.width <= 0 || size.height <= 0) return
 
-    // 确保坐标在画布范围内
     val clampedX = position.x.coerceIn(0f, size.width.toFloat())
     val clampedY = position.y.coerceIn(0f, size.height.toFloat())
 
     val s = clampedX / size.width
-    val v = 1f - (clampedY / size.height)  // 翻转Y轴
+    val v = 1f - (clampedY / size.height)
 
     onSaturationValueChange(s, v)
 }
@@ -274,10 +292,10 @@ private fun updateHueFromPosition(position: Offset, size: IntSize, onHueChange: 
 }
 
 private fun DrawScope.drawHueIndicator(y: Float, size: Size) {
-    // 绘制指示器外框（全宽度）
+    // 绘制指示器外框
     drawRect(
         color = Color.White.copy(alpha = 0.8f),
-        topLeft = Offset(0f, y - 3f),  // 增加高度
+        topLeft = Offset(0f, y - 3f),
         size = Size(size.width, 6f)
     )
 
@@ -296,7 +314,7 @@ private fun DrawScope.drawHueIndicator(y: Float, size: Size) {
         strokeWidth = 3f
     )
 
-    // 绘制中心线2（黑色，更明显）
+    // 绘制中心线2（黑色）
     drawLine(
         color = Color.Black,
         start = Offset(0f, y),
@@ -304,7 +322,7 @@ private fun DrawScope.drawHueIndicator(y: Float, size: Size) {
         strokeWidth = 1.5f
     )
 
-    // 在两侧绘制小三角形增强可见性
+    // 在两侧绘制小三角形
     val triangleSize = 6f
     // 左侧三角形
     drawPath(

@@ -223,7 +223,7 @@ object LocalDataSource {
     )
 
     val stockMenuList = listOf(
-        StockMenuEntity("编辑商品", ShowBottomSheetType.EDIT), StockMenuEntity("删除商品", ShowBottomSheetType.DELETE), StockMenuEntity("复制商品", ShowBottomSheetType.COPY)
+        StockMenuEntity("编辑商品", ShowBottomSheetType.EDIT), StockMenuEntity("复制商品", ShowBottomSheetType.COPY), StockMenuEntity("删除商品", ShowBottomSheetType.DELETE)
     )
 
     val remainData = listOf(

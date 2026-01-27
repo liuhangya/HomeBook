@@ -68,7 +68,7 @@ import com.fanda.homebook.tools.LogUtils
             categoryViewModel.updateEntity(it)
             categoryViewModel.toggleRenameOrDeleteBottomSheet(true)
         }, onItemClick = {
-            navController.navigate("${RoutePath.EditSubCategory.route}?categoryId=${it.id}")
+            navController.navigate("${RoutePath.EditSubCategory.route}?categoryId=${it.id}&categoryName=${it.name}")
         }) { from, to, items ->
             LogUtils.d("拖动 from: $from, to: $to ")
             categoryViewModel.updateSortOrders(items)

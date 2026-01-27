@@ -71,7 +71,8 @@ import kotlinx.coroutines.launch
 /*
 * 应用入口
 * */
-@Composable fun HomeBookApp() {
+@Composable
+fun HomeBookApp() {
     val context = LocalContext.current
     val navController: NavHostController = rememberNavController()
     var lastBackPressed by remember { mutableLongStateOf(0L) }
@@ -108,10 +109,14 @@ import kotlinx.coroutines.launch
     ModalNavigationDrawer(
         gesturesEnabled = drawerState.isOpen, drawerState = drawerState, drawerContent = {
             ModalDrawerSheet(
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerContainerColor = Color.Transparent, drawerShape = RoundedCornerShape(0.dp)
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+                drawerContainerColor = Color.Transparent,
+                drawerShape = RoundedCornerShape(0.dp)
             ) {
                 ModalDrawerSheet(
-                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerShape = RoundedCornerShape(0.dp), drawerContainerColor = Color.Transparent
+                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+                    drawerShape = RoundedCornerShape(0.dp),
+                    drawerContainerColor = Color.Transparent
                 ) {
                     drawerContent()
                 }
@@ -127,19 +132,26 @@ import kotlinx.coroutines.launch
                     .fillMaxWidth()
             ) {
                 NavHost(
-                    navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.fillMaxSize()
+                    navController = navController,
+                    startDestination = RoutePath.BookGraph.route,
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     // ====== 账本 Tab 嵌套 Graph ======
                     navigation(
-                        startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route
+                        startDestination = RoutePath.BookHome.route,
+                        route = RoutePath.BookGraph.route
                     ) {
                         composable(RoutePath.BookHome.route) {
-                            BookHomePage(modifier = Modifier.fillMaxSize(), navController = navController, onShowDrawer = { content ->
-                                drawerContent = content
-                                scope.launch { drawerState.open() }
-                            }, onCloseDrawer = {
-                                scope.launch { drawerState.close() }
-                            })
+                            BookHomePage(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController,
+                                onShowDrawer = { content ->
+                                    drawerContent = content
+                                    scope.launch { drawerState.open() }
+                                },
+                                onCloseDrawer = {
+                                    scope.launch { drawerState.close() }
+                                })
                         }
                         composable(RoutePath.DashBoar.route) {
                             DashBoarPage(
@@ -160,7 +172,8 @@ import kotlinx.coroutines.launch
 
                     // ====== 看板 Tab ======
                     navigation(
-                        startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route
+                        startDestination = RoutePath.DashboardHome.route,
+                        route = RoutePath.DashboardGraph.route
                     ) {
                         composable(RoutePath.DashboardHome.route) {
                             Text(
@@ -173,7 +186,8 @@ import kotlinx.coroutines.launch
 
                     // ====== 衣橱 Tab ======
                     navigation(
-                        startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route
+                        startDestination = RoutePath.ClosetHome.route,
+                        route = RoutePath.ClosetGraph.route
                     ) {
                         composable(RoutePath.ClosetHome.route) {
                             ClosetHomePage(
@@ -181,7 +195,8 @@ import kotlinx.coroutines.launch
                             )
                         }
                         composable(
-                            route = "${RoutePath.AddCloset.route}?imagePath={imagePath}", arguments = listOf(navArgument("imagePath") {
+                            route = "${RoutePath.AddCloset.route}?imagePath={imagePath}",
+                            arguments = listOf(navArgument("imagePath") {
                                 type = NavType.StringType
                             })
                         ) {
@@ -199,14 +214,21 @@ import kotlinx.coroutines.launch
                                 modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
-                        composable(RoutePath.AddColor.route) {
+                        composable(
+                            "${RoutePath.AddColor.route}?colorId={colorId}",
+                            arguments = listOf(navArgument("colorId") {
+                                type = NavType.IntType
+                            })
+                        ) {
                             AddColorPage(
                                 modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
 
+
                         composable(
-                            "${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}", arguments = listOf(navArgument("categoryEntity") {
+                            "${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}",
+                            arguments = listOf(navArgument("categoryEntity") {
                                 type = NavType.StringType
                             })
                         ) {
@@ -233,7 +255,8 @@ import kotlinx.coroutines.launch
                         }
 
                         composable(
-                            "${RoutePath.WatchAndEditCloset.route}?closetId={closetId}", arguments = listOf(navArgument("closetId") {
+                            "${RoutePath.WatchAndEditCloset.route}?closetId={closetId}",
+                            arguments = listOf(navArgument("closetId") {
                                 type = NavType.IntType
                             })
                         ) {
@@ -247,7 +270,8 @@ import kotlinx.coroutines.launch
 
                     // ====== 囤货 Tab ======
                     navigation(
-                        startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route
+                        startDestination = RoutePath.StockHome.route,
+                        route = RoutePath.StockGraph.route
                     ) {
                         composable(RoutePath.StockHome.route) {
                             StockHomePage(
@@ -255,7 +279,8 @@ import kotlinx.coroutines.launch
                             )
                         }
                         composable(
-                            route = "${RoutePath.AddStock.route}?imagePath={imagePath}", arguments = listOf(navArgument("imagePath") {
+                            route = "${RoutePath.AddStock.route}?imagePath={imagePath}",
+                            arguments = listOf(navArgument("imagePath") {
                                 type = NavType.StringType
                             })
                         ) {
@@ -265,7 +290,8 @@ import kotlinx.coroutines.launch
                         }
 
                         composable(
-                            "${RoutePath.WatchAndEditStock.route}?stockId={stockId}", arguments = listOf(navArgument("stockId") {
+                            "${RoutePath.WatchAndEditStock.route}?stockId={stockId}",
+                            arguments = listOf(navArgument("stockId") {
                                 type = NavType.IntType
                             })
                         ) {
@@ -294,8 +320,11 @@ import kotlinx.coroutines.launch
                         )
                     }
                     composable(
-                        "${RoutePath.EditSubCategory.route}?categoryId={categoryId}", arguments = listOf(navArgument("categoryId") {
+                        "${RoutePath.EditSubCategory.route}?categoryId={categoryId}&categoryName={categoryName}",
+                        arguments = listOf(navArgument("categoryId") {
                             type = NavType.IntType
+                        }, navArgument("categoryName") {
+                            type = NavType.StringType
                         })
                     ) {
                         EditSubCategoryPage(
@@ -307,15 +336,19 @@ import kotlinx.coroutines.launch
 
             if (isTabRoute) {
                 // 确保在有手势导航的设备上留出安全区
-                CustomBottomBar(modifier = Modifier.navigationBarsPadding(), selectedTab = selectedTab, onTabClick = { tab ->
-                    navController.navigate(tab.route) {
-                        launchSingleTop = true
-                        restoreState = true
-                        popUpTo(navController.graph.id) { saveState = true }
-                    }
-                }, onQuickAddClick = {
-                    navController.navigate(RoutePath.QuickAdd.route)
-                })
+                CustomBottomBar(
+                    modifier = Modifier.navigationBarsPadding(),
+                    selectedTab = selectedTab,
+                    onTabClick = { tab ->
+                        navController.navigate(tab.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                            popUpTo(navController.graph.id) { saveState = true }
+                        }
+                    },
+                    onQuickAddClick = {
+                        navController.navigate(RoutePath.QuickAdd.route)
+                    })
             }
         }
     }
@@ -329,7 +362,8 @@ import kotlinx.coroutines.launch
  * @param navController 导航控制器
  * @param defaultTab 默认选中的 Tab（通常为首页）
  */
-@Composable private fun rememberSelectedTab(
+@Composable
+private fun rememberSelectedTab(
     navController: NavController, defaultTab: String = RoutePath.BookGraph.route
 ): Pair<String, Boolean> {
     val currentEntry by navController.currentBackStackEntryAsState()
@@ -343,13 +377,16 @@ import kotlinx.coroutines.launch
     }
     isTabRoute = currentRoute in tabRootRoutes
     Log.d(
-        "HomeBookApp", "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute"
+        "HomeBookApp",
+        "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute"
     )
 
     return Pair(selectedTab, isTabRoute)
 }
 
-@Composable @Preview(showBackground = true) private fun HomeBookAppPreview() {
+@Composable
+@Preview(showBackground = true)
+private fun HomeBookAppPreview() {
     HomeBookTheme {
         HomeBookApp()
     }

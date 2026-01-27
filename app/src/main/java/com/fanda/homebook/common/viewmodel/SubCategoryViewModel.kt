@@ -19,13 +19,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class SubCategoryViewModel(savedStateHandle: SavedStateHandle, private val categoryRepository: CategoryRepository) : ViewModel() {
+class SubCategoryViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val categoryRepository: CategoryRepository
+) : ViewModel() {
 
     private val categoryId: Int = savedStateHandle["categoryId"] ?: 1
+    private val categoryName: String = savedStateHandle["categoryName"] ?: ""
 
-    val categories: StateFlow<List<SubCategoryEntity>> = categoryRepository.getSubItemsById(categoryId).stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
-    )
+    val categories: StateFlow<List<SubCategoryEntity>> =
+        categoryRepository.getSubItemsById(categoryId).stateIn(
+            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+        )
 
     private val _uiState = MutableStateFlow(SubCategoryUiState())
 
@@ -33,7 +38,12 @@ class SubCategoryViewModel(savedStateHandle: SavedStateHandle, private val categ
 
     init {
         viewModelScope.launch {
-            _uiState.update { it.copy(addEntity = it.addEntity.copy(categoryId = categoryId)) }
+            _uiState.update {
+                it.copy(
+                    addEntity = it.addEntity.copy(categoryId = categoryId),
+                    categoryName = categoryName
+                )
+            }
         }
     }
 

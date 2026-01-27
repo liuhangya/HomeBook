@@ -29,10 +29,10 @@ enum class RenameOrDeleteType {
     DELETE
 }
 
-@Composable fun RenameOrDeleteBottomSheet(modifier: Modifier = Modifier, visible: Boolean, onDismiss: () -> Unit,onConfirm: (RenameOrDeleteType) -> Unit) {
+@Composable fun RenameOrDeleteBottomSheet(modifier: Modifier = Modifier,firstMenuText: String = "重命名",secondMenuText: String = "删除", visible: Boolean, onDismiss: () -> Unit,onConfirm: (RenameOrDeleteType) -> Unit) {
     CustomBottomSheet(visible = visible, onDismiss = onDismiss) {
         Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(text = "重命名", fontSize = 16.sp, color = Color.Black, textAlign = TextAlign.Center, modifier = Modifier
+            Text(text = firstMenuText, fontSize = 16.sp, color = Color.Black, textAlign = TextAlign.Center, modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
                     onConfirm(RenameOrDeleteType.RENAME)
@@ -43,7 +43,7 @@ enum class RenameOrDeleteType {
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
             )
-            Text(text = "删除", fontSize = 16.sp, color = colorResource(id = R.color.color_FF2822), fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, modifier = Modifier
+            Text(text = secondMenuText, fontSize = 16.sp, color = colorResource(id = R.color.color_FF2822), fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
                     onConfirm(RenameOrDeleteType.DELETE)

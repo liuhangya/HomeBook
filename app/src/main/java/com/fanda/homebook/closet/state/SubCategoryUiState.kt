@@ -10,4 +10,5 @@ data class SubCategoryUiState(
     val addEntity: SubCategoryEntity = SubCategoryEntity(
         name = "", categoryId = 1
     ),
+    val categoryName: String = "子分类管理"// 父分类的名称
 )

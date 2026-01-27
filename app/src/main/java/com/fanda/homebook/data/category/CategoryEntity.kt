@@ -35,7 +35,7 @@ data class SubCategoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, // 子分类的ID，自动生成
     val name: String, // 子分类的名称
     val sortOrder: Int = 0, // 排序序号，默认为0
-    val categoryId: Int // 所属分类的ID
+    val categoryId: Int ,// 所属分类的ID
 )
 
 /**

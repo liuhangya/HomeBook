@@ -43,6 +43,7 @@ import com.fanda.homebook.components.HSVColorPicker
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.common.viewmodel.ColorTypeViewModel
+import com.fanda.homebook.tools.LogUtils
 
 @Composable
 fun AddColorPage(
@@ -58,15 +59,23 @@ fun AddColorPage(
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopIconAppBar(
-            title = "添加颜色",
+            title = if (uiState.entity != null) "编辑颜色" else "添加颜色",
             onBackClick = {
                 navController.navigateUp()
             },
             rightText = "完成",
             onRightActionClick = {
-                colorTypeViewModel.insertWithAutoOrder{ success ->
-                    if (success){
-                        navController.navigateUp()
+                if (uiState.entity != null) {
+                    colorTypeViewModel.updateEntityDatabase { success ->
+                        if (success) {
+                            navController.navigateUp()
+                        }
+                    }
+                } else {
+                    colorTypeViewModel.insertWithAutoOrder { success ->
+                        if (success) {
+                            navController.navigateUp()
+                        }
                     }
                 }
             },
@@ -90,17 +99,30 @@ fun AddColorPage(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 EditColorNameWidget(
-                    name = uiState.addEntity.name,
-                    color = Color(uiState.addEntity.color)
+                    name = if (uiState.entity != null) uiState.entity!!.name else uiState.addEntity.name,
+                    color = if (uiState.entity != null) Color(uiState.entity!!.color) else Color(
+                        uiState.addEntity.color
+                    )
                 ) {
-                    colorTypeViewModel.updateAddEntity(it)
+                    if (uiState.entity != null) {
+                        colorTypeViewModel.updateEntity(it)
+                    } else {
+                        colorTypeViewModel.updateAddEntity(it)
+                    }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
 
                 HSVColorPicker(
-                    initialColor = Color(uiState.addEntity.color),
+                    initialColor = if (uiState.entity != null) Color(uiState.entity!!.color) else Color(
+                        uiState.addEntity.color
+                    ),
                     onColorSelected = {
-                        colorTypeViewModel.updateAddEntity(it.toArgb().toLong())
+                        LogUtils.d("HSVColorPicker", "onColorSelected: $it")
+                        if (uiState.entity != null) {
+                            colorTypeViewModel.updateEntity(it.toArgb().toLong())
+                        } else {
+                            colorTypeViewModel.updateAddEntity(it.toArgb().toLong())
+                        }
                     })
             }
         }

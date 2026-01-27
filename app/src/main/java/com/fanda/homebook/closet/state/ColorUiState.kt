@@ -7,7 +7,6 @@ import com.fanda.homebook.data.color.ColorTypeEntity
 data class ColorUiState(
     val entity: ColorTypeEntity? = null,
     val renameOrDeleteBottomSheet: Boolean = false,
-    val editDialog: Boolean = false,
     val addEntity: ColorTypeEntity = ColorTypeEntity(
         name = "",
         color = Color.Green.toArgb().toLong()
