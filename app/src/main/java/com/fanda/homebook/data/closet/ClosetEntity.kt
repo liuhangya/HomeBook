@@ -98,6 +98,7 @@ data class AddClosetEntity(
     val wearCount: Int = 1,
     val price: String = "",
     val categoryId: Int? = null,
+    val createDate: Long = System.currentTimeMillis(),
     val subCategoryId: Int? = null,
     val moveToTrash: Boolean = false
 )

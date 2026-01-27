@@ -2,6 +2,8 @@ package com.fanda.homebook.data
 
 import com.fanda.homebook.R
 import com.fanda.homebook.data.closet.CategoryBottomMenuEntity
+import com.fanda.homebook.data.stock.StockMenuEntity
+import com.fanda.homebook.data.stock.StockStatusEntity
 import com.fanda.homebook.entity.AmountItemEntity
 import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.DailyAmountEntity
@@ -215,38 +217,14 @@ object LocalDataSource {
     val closetCategoryBottomMenuList = listOf(
         CategoryBottomMenuEntity("全选", R.mipmap.icon_bottom_all_select, ShowBottomSheetType.ALL_SELECTED),
         CategoryBottomMenuEntity("复制", R.mipmap.icon_bottom_copy, ShowBottomSheetType.COPY),
-        CategoryBottomMenuEntity("移动", R.mipmap.icon_bottom_move, ShowBottomSheetType.MOVE), CategoryBottomMenuEntity("删除", R.mipmap.icon_bottom_delete, ShowBottomSheetType.DELETE)
+        CategoryBottomMenuEntity("移动", R.mipmap.icon_bottom_move, ShowBottomSheetType.MOVE),
+        CategoryBottomMenuEntity("删除", R.mipmap.icon_bottom_delete, ShowBottomSheetType.DELETE)
 
     )
 
-    // 囤货状态菜单列表
-    val stockStateList = listOf(
-        StateMenuEntity(1, "全部", 100), StateMenuEntity(2, "使用中", 200), StateMenuEntity(3, "未开封", 10), StateMenuEntity(4, "已用完", 20)
+    val stockMenuList = listOf(
+        StockMenuEntity("编辑商品", ShowBottomSheetType.EDIT), StockMenuEntity("删除商品", ShowBottomSheetType.DELETE), StockMenuEntity("复制商品", ShowBottomSheetType.COPY)
     )
-
-    val stockGridList = mutableListOf<StockGridEntity>().apply {
-        repeat(3) {
-            add(
-                StockGridEntity(
-                    name = "潘婷3分钟奇迹发膜$it", "洁面", "", 10, "剩余2年以上", "50g", StockState.USING
-                )
-            )
-        }
-        repeat(3) {
-            add(
-                StockGridEntity(
-                    name = "潘婷3分钟奇迹发膜$it", "洁面", "", 10, "剩余2年以上", "50g", StockState.NOT_OPEN
-                )
-            )
-        }
-        repeat(3) {
-            add(
-                StockGridEntity(
-                    name = "潘婷3分钟奇迹发膜$it", "洁面", "", 10, "剩余2年以上", "50g", StockState.USED_UP
-                )
-            )
-        }
-    }
 
     val remainData = listOf(
         "空瓶",

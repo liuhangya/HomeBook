@@ -56,6 +56,7 @@ import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
+import com.fanda.homebook.data.stock.StockStatusEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.entity.StateMenuEntity
 import com.fanda.homebook.route.RoutePath
@@ -74,17 +75,18 @@ import com.fanda.homebook.tools.LogUtils
     //  记录上次的返回时间
     var lastBackPressed by remember { mutableLongStateOf(0L) }
 
-    var curStateMenu by remember { mutableStateOf(LocalDataSource.stockStateList.first()) }
-
     val uiState by stockHomeViewModel.uiState.collectAsState()
-
+    val rackUiState by stockHomeViewModel.rackUiState.collectAsState()
     val curSelectRack by stockHomeViewModel.curSelectRack.collectAsState()
-
     val rackSubCategoryList by stockHomeViewModel.rackSubCategoryList.collectAsState()
+    val stocks by stockHomeViewModel.stocks.collectAsState()
+    val stockStatusCounts by stockHomeViewModel.stockStatusCounts.collectAsState()
 
-    LogUtils.d("rackSubCategoryList： ${rackSubCategoryList.size}")
+//    LogUtils.d("rackSubCategoryList： ${rackSubCategoryList.size}")
 
-    LogUtils.d("uiState: $uiState")
+    LogUtils.i("stockStatusCounts: $stockStatusCounts")
+
+    LogUtils.i("uiState: $uiState")
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopAppBar(
@@ -147,16 +149,18 @@ import com.fanda.homebook.tools.LogUtils
         )
     }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            StateMenu(curMenuEntity = curStateMenu) {
-                curStateMenu = it
+            StateMenu(data = rackUiState.statusList, curMenuEntity = uiState.curSelectUseStatus) {
+                stockHomeViewModel.updateSelectedUseStatus(it)
             }
             LabelMenu(list = rackSubCategoryList, selectedRackCategory = uiState.curSelectRackSubCategory) {
                 stockHomeViewModel.updateSelectedSubRackCategory(it)
-                LogUtils.i("LabelMenu", "点击了标签 $it")
+                LogUtils.i("点击了标签 $it")
             }
 
-            StockGridWidget {
-
+            StockGridWidget(data = stocks) {
+                LogUtils.i("点击了囤货： $it")
+                // 跳转到详细页面
+                navController.navigate("${RoutePath.WatchAndEditStock.route}?stockId=${it.stock.id}")
             }
         }
 
@@ -171,13 +175,13 @@ import com.fanda.homebook.tools.LogUtils
 
 }
 
-@Composable fun StateMenu(modifier: Modifier = Modifier, curMenuEntity: StateMenuEntity, onMenuChange: (StateMenuEntity) -> Unit) {
+@Composable fun StateMenu(modifier: Modifier = Modifier, data: List<StockStatusEntity>, curMenuEntity: StockStatusEntity, onMenuChange: (StockStatusEntity) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
+            .padding(horizontal = 8.dp)
     ) {
-        LocalDataSource.stockStateList.forEach {
+        data.forEach {
             Text(
                 text = "${it.name}(${it.count})",
                 modifier = Modifier
@@ -186,8 +190,8 @@ import com.fanda.homebook.tools.LogUtils
                         onMenuChange(it)
                     },
                 textAlign = TextAlign.Center,
-                color = if (it.id == curMenuEntity.id) Color.Black else colorResource(id = R.color.color_83878C),
-                fontWeight = if (it.id == curMenuEntity.id) FontWeight.Medium else FontWeight.Normal,
+                color = if (it.name == curMenuEntity.name) Color.Black else colorResource(id = R.color.color_83878C),
+                fontWeight = if (it.name == curMenuEntity.name) FontWeight.Medium else FontWeight.Normal,
                 fontSize = 14.sp
             )
         }
@@ -195,11 +199,18 @@ import com.fanda.homebook.tools.LogUtils
 }
 
 @Composable fun LabelMenu(modifier: Modifier = Modifier, list: List<RackSubCategoryEntity>, selectedRackCategory: RackSubCategoryEntity?, onLabelChange: (RackSubCategoryEntity) -> Unit) {
-    LazyRow(modifier = modifier.fillMaxWidth().height(60.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         items(list) {
             SelectableRoundedButton(text = it.name, selected = it.id == selectedRackCategory?.id, onClick = {
                 onLabelChange(it)
-            },modifier = Modifier.animateItem())    // 添加 Item 加载的动画
+            }, modifier = Modifier.animateItem())    // 添加 Item 加载的动画
         }
     }
 }

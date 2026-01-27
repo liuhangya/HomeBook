@@ -39,7 +39,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        Toaster.show("欢迎使用")
     }
 
 }

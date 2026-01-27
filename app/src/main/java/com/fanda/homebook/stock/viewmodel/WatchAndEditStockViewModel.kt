@@ -5,11 +5,9 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fanda.homebook.data.category.SubCategoryEntity
 import com.fanda.homebook.data.period.PeriodEntity
 import com.fanda.homebook.data.period.PeriodRepository
 import com.fanda.homebook.data.product.ProductEntity
@@ -17,14 +15,11 @@ import com.fanda.homebook.data.product.ProductRepository
 import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackRepository
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
-import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.data.stock.StockRepository
 import com.fanda.homebook.data.stock.StockUseStatus
 import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.stock.state.AddStockUiState
-import com.fanda.homebook.tools.LogUtils
+import com.fanda.homebook.stock.state.WatchAndEditStockUiState
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
-import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.saveUriToFilesDir
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,16 +27,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class AddStockViewModel(
+class WatchAndEditStockViewModel(
     savedStateHandle: SavedStateHandle,
     private val stockRepository: StockRepository,
     private val rackRepository: RackRepository,
@@ -49,10 +42,10 @@ class AddStockViewModel(
     private val periodRepository: PeriodRepository
 ) : ViewModel() {
 
-    private val imageUri: String = savedStateHandle["imagePath"] ?: ""
+    private val stockId: Int = savedStateHandle["stockId"] ?: -1
 
     // 私有可变对象，用于保存UI状态
-    private val _uiState = MutableStateFlow(AddStockUiState())
+    private val _uiState = MutableStateFlow(WatchAndEditStockUiState())
 
     // 公开只读对象，用于读取UI状态
     val uiState = _uiState.asStateFlow()
@@ -72,9 +65,10 @@ class AddStockViewModel(
 
     init {
         viewModelScope.launch {
-            _uiState.update { it.copy(imageUri = imageUri.toUri()) }
             racks = rackRepository.getItems()
             periods = periodRepository.getTypes()
+            val item = stockRepository.getStockById(stockId)
+            _uiState.update { it.copy(stockEntity = item.stock) }
         }
     }
 
@@ -119,7 +113,11 @@ class AddStockViewModel(
         )
 
 
-    fun updateSheetType(type: ShowBottomSheetType) {
+    fun updateSheetType(type: ShowBottomSheetType,forceShow: Boolean = false) {
+        // 编辑状态才允许切换
+        if (!_uiState.value.isEditState && !forceShow) {
+            return
+        }
         if (type == ShowBottomSheetType.CATEGORY && rackEntity.value == null) {
             Toaster.show("请先选择货架")
             return
@@ -174,7 +172,7 @@ class AddStockViewModel(
     fun updateOpenDate(date: Long) {
         _uiState.update {
             it.copy(
-                stockEntity = it.stockEntity.copy(openDate = date, useStatus = StockUseStatus.USING.code)
+                stockEntity = it.stockEntity.copy(openDate = date)
             )
         }
     }
@@ -235,11 +233,78 @@ class AddStockViewModel(
         }
     }
 
+    fun updateRemain(remain: String) {
+        _uiState.update {
+            it.copy(
+                stockEntity = it.stockEntity.copy(remain = remain)
+            )
+        }
+    }
+
+    fun updateFeel(feel: String) {
+        _uiState.update {
+            it.copy(
+                stockEntity = it.stockEntity.copy(feel = feel)
+            )
+        }
+    }
+
+    fun updateUsedUpDate(date: Long) {
+        _uiState.update {
+            it.copy(
+                stockEntity = it.stockEntity.copy(usedDate = date)
+            )
+        }
+    }
+
     fun updateImageUrl(imageUri: Uri) {
         _uiState.update { it.copy(imageUri = imageUri) }
     }
 
-    fun saveStockEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
+    fun updateEditState(state: Boolean) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isEditState = state,
+                )
+            }
+        }
+    }
+
+    fun deleteEntityDatabase(onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            stockRepository.delete(uiState.value.stockEntity)
+            onResult(true)
+        }
+    }
+
+    fun copyEntityDatabase(onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            stockRepository.insert(uiState.value.stockEntity.copy(id = 0))
+            onResult(true)
+        }
+    }
+
+    fun updateUseStatus(context: Context, status: StockUseStatus) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    stockEntity = it.stockEntity.copy(useStatus = status.code)
+                )
+            }
+            updateStockEntityDatabase(context)
+        }
+    }
+
+    fun updateUsedUpDateSelectDialog(show: Boolean){
+        _uiState.update {
+            it.copy(
+                showUsedUpDateSelectDialog = show
+            )
+        }
+    }
+
+    fun updateStockEntityDatabase(context: Context, onResult: (Boolean) -> Unit = {}) {
         val entity = uiState.value.stockEntity
         if (entity.name.isEmpty()) {
             Toaster.show("请输入名称")
@@ -249,9 +314,13 @@ class AddStockViewModel(
             Toaster.show("请选择类别")
         } else {
             viewModelScope.launch {
-                val imageFile = saveUriToFilesDir(context, uiState.value.imageUri!!)
-                stockRepository.insert(entity.copy(imageLocalPath = imageFile?.absolutePath ?: "", createDate = System.currentTimeMillis()))
-                Toaster.show("保存成功")
+                if (_uiState.value.imageUri != null) {
+                    // 更换了图片
+                    val imageFile = saveUriToFilesDir(context, _uiState.value.imageUri!!)
+                    stockRepository.update(entity.copy(imageLocalPath = imageFile?.absolutePath ?: ""))
+                } else {
+                    stockRepository.update(entity)
+                }
                 onResult(true)
             }
         }

@@ -62,6 +62,7 @@ import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
 import com.fanda.homebook.stock.AddStockPage
 import com.fanda.homebook.stock.StockHomePage
+import com.fanda.homebook.stock.WatchAndEditStockPage
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.launch
@@ -259,6 +260,16 @@ import kotlinx.coroutines.launch
                             })
                         ) {
                             AddStockPage(
+                                modifier = Modifier.fillMaxSize(), navController = navController
+                            )
+                        }
+
+                        composable(
+                            "${RoutePath.WatchAndEditStock.route}?stockId={stockId}", arguments = listOf(navArgument("stockId") {
+                                type = NavType.IntType
+                            })
+                        ) {
+                            WatchAndEditStockPage(
                                 modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }

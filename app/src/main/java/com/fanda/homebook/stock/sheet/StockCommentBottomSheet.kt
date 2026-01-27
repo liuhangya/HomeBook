@@ -13,6 +13,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,7 +58,6 @@ fun StockCommentBottomSheet(
         ) {
             SheetTitleWidget(title = "用完了") {
                 onConfirm()
-                onDismiss()
             }
             ItemOptionMenu(
                 title = "用完日期",

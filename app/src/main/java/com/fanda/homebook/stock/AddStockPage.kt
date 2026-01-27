@@ -55,6 +55,7 @@ import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.stock.ui.StockInfoScreen
 import com.fanda.homebook.stock.viewmodel.AddStockViewModel
+import com.fanda.homebook.tools.DATE_FORMAT_YMD
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
@@ -167,9 +168,9 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         product = product?.name ?: "",
                         usagePeriod = period?.name ?: "",
                         shelfMonth = uiState.stockEntity.shelfMonth,
-                        date = convertMillisToDate(uiState.stockEntity.buyDate, "yyyy-MM-dd"),
-                        openDate =  convertMillisToDate(uiState.stockEntity.openDate, "yyyy-MM-dd"),
-                        expireDate = convertMillisToDate(uiState.stockEntity.expireDate, "yyyy-MM-dd"),
+                        date = convertMillisToDate(uiState.stockEntity.buyDate, DATE_FORMAT_YMD),
+                        openDate =  convertMillisToDate(uiState.stockEntity.openDate, DATE_FORMAT_YMD),
+                        expireDate = convertMillisToDate(uiState.stockEntity.expireDate, DATE_FORMAT_YMD),
                         syncBook = uiState.stockEntity.syncBook,
                         price = uiState.stockEntity.price,
                         onCheckedChange = {

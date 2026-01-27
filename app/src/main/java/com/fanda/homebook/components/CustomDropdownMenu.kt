@@ -31,6 +31,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import com.fanda.homebook.R
 @Composable fun CustomDropdownMenu(
     dpOffset: DpOffset,
     modifier: Modifier = Modifier,
+    width : Dp = 136.dp,
     expanded: Boolean, onDismissRequest: () -> Unit, content: @Composable ColumnScope.() -> Unit,
 ) {
     if (expanded) {
@@ -70,7 +72,7 @@ import com.fanda.homebook.R
             // 渐变背景 + 圆角容器
             Column(
                 modifier = modifier
-                    .width(136.dp)
+                    .width(width)
                     .shadow(8.dp, shape = RoundedCornerShape(16.dp))
                     .background(
                         brush = Brush.verticalGradient(
@@ -109,11 +111,26 @@ import com.fanda.homebook.R
     }
 
 }
+// 自定义菜单项
+@Composable fun MenuCenterItem(text: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text, color = Color.Black, fontSize = 14.sp, style = TextStyle.Default, modifier = Modifier
+
+                .padding(horizontal = 16.dp, vertical = 9.dp)
+        )
+    }
+
+}
 
 @Composable @Preview(showBackground = true) fun CustomGradientDropdownMenuPreview() {
     CustomDropdownMenu(dpOffset = DpOffset(0.dp, 0.dp), expanded = true, onDismissRequest = {}) {
-        MenuItem(text = "菜单项1", selected = true) {}
-        MenuItem(text = "菜单项2", selected = false) {}
-        MenuItem(text = "菜单项3", selected = false) {}
+        MenuCenterItem(text = "菜单项1") {}
+        MenuCenterItem(text = "菜单项2") {}
+        MenuCenterItem(text = "菜单项3") {}
     }
 }

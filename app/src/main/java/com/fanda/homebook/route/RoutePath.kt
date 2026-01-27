@@ -30,6 +30,8 @@ sealed class RoutePath(val route: String) {
 
     data object StockHome : RoutePath("stock_graph/stock_home")
 
+    data object WatchAndEditStock : RoutePath("stock_graph/watch_and_edit_stock")
+
     data object AddStock : RoutePath("stock_graph/add_stock")
 
     // 全局页面（不属于任何 Tab）

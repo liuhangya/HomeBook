@@ -1,11 +1,13 @@
 package com.fanda.homebook.closet
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +46,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
+import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.closet.ui.ClosetInfoScreen
 import com.fanda.homebook.closet.viewmodel.WatchAndEditClosetViewModel
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
@@ -60,28 +64,29 @@ import com.fanda.homebook.quick.sheet.GridBottomSheet
 import com.fanda.homebook.quick.sheet.ListBottomSheet
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.tools.DATE_FORMAT_YMD
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import com.hjq.toast.Toaster
 
 @Composable fun WatchAndEditClosetPage(
-    modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: WatchAndEditClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+    modifier: Modifier = Modifier, navController: NavController, closetViewModel: WatchAndEditClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     // 通过 ViewModel 状态管理进行数据绑定
-    val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
-    val colorTypes by addClosetViewModel.colorTypes.collectAsState()
-    val products by addClosetViewModel.products.collectAsState()
-    val sizes by addClosetViewModel.sizes.collectAsState()
-    val categories by addClosetViewModel.categories.collectAsState()
+    val addClosetUiState by closetViewModel.addClosetUiState.collectAsState()
+    val colorTypes by closetViewModel.colorTypes.collectAsState()
+    val products by closetViewModel.products.collectAsState()
+    val sizes by closetViewModel.sizes.collectAsState()
+    val categories by closetViewModel.categories.collectAsState()
 
-    val colorType by addClosetViewModel.colorType.collectAsState()
-    val season by addClosetViewModel.season.collectAsState()
-    val product by addClosetViewModel.product.collectAsState()
-    val size by addClosetViewModel.size.collectAsState()
-    val owner by addClosetViewModel.owner.collectAsState()
-    val category by addClosetViewModel.category.collectAsState()
-    val subCategory by addClosetViewModel.subCategory.collectAsState()
+    val colorType by closetViewModel.colorType.collectAsState()
+    val season by closetViewModel.season.collectAsState()
+    val product by closetViewModel.product.collectAsState()
+    val size by closetViewModel.size.collectAsState()
+    val owner by closetViewModel.owner.collectAsState()
+    val category by closetViewModel.category.collectAsState()
+    val subCategory by closetViewModel.subCategory.collectAsState()
 
     LogUtils.d("category: $category")
     LogUtils.d("subCategory: $subCategory")
@@ -90,22 +95,37 @@ import com.hjq.toast.Toaster
     // 获取焦点管理器
     val focusManager = LocalFocusManager.current
 
+    val context = LocalContext.current
+
+
+    BackHandler {
+        if (addClosetUiState.isEditState) {
+            closetViewModel.updateEditState(false)
+            Toaster.show("已退出编辑状态")
+        } else {
+            navController.navigateUp()
+        }
+    }
+
+
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), floatingActionButton = {
         AnimatedVisibility(
-            visible = !addClosetUiState.isEditState , enter = fadeIn() + scaleIn(), exit = fadeOut() + scaleOut()
+            visible = !addClosetUiState.isEditState, enter = fadeIn() + scaleIn(), exit = fadeOut() + scaleOut()
         ) {
             FloatingActionButton(
                 containerColor = Color.Black, contentColor = Color.White, onClick = {
-                    if (addClosetUiState.closetEntity.moveToTrash){
-                        addClosetViewModel.toggleMoveToTrash(false)
+                    if (addClosetUiState.closetEntity.moveToTrash) {
+                        closetViewModel.toggleMoveToTrash(context, false)
                         Toaster.show("从垃圾桶恢复啦")
-                    }else{
-                        addClosetViewModel.toggleMoveToTrash(true)
+                    } else {
+                        closetViewModel.toggleMoveToTrash(context, true)
                         Toaster.show("移动到垃圾桶啦")
                     }
 
-                }, modifier = Modifier.padding(5.dp)
+                }, modifier = Modifier
+                    .padding(5.dp)
+                    .size(60.dp)
             ) {
                 Text(text = if (addClosetUiState.closetEntity.moveToTrash) "恢复" else "不穿了")
             }
@@ -125,13 +145,14 @@ import com.hjq.toast.Toaster
             },
             onRightActionClick = {
                 if (addClosetUiState.isEditState) {
-                    addClosetViewModel.updateClosetEntityDatabase {
+                    closetViewModel.updateClosetEntityDatabase(context) {
                         focusManager.clearFocus()
                         navController.navigateUp()
                         Toaster.show("编辑成功")
                     }
                 } else {
-                    addClosetViewModel.updateEditState(true)
+                    closetViewModel.updateEditState(true)
+                    Toaster.show("已开启编辑状态")
                 }
             },
             backIconPainter = painterResource(R.mipmap.icon_back),
@@ -160,7 +181,7 @@ import com.hjq.toast.Toaster
                 ) {
                     AsyncImage(
                         contentScale = ContentScale.Crop,
-                        model = addClosetUiState.closetEntity.imageLocalPath,
+                        model = addClosetUiState.imageUri ?: addClosetUiState.closetEntity.imageLocalPath,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -168,7 +189,9 @@ import com.hjq.toast.Toaster
                             .padding(horizontal = 20.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color.White)
-                    )
+                            .clickable {
+                                closetViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
+                            })
 
                     Spacer(modifier = Modifier.height(20.dp))
                     GradientRoundedBoxWithStroke {
@@ -178,13 +201,13 @@ import com.hjq.toast.Toaster
                                 .padding(start = 20.dp, end = 20.dp)
                         ) {
                             focusManager.clearFocus()
-                            addClosetViewModel.updateSheetType(ShowBottomSheetType.OWNER)
+                            closetViewModel.updateSheetType(ShowBottomSheetType.OWNER)
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     WearCountAndCost(addClosetUiState.closetEntity.price, addClosetUiState.closetEntity.wearCount) {
                         focusManager.clearFocus()
-                        addClosetViewModel.plusClosetWearCount()
+                        closetViewModel.plusClosetWearCount(context)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     ClosetInfoScreen(
@@ -194,35 +217,35 @@ import com.hjq.toast.Toaster
                         product = product?.name ?: "",
                         color = colorType?.color ?: -1,
                         season = season?.name ?: "",
-                        date = convertMillisToDate(addClosetUiState.closetEntity.date, "yyyy-MM-dd"),
+                        date = convertMillisToDate(addClosetUiState.closetEntity.date, DATE_FORMAT_YMD),
                         syncBook = addClosetUiState.closetEntity.syncBook,
                         size = size?.name ?: "",
                         isEditState = addClosetUiState.isEditState,
                         price = addClosetUiState.closetEntity.price,
                         onCheckedChange = {
-                            addClosetViewModel.updateClosetSyncBook(it)
+                            closetViewModel.updateClosetSyncBook(it)
                             LogUtils.d("同步至当日账单： $it")
                         },
                         onBottomCommentChange = {
-                            addClosetViewModel.updateClosetComment(it)
+                            closetViewModel.updateClosetComment(it)
                         },
                         onPriceChange = {
-                            addClosetViewModel.updateClosetPrice(it)
+                            closetViewModel.updateClosetPrice(it)
                         },
                         onClick = {
-                            addClosetViewModel.updateSheetType(it)
+                            closetViewModel.updateSheetType(it)
                         })
                 }
             }
         }
     }
 
-    if (addClosetViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
+    if (closetViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
         // 日期选择器
         CustomDatePickerModal(onDateSelected = {
-            addClosetViewModel.updateClosetDate(it ?: System.currentTimeMillis())
+            closetViewModel.updateClosetDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
-            addClosetViewModel.dismissBottomSheet()
+            closetViewModel.dismissBottomSheet()
         })
     }
 
@@ -230,80 +253,81 @@ import com.hjq.toast.Toaster
         initial = product,
         title = "品牌",
         dataSource = products,
-        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.PRODUCT) },
+        visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.PRODUCT) },
         displayText = { it.name },
-        onDismiss = { addClosetViewModel.dismissBottomSheet() },
+        onDismiss = { closetViewModel.dismissBottomSheet() },
         onSettingClick = {
-            addClosetViewModel.dismissBottomSheet()
+            closetViewModel.dismissBottomSheet()
             navController.navigate(RoutePath.EditProduct.route)
         }) {
-        addClosetViewModel.updateClosetProduct(it)
+        closetViewModel.updateClosetProduct(it)
     }
 
     ListBottomSheet<OwnerEntity>(
         initial = owner,
         title = "归属",
-        dataSource = addClosetViewModel.owners,
-        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.OWNER) },
+        dataSource = closetViewModel.owners,
+        visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.OWNER) },
         displayText = { it.name },
-        onDismiss = { addClosetViewModel.dismissBottomSheet() }) {
-        addClosetViewModel.updateClosetOwner(it)
+        onDismiss = { closetViewModel.dismissBottomSheet() }) {
+        closetViewModel.updateClosetOwner(it)
     }
 
     GridBottomSheet<SizeEntity>(
         initial = size,
         title = "尺码",
         dataSource = sizes,
-        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.SIZE) },
+        visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.SIZE) },
         displayText = { it.name },
         dpSize = DpSize(52.dp, 36.dp),
         column = GridCells.Fixed(5),
-        onDismiss = { addClosetViewModel.dismissBottomSheet() },
+        onDismiss = { closetViewModel.dismissBottomSheet() },
         onSettingClick = {
-            addClosetViewModel.dismissBottomSheet()
+            closetViewModel.dismissBottomSheet()
             navController.navigate(RoutePath.EditSize.route)
         }) {
-        addClosetViewModel.updateClosetSize(it)
+        closetViewModel.updateClosetSize(it)
     }
 
     GridBottomSheet<SeasonEntity>(
         initial = season,
         title = "季节",
-        dataSource = addClosetViewModel.seasons,
-        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.SEASON) },
+        dataSource = closetViewModel.seasons,
+        visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.SEASON) },
         displayText = { it.name },
         dpSize = DpSize(66.dp, 36.dp),
         column = GridCells.Fixed(4),
-        onDismiss = { addClosetViewModel.dismissBottomSheet() }) {
-        addClosetViewModel.updateClosetSeason(it)
+        onDismiss = { closetViewModel.dismissBottomSheet() }) {
+        closetViewModel.updateClosetSeason(it)
     }
 
 
-    ColorTypeBottomSheet(color = colorType, colorList = colorTypes, visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) }, onDismiss = {
-        addClosetViewModel.dismissBottomSheet()
+    ColorTypeBottomSheet(color = colorType, colorList = colorTypes, visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) }, onDismiss = {
+        closetViewModel.dismissBottomSheet()
     }, onConfirm = {
-        addClosetViewModel.updateClosetColor(it)
+        closetViewModel.updateClosetColor(it)
     }, onSettingClick = {
-        addClosetViewModel.dismissBottomSheet()
+        closetViewModel.dismissBottomSheet()
         navController.navigate(RoutePath.EditColor.route)
     })
 
-    CategoryBottomSheet(
-        categories = categories,
-        categoryEntity = category,
-        subCategoryEntity = subCategory,
-        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY) },
-        onDismiss = {
-            addClosetViewModel.dismissBottomSheet()
-        },
-        onSettingClick = {
-            addClosetViewModel.dismissBottomSheet()
-            navController.navigate(RoutePath.EditCategory.route)
-        },
-        onConfirm = { category, subCategory ->
-            LogUtils.i("选中的分类： $category, $subCategory")
-            addClosetViewModel.updateSelectedCategory(category, subCategory)
-        })
+    CategoryBottomSheet(categories = categories, categoryEntity = category, subCategoryEntity = subCategory, visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY) }, onDismiss = {
+        closetViewModel.dismissBottomSheet()
+    }, onSettingClick = {
+        closetViewModel.dismissBottomSheet()
+        navController.navigate(RoutePath.EditCategory.route)
+    }, onConfirm = { category, subCategory ->
+        LogUtils.i("选中的分类： $category, $subCategory")
+        closetViewModel.updateSelectedCategory(category, subCategory)
+    })
+
+    SelectPhotoBottomSheet(
+        visible = closetViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE), onDismiss = {
+            closetViewModel.dismissBottomSheet()
+        }) {
+        closetViewModel.dismissBottomSheet()
+        closetViewModel.updateImageUrl(it)
+    }
 
 
 }

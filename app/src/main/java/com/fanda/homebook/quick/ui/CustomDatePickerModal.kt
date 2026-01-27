@@ -25,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
+import com.fanda.homebook.tools.convertToLocalMidnight
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,7 +78,14 @@ fun CustomDatePickerModal(
                     Spacer(modifier = Modifier.width(20.dp))
                     FilledTonalButton(
                         onClick = {
-                            onDateSelected(datePickerState.selectedDateMillis)
+                            val selectedMillis = datePickerState.selectedDateMillis
+                            // 转换为本地时区的 0 点时间戳
+                            val localMidnightMillis = if (selectedMillis != null) {
+                                convertToLocalMidnight(selectedMillis)
+                            } else {
+                                null
+                            }
+                            onDateSelected(localMidnightMillis)
                             onDismiss()
                         }, colors = ButtonDefaults.filledTonalButtonColors().copy(
                             containerColor = Color.Black,

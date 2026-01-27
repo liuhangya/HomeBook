@@ -1,6 +1,7 @@
 package com.fanda.homebook.closet.viewmodel
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -78,20 +79,15 @@ class WatchAndEditClosetViewModel(
     }
 
     // 当前选中的颜色
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val colorType: StateFlow<ColorTypeEntity?> =
-        _addClosetUiState.map { it.closetEntity.colorTypeId }
-            .distinctUntilChanged()              // 避免重复 ID 触发
-            .flatMapLatest { id ->     // 每当上游（id）变化，就取消之前的 getItemById 流，启动新的
-                colorTypeRepository.getItemById(id ?: 0)
-            }.stateIn(
-                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-            )
+    @OptIn(ExperimentalCoroutinesApi::class) val colorType: StateFlow<ColorTypeEntity?> = _addClosetUiState.map { it.closetEntity.colorTypeId }.distinctUntilChanged()              // 避免重复 ID 触发
+        .flatMapLatest { id ->     // 每当上游（id）变化，就取消之前的 getItemById 流，启动新的
+            colorTypeRepository.getItemById(id ?: 0)
+        }.stateIn(
+            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+        )
 
     // 当前选中的季节
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val season: StateFlow<SeasonEntity?> = _addClosetUiState.map { it.closetEntity.seasonId }
-        .distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class) val season: StateFlow<SeasonEntity?> = _addClosetUiState.map { it.closetEntity.seasonId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游变化，就取消之前的 getItemById 流，启动新的
             seasonRepository.getSeasonById(id ?: 0)
         }.stateIn(
@@ -99,9 +95,7 @@ class WatchAndEditClosetViewModel(
         )
 
     // 当前选中的产品
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }
-        .distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class) val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
             productRepository.getItemById(id ?: 0)
         }.stateIn(
@@ -109,9 +103,7 @@ class WatchAndEditClosetViewModel(
         )
 
     // 当前选中的尺码
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val size: StateFlow<SizeEntity?> = _addClosetUiState.map { it.closetEntity.sizeId }
-        .distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class) val size: StateFlow<SizeEntity?> = _addClosetUiState.map { it.closetEntity.sizeId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
             sizeRepository.getItemById(id ?: 0)
         }.stateIn(
@@ -119,9 +111,7 @@ class WatchAndEditClosetViewModel(
         )
 
     // 当前选中的归属
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val owner: StateFlow<OwnerEntity?> = _addClosetUiState.map { it.closetEntity.ownerId }
-        .distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class) val owner: StateFlow<OwnerEntity?> = _addClosetUiState.map { it.closetEntity.ownerId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
             ownerRepository.getItemById(id)
         }.stateIn(
@@ -129,9 +119,7 @@ class WatchAndEditClosetViewModel(
         )
 
     // 当前选中的一级分类
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val category: StateFlow<CategoryEntity?> = _addClosetUiState.map { it.closetEntity.categoryId }
-        .distinctUntilChanged()              // 避免重复 ID 触发
+    @OptIn(ExperimentalCoroutinesApi::class) val category: StateFlow<CategoryEntity?> = _addClosetUiState.map { it.closetEntity.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
             categoryRepository.getItemById(id ?: 0)
         }.stateIn(
@@ -139,15 +127,12 @@ class WatchAndEditClosetViewModel(
         )
 
     // 当前选中的二级分类
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val subCategory: StateFlow<SubCategoryEntity?> =
-        _addClosetUiState.map { it.closetEntity.subCategoryId }
-            .distinctUntilChanged()              // 避免重复 ID 触发
-            .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-                categoryRepository.getSubItemById(id ?: -1)
-            }.stateIn(
-                scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
-            )
+    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<SubCategoryEntity?> = _addClosetUiState.map { it.closetEntity.subCategoryId }.distinctUntilChanged()              // 避免重复 ID 触发
+        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+            categoryRepository.getSubItemById(id ?: -1)
+        }.stateIn(
+            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+        )
 
     // 颜色列表
     val colorTypes: StateFlow<List<ColorTypeEntity>> = colorTypeRepository.getItems().stateIn(
@@ -160,10 +145,9 @@ class WatchAndEditClosetViewModel(
     )
 
     // 分类列表
-    val categories: StateFlow<List<CategoryWithSubCategories>> =
-        categoryRepository.getAllItemsWithSub().stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
-        )
+    val categories: StateFlow<List<CategoryWithSubCategories>> = categoryRepository.getAllItemsWithSub().stateIn(
+        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+    )
 
     // 尺码列表
     val sizes: StateFlow<List<SizeEntity>> = sizeRepository.getItems().stateIn(
@@ -244,7 +228,7 @@ class WatchAndEditClosetViewModel(
         }
     }
 
-    fun plusClosetWearCount() {
+    fun plusClosetWearCount(context: Context) {
         _addClosetUiState.update {
             it.copy(
                 closetEntity = it.closetEntity.copy(wearCount = it.closetEntity.wearCount + 1)
@@ -252,7 +236,7 @@ class WatchAndEditClosetViewModel(
         }
         // 实时更新数据库
         viewModelScope.launch {
-            updateClosetEntityDatabase()
+            updateClosetEntityDatabase(context)
         }
     }
 
@@ -285,13 +269,23 @@ class WatchAndEditClosetViewModel(
         _addClosetUiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
     }
 
-    fun updateClosetEntityDatabase(onResult: (Boolean) -> Unit = {}) {
+    fun updateImageUrl(imageUri: Uri) {
+        _addClosetUiState.update { it.copy(imageUri = imageUri) }
+    }
+
+    fun updateClosetEntityDatabase(context: Context, onResult: (Boolean) -> Unit = {}) {
         val entity = addClosetUiState.value.closetEntity
         if (entity.ownerId == 0) {
             Toaster.show("请选择归属")
         } else {
             viewModelScope.launch {
-                closetRepository.update(entity)
+                if (_addClosetUiState.value.imageUri != null) {
+                    // 更换了图片
+                    val imageFile = saveUriToFilesDir(context, _addClosetUiState.value.imageUri!!)
+                    closetRepository.update(entity.copy(imageLocalPath = imageFile?.absolutePath ?: ""))
+                } else {
+                    closetRepository.update(entity)
+                }
                 onResult(true)
             }
         }
@@ -318,7 +312,7 @@ class WatchAndEditClosetViewModel(
         }
     }
 
-    fun toggleMoveToTrash(move: Boolean) {
+    fun toggleMoveToTrash(context: Context, move: Boolean) {
         viewModelScope.launch {
             _addClosetUiState.update {
                 it.copy(
@@ -329,7 +323,7 @@ class WatchAndEditClosetViewModel(
                 updateEditState(false)
             }
             // 更新数据库
-            updateClosetEntityDatabase()
+            updateClosetEntityDatabase(context)
         }
     }
 
