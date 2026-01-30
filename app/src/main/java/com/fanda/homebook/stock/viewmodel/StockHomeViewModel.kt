@@ -160,5 +160,11 @@ class StockHomeViewModel(private val rackRepository: RackRepository, private val
         _uiState.update {
             it.copy(curSelectUseStatus = entity)
         }
+        if (entity.useStatus == StockUseStatus.ALL){
+            // 清空子分类的选择
+            _uiState.update {
+                it.copy(curSelectRackSubCategory = null)
+            }
+        }
     }
 }

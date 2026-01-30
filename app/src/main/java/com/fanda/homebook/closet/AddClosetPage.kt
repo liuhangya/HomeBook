@@ -76,11 +76,8 @@ import kotlinx.coroutines.launch
 /*
 * 添加衣橱页面
 * */
-@Composable
-fun AddClosetPage(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
+@Composable fun AddClosetPage(
+    modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     // 通过 ViewModel 状态管理进行数据绑定
     val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
@@ -90,7 +87,7 @@ fun AddClosetPage(
     val categories by addClosetViewModel.categories.collectAsState()
 
     val colorType by addClosetViewModel.colorType.collectAsState()
-    val season by addClosetViewModel.season.collectAsState()
+    val selectSeasons by addClosetViewModel.selectSeasons.collectAsState()
     val product by addClosetViewModel.product.collectAsState()
     val size by addClosetViewModel.size.collectAsState()
     val owner by addClosetViewModel.owner.collectAsState()
@@ -125,16 +122,12 @@ fun AddClosetPage(
     }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
-                    detectTapGestures(
-                        onTap = { focusManager.clearFocus() },
-                        onDoubleTap = { focusManager.clearFocus() },
-                        onLongPress = { focusManager.clearFocus() })
-                }
-                .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+                detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
+            }
+            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
         ) {
             // 为了让 padding 内容能滑动，所以用 Column 包起来
             Column(
@@ -160,16 +153,12 @@ fun AddClosetPage(
                             .background(Color.White)
                             .clickable {
                                 addClosetViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
-                            }
-                    )
+                            })
 
                     Spacer(modifier = Modifier.height(20.dp))
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
-                            title = "归属",
-                            rightText = owner?.name ?: "",
-                            showText = true,
-                            modifier = Modifier
+                            title = "归属", rightText = owner?.name ?: "", showText = true, modifier = Modifier
                                 .height(64.dp)
                                 .padding(start = 20.dp, end = 20.dp)
                         ) {
@@ -184,10 +173,9 @@ fun AddClosetPage(
                         closetSubCategory = subCategory?.name ?: "",
                         product = product?.name ?: "",
                         color = colorType?.color ?: -1,
-                        season = season?.name ?: "",
+                        season = addClosetViewModel.getSeasonDes(selectSeasons),
                         date = convertMillisToDate(
-                            addClosetUiState.closetEntity.date,
-                            "yyyy-MM-dd"
+                            addClosetUiState.closetEntity.date, "yyyy-MM-dd"
                         ),
                         syncBook = addClosetUiState.closetEntity.syncBook,
                         size = size?.name ?: "",
@@ -260,7 +248,7 @@ fun AddClosetPage(
     }
 
     GridBottomSheet<SeasonEntity>(
-        initial = season,
+        initial = selectSeasons,
         title = "季节",
         dataSource = addClosetViewModel.seasons,
         visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.SEASON) },
@@ -272,20 +260,14 @@ fun AddClosetPage(
     }
 
 
-    ColorTypeBottomSheet(
-        color = colorType,
-        colorList = colorTypes,
-        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) },
-        onDismiss = {
-            addClosetViewModel.dismissBottomSheet()
-        },
-        onConfirm = {
-            addClosetViewModel.updateClosetColor(it)
-        },
-        onSettingClick = {
-            addClosetViewModel.dismissBottomSheet()
-            navController.navigate(RoutePath.EditColor.route)
-        })
+    ColorTypeBottomSheet(color = colorType, colorList = colorTypes, visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) }, onDismiss = {
+        addClosetViewModel.dismissBottomSheet()
+    }, onConfirm = {
+        addClosetViewModel.updateClosetColor(it)
+    }, onSettingClick = {
+        addClosetViewModel.dismissBottomSheet()
+        navController.navigate(RoutePath.EditColor.route)
+    })
 
     CategoryBottomSheet(
         categories = categories,
@@ -305,8 +287,7 @@ fun AddClosetPage(
         })
 
     SelectPhotoBottomSheet(
-        visible = addClosetViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE),
-        onDismiss = {
+        visible = addClosetViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE), onDismiss = {
             addClosetViewModel.dismissBottomSheet()
         }) {
         addClosetViewModel.dismissBottomSheet()
@@ -315,9 +296,7 @@ fun AddClosetPage(
 }
 
 
-@Composable
-@Preview(showBackground = true)
-fun AddClosetPagePreview() {
+@Composable @Preview(showBackground = true) fun AddClosetPagePreview() {
     HomeBookTheme {
         AddClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }

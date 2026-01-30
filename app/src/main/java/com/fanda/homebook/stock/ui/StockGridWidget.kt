@@ -37,6 +37,7 @@ import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.stock.AddStockEntity
 import com.fanda.homebook.data.stock.StockUseStatus
 import com.fanda.homebook.data.stock.getStockDes
+import com.fanda.homebook.data.stock.visibleExpireTime
 import com.fanda.homebook.entity.StockGridEntity
 
 @Composable fun StockGridWidget(modifier: Modifier = Modifier, data: List<AddStockEntity>, onItemClick: (AddStockEntity) -> Unit) {
@@ -106,7 +107,7 @@ import com.fanda.homebook.entity.StockGridEntity
                     )
                 }
             }
-            if (item.stock.expireDate > 0 || item.stock.usedDate > 0) {
+            if (item.stock.visibleExpireTime()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

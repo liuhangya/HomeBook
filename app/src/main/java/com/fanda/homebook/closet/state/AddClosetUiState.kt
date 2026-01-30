@@ -14,5 +14,6 @@ import com.fanda.homebook.entity.ShowBottomSheetType
 data class AddClosetUiState(
     val closetEntity: ClosetEntity = ClosetEntity(),
     val imageUri: Uri? = null,
+    val seasonIds : List<Int> = listOf(),
     val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE,
 )

@@ -81,7 +81,7 @@ import com.hjq.toast.Toaster
     val categories by closetViewModel.categories.collectAsState()
 
     val colorType by closetViewModel.colorType.collectAsState()
-    val season by closetViewModel.season.collectAsState()
+    val selectSeasons by closetViewModel.selectSeasons.collectAsState()
     val product by closetViewModel.product.collectAsState()
     val size by closetViewModel.size.collectAsState()
     val owner by closetViewModel.owner.collectAsState()
@@ -216,7 +216,7 @@ import com.hjq.toast.Toaster
                         closetSubCategory = subCategory?.name ?: "",
                         product = product?.name ?: "",
                         color = colorType?.color ?: -1,
-                        season = season?.name ?: "",
+                        season = closetViewModel.getSeasonDes(selectSeasons),
                         date = convertMillisToDate(addClosetUiState.closetEntity.date, DATE_FORMAT_YMD),
                         syncBook = addClosetUiState.closetEntity.syncBook,
                         size = size?.name ?: "",
@@ -290,7 +290,7 @@ import com.hjq.toast.Toaster
     }
 
     GridBottomSheet<SeasonEntity>(
-        initial = season,
+        initial = selectSeasons,
         title = "季节",
         dataSource = closetViewModel.seasons,
         visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.SEASON) },

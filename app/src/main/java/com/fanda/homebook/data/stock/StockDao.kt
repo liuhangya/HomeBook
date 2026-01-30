@@ -36,6 +36,14 @@ interface StockDao {
     @RawQuery
     fun getStocksByDynamicQuery(query: SimpleSQLiteQuery): Flow<List<AddStockEntity>>
 
+
+    /**
+     * 根据过期时间排序查询库存
+     * 排序优先级：
+     * 1. 如果有 openDate 和 shelfMonth，计算 openDate + shelfMonth 个月
+     * 2. 如果有 expireDate，使用 expireDate
+     * 3. 否则使用 createDate
+     */
     companion object {
         // 动态查询，根据参数动态生成SQL语句
         fun getStocksByRackAndSubCategory(
@@ -43,7 +51,17 @@ interface StockDao {
             subCategoryId: Int?,
             useStatus: Int?
         ): SimpleSQLiteQuery {
-            val query = StringBuilder("SELECT * FROM stock WHERE rackId = ?")
+            val query = StringBuilder("""
+            SELECT *,
+            CASE 
+                WHEN openDate > 0 AND shelfMonth > 0 THEN 
+                    CAST(openDate AS INTEGER) + (shelfMonth * 30 * 24 * 60 * 60 * 1000)
+                WHEN expireDate > 0 THEN expireDate
+                ELSE createDate
+            END AS calculatedExpireDate
+            FROM stock WHERE rackId = ?
+        """.trimIndent())
+
             val args = mutableListOf<Any>()
             args.add(rackId)
 
@@ -51,6 +69,7 @@ interface StockDao {
                 query.append(" AND subCategoryId = ?")
                 args.add(subCategoryId)
             }
+
             if (useStatus != null) {
                 if (useStatus == StockUseStatus.ALL.code) {
                     // 查询 useStatus 为 0 或 1 的记录
@@ -64,17 +83,8 @@ interface StockDao {
                 }
             }
 
-            // 添加排序规则：优先按过期时间，其次购买时间，最后创建时间
-            query.append(" ORDER BY ")
-            query.append(
-                """
-            CASE 
-                WHEN expireDate IS NOT NULL AND expireDate > 0 THEN expireDate
-                WHEN buyDate IS NOT NULL AND buyDate > 0 THEN buyDate
-                ELSE createDate
-            END ASC
-        """.trimIndent()
-            )
+            // 按照计算出的过期时间排序
+            query.append(" ORDER BY calculatedExpireDate ASC")
 
             return SimpleSQLiteQuery(query.toString(), args.toTypedArray())
         }

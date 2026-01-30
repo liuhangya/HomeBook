@@ -72,8 +72,9 @@ class WatchAndEditClosetViewModel(
             seasons = seasonRepository.getSeasons()
             owners = ownerRepository.getItems()
             val item = closetRepository.getClosetById(UserCache.ownerId, closetId)
+            val seasonIds = seasonRepository.getSeasonIdsByClosetId(closetId)
             _addClosetUiState.update {
-                it.copy(closetEntity = item.closet)
+                it.copy(closetEntity = item.closet, seasonIds = seasonIds)
             }
         }
     }
@@ -86,10 +87,10 @@ class WatchAndEditClosetViewModel(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
-    // 当前选中的季节
-    @OptIn(ExperimentalCoroutinesApi::class) val season: StateFlow<SeasonEntity?> = _addClosetUiState.map { it.closetEntity.seasonId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游变化，就取消之前的 getItemById 流，启动新的
-            seasonRepository.getSeasonById(id ?: 0)
+    // 当前选中的季节列表
+    @OptIn(ExperimentalCoroutinesApi::class) val selectSeasons: StateFlow<List<SeasonEntity>?> = _addClosetUiState.map { it.seasonIds }.distinctUntilChanged()              // 避免重复 ID 触发
+        .flatMapLatest { ids ->     // 每当上游变化，就取消之前的 getItemById 流，启动新的
+            seasonRepository.getSeasonsByIdsFlow(ids)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
@@ -162,6 +163,12 @@ class WatchAndEditClosetViewModel(
     var owners by mutableStateOf(emptyList<OwnerEntity>())
         private set
 
+    fun getSeasonDes(seasons: List<SeasonEntity>?) = if (seasons.isNullOrEmpty()) {
+        ""
+    } else {
+        seasons.sortedBy { it.id }.joinToString { it.name.replace("季", "") }
+    }
+
     fun updateClosetColor(colorType: ColorTypeEntity?) {
         colorType?.let {
             _addClosetUiState.update {
@@ -172,13 +179,9 @@ class WatchAndEditClosetViewModel(
         }
     }
 
-    fun updateClosetSeason(season: SeasonEntity?) {
-        season?.let {
-            _addClosetUiState.update {
-                it.copy(
-                    closetEntity = it.closetEntity.copy(seasonId = season.id)
-                )
-            }
+    fun updateClosetSeason(seasons: List<SeasonEntity>?) {
+        seasons?.let {
+            _addClosetUiState.update { state -> state.copy(seasonIds = seasons.map { it.id }) }
         }
     }
 
@@ -286,10 +289,10 @@ class WatchAndEditClosetViewModel(
                 } else {
                     closetRepository.update(entity)
                 }
+                seasonRepository.updateSeasonsForCloset(entity.id, _addClosetUiState.value.seasonIds)
                 onResult(true)
             }
         }
-
     }
 
     fun updateSelectedCategory(

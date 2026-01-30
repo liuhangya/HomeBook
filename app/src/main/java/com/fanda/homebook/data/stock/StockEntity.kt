@@ -12,8 +12,8 @@ import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.tools.DATE_FORMAT_YMD
+import com.fanda.homebook.tools.calculateExpireDateFromOpenDate
 import com.fanda.homebook.tools.convertMillisToDate
-import com.fanda.homebook.tools.formatExpireTime
 import com.fanda.homebook.tools.formatExpireTimeDetailed
 
 /*
@@ -39,15 +39,21 @@ data class AddStockEntity(
     ) val period: PeriodEntity?,
 )
 
-fun StockEntity.getStockDes() = if (useStatus == StockUseStatus.USED.code) {
+fun StockEntity.visibleExpireTime() = expireDate > 0 || usedDate > 0 || (openDate > 0 && shelfMonth > 0)
+
+fun StockEntity.getStockDes(): String = if (useStatus == StockUseStatus.USED.code) {
     when {
-        usedDate == -1L -> "无"
+        usedDate == -1L -> ""
         else -> "${convertMillisToDate(usedDate, DATE_FORMAT_YMD)}用完"
     }
 } else {
-    formatExpireTimeDetailed(expireDate)
+    if (openDate > 0 && shelfMonth > 0) {
+        // 优先根据开封日期+ shelfMonth计算到期时间
+        formatExpireTimeDetailed(calculateExpireDateFromOpenDate(openDate, shelfMonth))
+    } else {
+        formatExpireTimeDetailed(expireDate)
+    }
 }
-
 
 @Entity(
     tableName = "stock", foreignKeys = [ForeignKey(

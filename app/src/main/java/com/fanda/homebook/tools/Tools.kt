@@ -51,35 +51,35 @@ fun convertMillisToDate(millis: Long, format: String = "MM月-dd日"): String {
     return formatter.format(Date(millis))
 }
 
-
 /**
- * 根据过期时间显示剩余时间文本
+ * 根据 openDate 和 shelfMonth 计算过期时间戳
+ * @param openDate 开封时间戳（毫秒）
+ * @param shelfMonth 保质期月数
+ * @return 计算出的过期时间戳，如果参数无效返回 -1
  */
-fun formatExpireTime(
-    expireTimestamp: Long,
-): String {
-    // 计算剩余时间（秒）
-    val remainingSeconds = (expireTimestamp - System.currentTimeMillis()) / 1000
+fun calculateExpireDateFromOpenDate(openDate: Long, shelfMonth: Int): Long {
+    // 参数验证
+    if (openDate <= 0 || shelfMonth <= 0) {
+        return -1
+    }
 
-    return when {
-        // 已过期
-        remainingSeconds <= 0 -> "已过期"
-
-        // 剩余天数计算
-        else -> {
-            val remainingDays = TimeUnit.SECONDS.toDays(remainingSeconds)
-            when {
-                remainingDays >= 365 * 2 -> "剩余2年以上"
-                remainingDays >= 365 -> "剩余1年以上"
-                else -> "剩余${remainingDays}天"
-            }
+    try {
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = openDate
+            add(Calendar.MONTH, shelfMonth)
         }
+        return calendar.timeInMillis
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return -1
     }
 }
+
 
 fun formatExpireTimeDetailed(
     expireTimestamp: Long, currentTimestamp: Long = System.currentTimeMillis()
 ): String {
+    if (expireTimestamp <= 0) return ""
     if (expireTimestamp <= currentTimestamp) {
         return "已过期"
     }

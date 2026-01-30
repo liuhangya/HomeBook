@@ -85,6 +85,7 @@ import com.fanda.homebook.data.stock.StockEntity
 import com.fanda.homebook.data.stock.StockMenuEntity
 import com.fanda.homebook.data.stock.StockUseStatus
 import com.fanda.homebook.data.stock.getStockDes
+import com.fanda.homebook.data.stock.visibleExpireTime
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.ListBottomSheet
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
@@ -511,26 +512,26 @@ import kotlin.collections.forEach
                 color = Color.White
             )
         }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
-        ) {
-            Text(
-                text = uiState.stockEntity.getStockDes(),
-                textAlign = TextAlign.Center,
-                style = TextStyle.Default.copy(platformStyle = PlatformTextStyle(includeFontPadding = false)),
+        if (uiState.stockEntity.visibleExpireTime()) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = Color.Black.copy(alpha = 0.2f))
-                    .padding(horizontal = 4.dp, vertical = 8.dp),
-                fontSize = 14.sp,
-                color = Color.White
-            )
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
+            ) {
+                Text(
+                    text = uiState.stockEntity.getStockDes(),
+                    textAlign = TextAlign.Center,
+                    style = TextStyle.Default.copy(platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(color = Color.Black.copy(alpha = 0.2f))
+                        .padding(horizontal = 4.dp, vertical = 8.dp),
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
+            }
         }
-
     }
 }
 

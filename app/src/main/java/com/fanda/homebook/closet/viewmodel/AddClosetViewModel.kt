@@ -14,8 +14,6 @@ import com.fanda.homebook.data.category.CategoryEntity
 import com.fanda.homebook.data.category.CategoryRepository
 import com.fanda.homebook.data.category.CategoryWithSubCategories
 import com.fanda.homebook.data.category.SubCategoryEntity
-import com.fanda.homebook.data.closet.AddClosetEntity
-import com.fanda.homebook.data.closet.ClosetGridItem
 import com.fanda.homebook.data.closet.ClosetRepository
 import com.fanda.homebook.data.color.ColorTypeEntity
 import com.fanda.homebook.data.color.ColorTypeRepository
@@ -23,12 +21,12 @@ import com.fanda.homebook.data.owner.OwnerEntity
 import com.fanda.homebook.data.owner.OwnerRepository
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.product.ProductRepository
+import com.fanda.homebook.data.season.ClosetSeasonRelation
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.season.SeasonRepository
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.data.size.SizeRepository
 import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
 import com.fanda.homebook.tools.saveUriToFilesDir
 import com.hjq.toast.Toaster
@@ -37,10 +35,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -73,10 +69,10 @@ class AddClosetViewModel(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
-    // 当前选中的季节
-    @OptIn(ExperimentalCoroutinesApi::class) val season: StateFlow<SeasonEntity?> = _addClosetUiState.map { it.closetEntity.seasonId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游变化，就取消之前的 getItemById 流，启动新的
-            seasonRepository.getSeasonById(id ?: 0)
+    // 当前选中的季节列表
+    @OptIn(ExperimentalCoroutinesApi::class) val selectSeasons: StateFlow<List<SeasonEntity>?> = _addClosetUiState.map { it.seasonIds }.distinctUntilChanged()              // 避免重复 ID 触发
+        .flatMapLatest { ids ->     // 每当上游变化，就取消之前的 getItemById 流，启动新的
+            seasonRepository.getSeasonsByIdsFlow(ids)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
@@ -157,6 +153,12 @@ class AddClosetViewModel(
         }
     }
 
+    fun getSeasonDes(seasons: List<SeasonEntity>?) = if (seasons.isNullOrEmpty()) {
+        ""
+    } else {
+        seasons.sortedBy { it.id }.joinToString { it.name.replace("季", "") }
+    }
+
     fun updateClosetColor(colorType: ColorTypeEntity?) {
         colorType?.let {
             _addClosetUiState.update {
@@ -167,13 +169,9 @@ class AddClosetViewModel(
         }
     }
 
-    fun updateClosetSeason(season: SeasonEntity?) {
-        season?.let {
-            _addClosetUiState.update {
-                it.copy(
-                    closetEntity = it.closetEntity.copy(seasonId = season.id)
-                )
-            }
+    fun updateClosetSeason(seasons: List<SeasonEntity>?) {
+        seasons?.let {
+            _addClosetUiState.update { state -> state.copy(seasonIds = seasons.map { it.id }) }
         }
     }
 
@@ -223,14 +221,6 @@ class AddClosetViewModel(
         }
     }
 
-    fun plusClosetWearCount() {
-        _addClosetUiState.update {
-            it.copy(
-                closetEntity = it.closetEntity.copy(wearCount = it.closetEntity.wearCount + 1)
-            )
-        }
-    }
-
     fun updateClosetSyncBook(syncBook: Boolean) {
         _addClosetUiState.update {
             it.copy(
@@ -264,7 +254,15 @@ class AddClosetViewModel(
         } else {
             viewModelScope.launch {
                 val imageFile = saveUriToFilesDir(context, addClosetUiState.value.imageUri!!)
-                closetRepository.insert(entity.copy(imageLocalPath = imageFile?.absolutePath ?: "", createDate = System.currentTimeMillis()))
+                val closetId = closetRepository.insert(entity.copy(imageLocalPath = imageFile?.absolutePath ?: "", createDate = System.currentTimeMillis()))
+                val closetSeasonRelationList = if (addClosetUiState.value.seasonIds.isNotEmpty()) {
+                    addClosetUiState.value.seasonIds.map { seasonId ->
+                        ClosetSeasonRelation(closetId.toInt(), seasonId)
+                    }
+                } else {
+                    emptyList()
+                }
+                seasonRepository.insertSeasonRelationAll(closetSeasonRelationList)
                 Toaster.show("保存成功")
                 onResult(true)
             }

@@ -74,3 +74,63 @@ import com.fanda.homebook.data.LocalDataSource
         }
     }
 }
+
+@Composable
+inline fun <reified T : Any> GridBottomSheet(
+    initial: List<T>? = null,  // 改为 List<T>
+    title: String,
+    dataSource: List<T>,
+    dpSize: DpSize,
+    column: GridCells,
+    visible: () -> Boolean,
+    crossinline displayText: (T) -> String,
+    noinline onDismiss: () -> Unit,
+    noinline onSettingClick: (() -> Unit)? = null,
+    crossinline onConfirm: (List<T>) -> Unit  // 返回 List<T>
+) {
+    CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
+        var selected by remember(initial) {
+            mutableStateOf(initial?.toSet() ?: emptySet())
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // 保持原有标题栏样式，只修改回调
+            SheetTitleWidget(title = title, onSettingClick = onSettingClick) {
+                onConfirm(selected.toList())  // 转换为 List
+                onDismiss()
+            }
+
+            LazyVerticalGrid(
+                columns = column,
+                horizontalArrangement = Arrangement.spacedBy(13.dp),
+                verticalArrangement = Arrangement.spacedBy(13.dp),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(start = 24.dp, top = 10.dp, end = 24.dp, bottom = 28.dp),
+            ) {
+                items(dataSource, key = { it.hashCode() }) { item ->
+                    val isSelected = selected.contains(item)
+
+                    SelectableRoundedButton(
+                        cornerSize = 8.dp,
+                        fontSize = 14.sp,
+                        contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+                        modifier = Modifier.size(dpSize),
+                        text = displayText(item),
+                        selected = isSelected,
+                        onClick = {
+                            selected = if (isSelected) {
+                                // 如果已选中，则移除
+                                selected - item
+                            } else {
+                                // 如果未选中，则添加
+                                selected + item
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}

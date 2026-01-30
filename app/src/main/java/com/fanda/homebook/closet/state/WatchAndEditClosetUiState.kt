@@ -9,4 +9,5 @@ data class WatchAndEditClosetUiState(
     val imageUri: Uri? = null,
     val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE,
     val isEditState: Boolean = false,
+    val seasonIds : List<Int> = listOf(),
 )

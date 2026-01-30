@@ -20,6 +20,7 @@ import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.rack.RackDao
 import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
+import com.fanda.homebook.data.season.ClosetSeasonRelation
 import com.fanda.homebook.data.season.SeasonDao
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeDao
@@ -28,8 +29,8 @@ import com.fanda.homebook.data.stock.StockDao
 import com.fanda.homebook.data.stock.StockEntity
 
 @Database(
-    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class, RackEntity::class, RackSubCategoryEntity::class, PeriodEntity::class, StockEntity::class],
-    version = 9,
+    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class, RackEntity::class, RackSubCategoryEntity::class, PeriodEntity::class, StockEntity::class, ClosetSeasonRelation::class],
+    version = 10,
     exportSchema = false
 ) abstract class HomeBookDatabase() : RoomDatabase() {
 

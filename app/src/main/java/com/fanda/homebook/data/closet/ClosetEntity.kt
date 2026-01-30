@@ -5,6 +5,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.fanda.homebook.data.category.CategoryEntity
@@ -12,6 +13,7 @@ import com.fanda.homebook.data.category.SubCategoryEntity
 import com.fanda.homebook.data.color.ColorTypeEntity
 import com.fanda.homebook.data.owner.OwnerEntity
 import com.fanda.homebook.data.product.ProductEntity
+import com.fanda.homebook.data.season.ClosetSeasonRelation
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
@@ -28,8 +30,10 @@ data class AddClosetEntity(
     ) val colorType: ColorTypeEntity?, // 可空，删除颜色被删除了
 
     @Relation(
-        parentColumn = "seasonId", entityColumn = "id"
-    ) val season: SeasonEntity?,// 可空，删除季节被删除了
+        entity = SeasonEntity::class, parentColumn = "id", entityColumn = "id", associateBy = Junction(
+            value = ClosetSeasonRelation::class, parentColumn = "closetId", entityColumn = "seasonId"
+        )
+    ) val seasons: List<SeasonEntity>?, // 改为列表
 
     @Relation(
         parentColumn = "productId", entityColumn = "id"
@@ -56,10 +60,7 @@ data class AddClosetEntity(
         ForeignKey(
             entity = ColorTypeEntity::class, parentColumns = ["id"], childColumns = ["colorTypeId"], onDelete = ForeignKey.SET_NULL
         ),
-        // 关联季节表
-        ForeignKey(
-            entity = SeasonEntity::class, parentColumns = ["id"], childColumns = ["seasonId"], onDelete = ForeignKey.SET_NULL
-        ),
+
         // 关联产品表
         ForeignKey(
             entity = ProductEntity::class, parentColumns = ["id"], childColumns = ["productId"], onDelete = ForeignKey.SET_NULL
@@ -81,13 +82,12 @@ data class AddClosetEntity(
             entity = SubCategoryEntity::class, parentColumns = ["id"], childColumns = ["subCategoryId"], onDelete = ForeignKey.SET_NULL
         )], indices = [
         // 为所有外键字段创建索引
-        Index(value = ["colorTypeId"]), Index(value = ["seasonId"]), Index(value = ["productId"]), Index(value = ["sizeId"]), Index(value = ["ownerId"]), Index(value = ["categoryId"]), Index(value = ["subCategoryId"]),
+        Index(value = ["colorTypeId"]), Index(value = ["productId"]), Index(value = ["sizeId"]), Index(value = ["ownerId"]), Index(value = ["categoryId"]), Index(value = ["subCategoryId"]),
         // 复合索引用于常用查询
-        Index(value = ["ownerId", "categoryId"]), Index(value = ["ownerId", "seasonId", "categoryId"])]
+        Index(value = ["ownerId", "categoryId"])]
 ) data class ClosetEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val colorTypeId: Int? = null,
-    val seasonId: Int? = null,
     val productId: Int? = null,
     val sizeId: Int? = null,
     val ownerId: Int = 0,
@@ -104,7 +104,7 @@ data class AddClosetEntity(
 )
 
 data class ClosetGridItem(
-    val imageLocalPath: String, val category: CategoryEntity, val count: Int ,val moveToTrash: Boolean = false
+    val imageLocalPath: String, val category: CategoryEntity, val count: Int, val moveToTrash: Boolean = false
 )
 
 data class ClosetSubCategoryGridItem(

@@ -1,5 +1,8 @@
 package com.fanda.homebook.data.season
 
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import com.fanda.homebook.data.closet.ClosetEntity
 import kotlinx.coroutines.flow.Flow
 
 interface SeasonRepository {
@@ -9,7 +12,16 @@ interface SeasonRepository {
 
     suspend fun getCount(): Int
 
-     fun getSeasonById(id: Int): Flow<SeasonEntity?>
+    fun getSeasonById(id: Int): Flow<SeasonEntity?>
+
+    fun getSeasonsByIdsFlow(ids: List<Int>): Flow<List<SeasonEntity>>
+
+    suspend fun insertSeasonRelationAll(entities: List<ClosetSeasonRelation>)
+
+    suspend fun updateSeasonsForCloset(closetId: Int, seasonIds: List<Int>)
+
+    suspend fun getSeasonIdsByClosetId(closetId: Int): List<Int>
+
 }
 
 class LocalSeasonRepository(private val seasonDao: SeasonDao) : SeasonRepository {
@@ -23,7 +35,11 @@ class LocalSeasonRepository(private val seasonDao: SeasonDao) : SeasonRepository
 
     override suspend fun getCount() = seasonDao.getCount()
 
-    override  fun getSeasonById(id: Int) = seasonDao.getSeasonTypeById(id)
+    override fun getSeasonById(id: Int) = seasonDao.getSeasonTypeById(id)
+    override fun getSeasonsByIdsFlow(ids: List<Int>): Flow<List<SeasonEntity>> = seasonDao.getSeasonsByIdsFlow(ids)
+    override suspend fun insertSeasonRelationAll(entities: List<ClosetSeasonRelation>) = seasonDao.insertSeasonRelationAll(entities)
+    override suspend fun updateSeasonsForCloset(closetId: Int, seasonIds: List<Int>) = seasonDao.updateSeasonsForCloset(closetId, seasonIds)
+    override suspend fun getSeasonIdsByClosetId(closetId: Int): List<Int> = seasonDao.getSeasonIdsByClosetId(closetId)
 }
 
 val defaultSeasonData = listOf(
