@@ -21,6 +21,8 @@ import com.fanda.homebook.data.size.LocalSizeRepository
 import com.fanda.homebook.data.size.SizeRepository
 import com.fanda.homebook.data.stock.LocalStockRepository
 import com.fanda.homebook.data.stock.StockRepository
+import com.fanda.homebook.data.transaction.LocalTransactionRepository
+import com.fanda.homebook.data.transaction.TransactionRepository
 
 /*
 * 依赖注入容器类
@@ -36,6 +38,7 @@ interface AppContainer {
     val rackRepository: RackRepository
     val periodRepository: PeriodRepository
     val stockRepository: StockRepository
+    val transactionRepository: TransactionRepository
 }
 
 class AppContainerImpl(private val context: Context) : AppContainer {
@@ -74,6 +77,10 @@ class AppContainerImpl(private val context: Context) : AppContainer {
 
     override val stockRepository: StockRepository by lazy {
         LocalStockRepository(HomeBookDatabase.getDatabase(context).stockDao())
+
+    }
+    override val transactionRepository: TransactionRepository by lazy {
+        LocalTransactionRepository(HomeBookDatabase.getDatabase(context).transactionDao())
 
     }
 

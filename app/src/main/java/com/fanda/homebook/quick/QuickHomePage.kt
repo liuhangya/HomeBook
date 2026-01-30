@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,12 +35,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
+import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
@@ -55,6 +58,7 @@ import com.fanda.homebook.quick.ui.EditAmountField
 import com.fanda.homebook.quick.ui.EditClosetScreen
 import com.fanda.homebook.quick.ui.SelectCategoryGrid
 import com.fanda.homebook.quick.ui.TopTypeSelector
+import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import kotlinx.coroutines.launch
@@ -63,7 +67,13 @@ import kotlinx.coroutines.launch
 /*
 * 记一笔页面
 * */
-@Composable fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController) {
+@Composable fun QuickHomePage(modifier: Modifier = Modifier, navController: NavController, quickViewModel: AddQuickViewModel = viewModel(factory = AppViewModelProvider.factory)) {
+
+    val uiState by quickViewModel.uiState.collectAsState()
+    val categories by quickViewModel.categories.collectAsState()
+    val subCategories by quickViewModel.subCategories.collectAsState()
+    val category by quickViewModel.category.collectAsState()
+    val subCategory by quickViewModel.subCategory.collectAsState()
 
     var date by remember { mutableStateOf(convertMillisToDate(System.currentTimeMillis())) }
     var showDateSelect by remember { mutableStateOf(false) }
@@ -82,8 +92,6 @@ import kotlinx.coroutines.launch
     var stockCategory by remember { mutableStateOf("") }
     var period by remember { mutableStateOf("") }
     var stockProduct by remember { mutableStateOf("") }
-    var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
-
     var currentShowBottomSheetType by remember { mutableStateOf(ShowBottomSheetType.NONE) }
 
     var currentClosetCategory by remember { mutableStateOf<SelectedCategory?>(null) }
@@ -95,22 +103,6 @@ import kotlinx.coroutines.launch
     val focusManager = LocalFocusManager.current
 
     val context = LocalContext.current
-
-    fun getCategoryData() = when (transactionType) {
-        TransactionType.EXPENSE -> {
-            LocalDataSource.expenseCategoryData
-        }
-
-        TransactionType.INCOME -> {
-            LocalDataSource.incomeCategoryData
-        }
-
-        TransactionType.EXCLUDED -> {
-            LocalDataSource.excludeCategoryData
-        }
-
-        TransactionType.PLAN -> emptyList()
-    }
 
     // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
     Scaffold(modifier = modifier.statusBarsPadding(), snackbarHost = {
@@ -152,18 +144,21 @@ import kotlinx.coroutines.launch
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    TopTypeSelector(transactionType = transactionType, date = date, onDateClick = {
+                    TopTypeSelector(data = categories, transactionType = category, date = date, onDateClick = {
                         showDateSelect = true
                     }, onTypeChange = {
-                        transactionType = it
+                        quickViewModel.updateCategory(it)
                     })
                     Spacer(modifier = Modifier.height(20.dp))
                     EditAmountField()
                     Spacer(modifier = Modifier.height(12.dp))
-                    SelectCategoryGrid(items = getCategoryData())
+                    SelectCategoryGrid(initial = subCategory, items = subCategories) {
+                        quickViewModel.updateSubCategory(it)
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     GradientRoundedBoxWithStroke {
-                        ItemOptionMenu(title = "备注",
+                        ItemOptionMenu(
+                            title = "备注",
                             showRightArrow = false,
                             showTextField = true,
                             removeIndication = true,
@@ -187,7 +182,8 @@ import kotlinx.coroutines.launch
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    EditClosetScreen(showSyncCloset = showSyncCloset,
+                    EditClosetScreen(
+                        showSyncCloset = showSyncCloset,
                         bottomComment = bottomClosetComment,
                         closetCategory = currentClosetCategory?.categoryName ?: "",
                         closetSubCategory = currentClosetCategory?.subCategoryName ?: "",
@@ -239,7 +235,8 @@ import kotlinx.coroutines.launch
 
     }
 
-    ListBottomSheet(initial = payWay,
+    ListBottomSheet(
+        initial = payWay,
         title = "付款方式",
         dataSource = LocalDataSource.payWayData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PAY_WAY },
@@ -248,7 +245,8 @@ import kotlinx.coroutines.launch
         payWay = it!!
     }
 
-    ListBottomSheet(initial = product,
+    ListBottomSheet(
+        initial = product,
         title = "品牌",
         dataSource = LocalDataSource.productData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PRODUCT },
@@ -257,7 +255,8 @@ import kotlinx.coroutines.launch
         product = it!!
     }
 
-    ListBottomSheet(initial = owner,
+    ListBottomSheet(
+        initial = owner,
         title = "归属",
         dataSource = LocalDataSource.ownerData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.OWNER },
@@ -266,7 +265,8 @@ import kotlinx.coroutines.launch
         owner = it!!
     }
 
-    GridBottomSheet(initial = owner,
+    GridBottomSheet(
+        initial = owner,
         title = "尺码",
         dataSource = LocalDataSource.sizeData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.SIZE },
@@ -277,7 +277,8 @@ import kotlinx.coroutines.launch
         size = it!!
     }
 
-    GridBottomSheet(initial = season,
+    GridBottomSheet(
+        initial = season,
         title = "季节",
         dataSource = LocalDataSource.seasonData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.SEASON },
@@ -295,7 +296,8 @@ import kotlinx.coroutines.launch
 //        color = it
 //    })
 
-    ClosetTypeBottomSheet(categories = LocalDataSource.closetCategoryData,
+    ClosetTypeBottomSheet(
+        categories = LocalDataSource.closetCategoryData,
         currentCategory = currentClosetCategory,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.CATEGORY },
         onDismiss = {
@@ -305,7 +307,8 @@ import kotlinx.coroutines.launch
             currentClosetCategory = it
         })
 
-    ListBottomSheet(initial = stockProduct,
+    ListBottomSheet(
+        initial = stockProduct,
         title = "品牌",
         dataSource = LocalDataSource.productData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.STOCK_PRODUCT },
@@ -324,7 +327,8 @@ import kotlinx.coroutines.launch
         goodsRack = (it as BaseCategoryEntity).name
     }
 
-    ListBottomSheet(initial = stockCategory,
+    ListBottomSheet(
+        initial = stockCategory,
         title = "类别",
         dataSource = LocalDataSource.stockCategoryData.find { it.name == goodsRack }?.children?.map { it.name } ?: emptyList(),
         visible = { currentShowBottomSheetType == ShowBottomSheetType.STOCK_CATEGORY },
@@ -333,7 +337,8 @@ import kotlinx.coroutines.launch
         stockCategory = it!!
     }
 
-    ListBottomSheet(initial = period,
+    ListBottomSheet(
+        initial = period,
         title = "使用时段",
         dataSource = LocalDataSource.periodData,
         visible = { currentShowBottomSheetType == ShowBottomSheetType.PERIOD },

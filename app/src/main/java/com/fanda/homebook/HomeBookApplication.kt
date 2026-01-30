@@ -38,6 +38,7 @@ class HomeBookApplication : Application() {
             appContainer.categoryRepository.initializeDatabase()
             appContainer.rackRepository.initializeDatabase()
             appContainer.periodRepository.initializeDatabase()
+            appContainer.transactionRepository.initializeDatabase()
         }
     }
 

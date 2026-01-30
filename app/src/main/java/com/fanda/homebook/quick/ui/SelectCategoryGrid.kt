@@ -45,17 +45,21 @@ import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.SelectableRoundedButton
+import com.fanda.homebook.data.transaction.TransactionSubEntity
+import com.fanda.homebook.data.transaction.TransactionType
 import com.fanda.homebook.entity.TransactionCategory
 
 
-@SuppressLint("UnusedBoxWithConstraintsScope") @OptIn(ExperimentalLayoutApi::class) @Composable fun SelectCategoryGrid(modifier: Modifier = Modifier, items: List<TransactionCategory>) {
+@SuppressLint("UnusedBoxWithConstraintsScope") @OptIn(ExperimentalLayoutApi::class) @Composable fun SelectCategoryGrid(
+    modifier: Modifier = Modifier,  initial: TransactionSubEntity?, items: List<TransactionSubEntity>?, onItemClick: (TransactionSubEntity) -> Unit
+) {
     GradientRoundedBoxWithStroke(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .animateContentSize()
     ) {
-        var selectedCategory by remember { mutableStateOf("") }
+        var selectedCategory by remember { mutableStateOf(initial) }
 
         BoxWithConstraints(
             modifier = Modifier.fillMaxWidth()
@@ -66,15 +70,21 @@ import com.fanda.homebook.entity.TransactionCategory
             val itemWidth = (maxWidth - totalSpacing - 42.dp) / maxColumns  // 根据父容器的宽度和间距，动态计算每个item的宽度
 
             FlowRow(
-                modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(itemSpacing), verticalArrangement = Arrangement.spacedBy(14.dp), maxItemsInEachRow = maxColumns
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                maxItemsInEachRow = maxColumns
             ) {
-                items.forEach { category ->
+                items?.forEach { category ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.clickable(
                             // 去掉默认的点击效果
                             interactionSource = remember { MutableInteractionSource() }, indication = null
                         ) {
-                            selectedCategory = category.name
+                            selectedCategory = category
+                            onItemClick(category)
                         }) {
                         // 通过 colorFilter 来改变图标颜色
                         Box(
@@ -83,10 +93,10 @@ import com.fanda.homebook.entity.TransactionCategory
                                 .clip(
                                     CircleShape
                                 )
-                                .background(if (selectedCategory == category.name) Color.Black else Color.White)
+                                .background(if (selectedCategory?.name == category.name && selectedCategory?.categoryId == category.categoryId) Color.Black else Color.White)
                         ) {
                             Image(
-                                painter = painterResource(id = category.icon), contentDescription = null, colorFilter = if (selectedCategory == category.name) ColorFilter.tint(
+                                painter = painterResource(id = getCategoryIcon(category.type)), contentDescription = null, colorFilter = if (selectedCategory?.name == category.name && selectedCategory?.categoryId == category.categoryId) ColorFilter.tint(
                                     Color.White
                                 ) else null, modifier = Modifier.scale(0.8f)
 
@@ -103,6 +113,33 @@ import com.fanda.homebook.entity.TransactionCategory
         }
     }
 }
+
+
+fun getCategoryIcon(type: Int) = when (type) {
+    TransactionType.DINING.type -> R.mipmap.icon_dining
+    TransactionType.TRAFFIC.type -> R.mipmap.icon_traffic
+    TransactionType.CLOTHING.type -> R.mipmap.icon_clothing
+    TransactionType.SKINCARE.type -> R.mipmap.icon_skincare
+    TransactionType.SHOPPING.type -> R.mipmap.icon_shopping
+    TransactionType.SERVICES.type -> R.mipmap.icon_services
+    TransactionType.HEALTH.type -> R.mipmap.icon_health
+    TransactionType.PLAY.type -> R.mipmap.icon_play
+    TransactionType.DAILY.type -> R.mipmap.icon_daily
+    TransactionType.TRAVEL.type -> R.mipmap.icon_travel
+    TransactionType.INSURANCE.type -> R.mipmap.icon_insurance
+    TransactionType.RED_ENVELOPE.type -> R.mipmap.icon_red_envelope
+    TransactionType.SOCIAL.type -> R.mipmap.icon_social
+    TransactionType.SALARY.type -> R.mipmap.icon_salary
+    TransactionType.GET_ENVELOPE.type -> R.mipmap.icon_get_money
+    TransactionType.BONUS.type -> R.mipmap.icon_bonus
+    TransactionType.FINANCE.type -> R.mipmap.icon_finance
+    TransactionType.DEBTS.type -> R.mipmap.icon_debts
+    TransactionType.OTHERS.type -> R.mipmap.icon_others
+    else -> {
+        0
+    }
+}
+
 
 //@Composable
 //fun SelectCategoryGridItem(category: TransactionCategory, modifier: Modifier = Modifier) {

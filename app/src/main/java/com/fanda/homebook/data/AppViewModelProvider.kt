@@ -16,6 +16,7 @@ import com.fanda.homebook.common.viewmodel.ColorTypeViewModel
 import com.fanda.homebook.common.viewmodel.ProductViewModel
 import com.fanda.homebook.common.viewmodel.SizeViewModel
 import com.fanda.homebook.common.viewmodel.SubCategoryViewModel
+import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
 import com.fanda.homebook.stock.viewmodel.AddStockViewModel
 import com.fanda.homebook.stock.viewmodel.StockHomeViewModel
 import com.fanda.homebook.stock.viewmodel.WatchAndEditStockViewModel
@@ -52,6 +53,12 @@ object AppViewModelProvider {
                 homeBookApplication().appContainer.sizeRepository,
                 homeBookApplication().appContainer.ownerRepository,
                 homeBookApplication().appContainer.categoryRepository
+            )
+        }
+        initializer {
+            AddQuickViewModel(
+                this.createSavedStateHandle(),
+                homeBookApplication().appContainer.transactionRepository,
             )
         }
         initializer {
