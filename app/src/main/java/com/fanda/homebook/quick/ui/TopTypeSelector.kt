@@ -28,7 +28,7 @@ import com.fanda.homebook.entity.TransactionType
         }
         Spacer(modifier = Modifier.weight(1f))
         SelectableRoundedButton(
-            text = date, selected = false, onClick = onDateClick, imageRes = R.mipmap.icon_down
+            text = date, selected = false, onClick = onDateClick, imageRes = R.mipmap.icon_down , interaction = true
         )
     }
 }

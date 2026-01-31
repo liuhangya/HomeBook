@@ -9,10 +9,14 @@ import com.fanda.homebook.data.color.ColorTypeRepository
 import com.fanda.homebook.data.color.LocalColorTypeRepository
 import com.fanda.homebook.data.owner.LocalOwnerRepository
 import com.fanda.homebook.data.owner.OwnerRepository
+import com.fanda.homebook.data.pay.LocalPayWayRepository
+import com.fanda.homebook.data.pay.PayWayRepository
 import com.fanda.homebook.data.period.LocalPeriodRepository
 import com.fanda.homebook.data.period.PeriodRepository
 import com.fanda.homebook.data.product.LocalProductRepository
 import com.fanda.homebook.data.product.ProductRepository
+import com.fanda.homebook.data.quick.LocalQuickRepository
+import com.fanda.homebook.data.quick.QuickRepository
 import com.fanda.homebook.data.rack.LocalRackRepository
 import com.fanda.homebook.data.rack.RackRepository
 import com.fanda.homebook.data.season.LocalSeasonRepository
@@ -39,6 +43,8 @@ interface AppContainer {
     val periodRepository: PeriodRepository
     val stockRepository: StockRepository
     val transactionRepository: TransactionRepository
+    val payWayRepository: PayWayRepository
+    val quickRepository: QuickRepository
 }
 
 class AppContainerImpl(private val context: Context) : AppContainer {
@@ -81,7 +87,14 @@ class AppContainerImpl(private val context: Context) : AppContainer {
     }
     override val transactionRepository: TransactionRepository by lazy {
         LocalTransactionRepository(HomeBookDatabase.getDatabase(context).transactionDao())
-
     }
+    override val payWayRepository: PayWayRepository by lazy {
+        LocalPayWayRepository(HomeBookDatabase.getDatabase(context).payWayDao())
+    }
+
+    override val quickRepository: QuickRepository by lazy {
+        LocalQuickRepository(HomeBookDatabase.getDatabase(context).quickDao())
+    }
+
 
 }

@@ -13,10 +13,14 @@ import com.fanda.homebook.data.color.ColorTypeDao
 import com.fanda.homebook.data.color.ColorTypeEntity
 import com.fanda.homebook.data.owner.OwnerDao
 import com.fanda.homebook.data.owner.OwnerEntity
+import com.fanda.homebook.data.pay.PayWayDao
+import com.fanda.homebook.data.pay.PayWayEntity
 import com.fanda.homebook.data.period.PeriodDao
 import com.fanda.homebook.data.period.PeriodEntity
 import com.fanda.homebook.data.product.ProductDao
 import com.fanda.homebook.data.product.ProductEntity
+import com.fanda.homebook.data.quick.QuickDao
+import com.fanda.homebook.data.quick.QuickEntity
 import com.fanda.homebook.data.rack.RackDao
 import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
@@ -32,8 +36,8 @@ import com.fanda.homebook.data.transaction.TransactionEntity
 import com.fanda.homebook.data.transaction.TransactionSubEntity
 
 @Database(
-    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class, RackEntity::class, RackSubCategoryEntity::class, PeriodEntity::class, StockEntity::class, ClosetSeasonRelation::class, TransactionEntity::class, TransactionSubEntity::class],
-    version = 11,
+    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class, RackEntity::class, RackSubCategoryEntity::class, PeriodEntity::class, StockEntity::class, ClosetSeasonRelation::class, TransactionEntity::class, TransactionSubEntity::class, PayWayEntity::class, QuickEntity::class],
+    version = 12,
     exportSchema = false
 ) abstract class HomeBookDatabase() : RoomDatabase() {
 
@@ -58,6 +62,10 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
     abstract fun stockDao(): StockDao
 
     abstract fun transactionDao(): TransactionDao
+
+    abstract fun payWayDao(): PayWayDao
+
+    abstract fun quickDao(): QuickDao
 
     companion object {
         @Volatile private var Instance: HomeBookDatabase? = null

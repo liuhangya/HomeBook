@@ -53,6 +53,7 @@ import com.fanda.homebook.closet.EditCategoryPage
 import com.fanda.homebook.closet.EditSubCategoryPage
 import com.fanda.homebook.closet.WatchAndEditClosetPage
 import com.fanda.homebook.common.EditColorPage
+import com.fanda.homebook.common.EditPayWayPage
 import com.fanda.homebook.common.EditProductPage
 import com.fanda.homebook.common.EditSizePage
 import com.fanda.homebook.components.CustomBottomBar
@@ -319,6 +320,13 @@ fun HomeBookApp() {
                             modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
+
+                    composable(RoutePath.EditPayWay.route) {
+                        EditPayWayPage(
+                            modifier = Modifier.fillMaxSize(), navController = navController
+                        )
+                    }
+
                     composable(
                         "${RoutePath.EditSubCategory.route}?categoryId={categoryId}&categoryName={categoryName}",
                         arguments = listOf(navArgument("categoryId") {

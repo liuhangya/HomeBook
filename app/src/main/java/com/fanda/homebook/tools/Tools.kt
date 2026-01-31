@@ -43,6 +43,7 @@ fun isValidDecimalInput(text: String): Boolean {
 }
 
 const val DATE_FORMAT_YMD = "yyyy-MM-dd"
+const val DATE_FORMAT_MD = "MM月dd日"
 
 
 fun convertMillisToDate(millis: Long, format: String = "MM月-dd日"): String {

@@ -13,9 +13,21 @@ import com.fanda.homebook.closet.viewmodel.HomeClosetViewModel
 import com.fanda.homebook.closet.viewmodel.WatchAndEditClosetViewModel
 import com.fanda.homebook.common.viewmodel.CategoryViewModel
 import com.fanda.homebook.common.viewmodel.ColorTypeViewModel
+import com.fanda.homebook.common.viewmodel.PayWayViewModel
 import com.fanda.homebook.common.viewmodel.ProductViewModel
 import com.fanda.homebook.common.viewmodel.SizeViewModel
 import com.fanda.homebook.common.viewmodel.SubCategoryViewModel
+import com.fanda.homebook.data.category.CategoryRepository
+import com.fanda.homebook.data.closet.ClosetRepository
+import com.fanda.homebook.data.color.ColorTypeRepository
+import com.fanda.homebook.data.owner.OwnerRepository
+import com.fanda.homebook.data.pay.PayWayRepository
+import com.fanda.homebook.data.period.PeriodRepository
+import com.fanda.homebook.data.product.ProductRepository
+import com.fanda.homebook.data.rack.RackRepository
+import com.fanda.homebook.data.season.SeasonRepository
+import com.fanda.homebook.data.size.SizeRepository
+import com.fanda.homebook.data.stock.StockRepository
 import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
 import com.fanda.homebook.stock.viewmodel.AddStockViewModel
 import com.fanda.homebook.stock.viewmodel.StockHomeViewModel
@@ -59,6 +71,8 @@ object AppViewModelProvider {
             AddQuickViewModel(
                 this.createSavedStateHandle(),
                 homeBookApplication().appContainer.transactionRepository,
+                homeBookApplication().appContainer.payWayRepository,
+                homeBookApplication().appContainer.quickRepository
             )
         }
         initializer {
@@ -92,6 +106,9 @@ object AppViewModelProvider {
             ProductViewModel(homeBookApplication().appContainer.productRepository)
         }
         initializer {
+            PayWayViewModel(homeBookApplication().appContainer.payWayRepository)
+        }
+        initializer {
             SizeViewModel(homeBookApplication().appContainer.sizeRepository)
         }
         initializer {
@@ -107,7 +124,7 @@ object AppViewModelProvider {
         }
 
         initializer {
-            StockHomeViewModel(homeBookApplication().appContainer.rackRepository ,homeBookApplication().appContainer.stockRepository)
+            StockHomeViewModel(homeBookApplication().appContainer.rackRepository, homeBookApplication().appContainer.stockRepository)
         }
     }
 }

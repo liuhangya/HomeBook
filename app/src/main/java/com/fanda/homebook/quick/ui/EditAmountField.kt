@@ -30,13 +30,12 @@ import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.tools.isValidDecimalInput
 import kotlinx.coroutines.delay
 
-@Composable fun EditAmountField() {
+@Composable fun EditAmountField(modifier: Modifier = Modifier, price: String = "", onValueChange: (String) -> Unit) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    var amount by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
     GradientRoundedBoxWithStroke(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(64.dp)
     ) {
@@ -47,10 +46,10 @@ import kotlinx.coroutines.delay
                 text = "¥", fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 20.dp)
             )
             BasicTextField(
-                value = amount, onValueChange = { newText ->
+                value = price, onValueChange = { newText ->
                     // 🔒 限制只能输入数字和一个小数点
                     if (isValidDecimalInput(newText)) {
-                        amount = newText
+                        onValueChange(newText)
                     }
                     // 否则忽略非法输入
                 }, singleLine = true, modifier = Modifier

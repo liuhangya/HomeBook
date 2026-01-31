@@ -1,19 +1,20 @@
 package com.fanda.homebook.quick.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fanda.homebook.closet.state.AddClosetUiState
-import com.fanda.homebook.data.category.CategoryEntity
-import com.fanda.homebook.data.category.CategoryWithSubCategories
-import com.fanda.homebook.data.category.SubCategoryEntity
+import com.fanda.homebook.data.pay.PayWayEntity
+import com.fanda.homebook.data.pay.PayWayRepository
+import com.fanda.homebook.data.quick.LocalQuickRepository
+import com.fanda.homebook.data.quick.QuickRepository
 import com.fanda.homebook.data.transaction.TransactionEntity
 import com.fanda.homebook.data.transaction.TransactionRepository
 import com.fanda.homebook.data.transaction.TransactionSubEntity
-import com.fanda.homebook.data.transaction.TransactionWithSubCategories
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.state.AddQuickUiState
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,9 +25,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class AddQuickViewModel(
-    savedStateHandle: SavedStateHandle, private val transactionRepository: TransactionRepository
+    savedStateHandle: SavedStateHandle, private val transactionRepository: TransactionRepository, private val payWayRepository: PayWayRepository, private val quickRepository: QuickRepository
 ) : ViewModel() {
 
     // 私有可变对象，用于保存UI状态
@@ -51,11 +53,6 @@ class AddQuickViewModel(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
-    // 分类列表
-    val categories: StateFlow<List<TransactionEntity>> = transactionRepository.getItems().stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
-    )
-
     // 子分类列表
     @OptIn(ExperimentalCoroutinesApi::class) val subCategories: StateFlow<List<TransactionSubEntity>?> = _uiState.map { it.quickEntity.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
@@ -63,6 +60,24 @@ class AddQuickViewModel(
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
         )
+
+    // 当前选中的支付方式
+    @OptIn(ExperimentalCoroutinesApi::class) val payWay: StateFlow<PayWayEntity?> = _uiState.map { it.quickEntity.payWayId }.distinctUntilChanged()              // 避免重复 ID 触发
+        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+            payWayRepository.getItemById(id)
+        }.stateIn(
+            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+        )
+
+    // 分类列表
+    val categories: StateFlow<List<TransactionEntity>> = transactionRepository.getItems().stateIn(
+        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+    )
+
+    // 支付方式列表
+    val payWays: StateFlow<List<PayWayEntity>> = payWayRepository.getItems().stateIn(
+        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+    )
 
 
     fun updateCategory(
@@ -90,6 +105,56 @@ class AddQuickViewModel(
         }
     }
 
+    fun updateDate(date: Long?) {
+        _uiState.update {
+            it.copy(
+                quickEntity = it.quickEntity.copy(date = date ?: System.currentTimeMillis())
+            )
+        }
+    }
+
+    fun updatePrice(price: String) {
+        _uiState.update {
+            it.copy(
+                quickEntity = it.quickEntity.copy(price = price)
+            )
+        }
+    }
+
+    fun updateQuickComment(comment: String) {
+        _uiState.update {
+            it.copy(
+                quickEntity = it.quickEntity.copy(quickComment = comment)
+            )
+        }
+    }
+
+    fun updatePayWay(payWayEntity: PayWayEntity?) {
+        payWayEntity?.let {
+            _uiState.update {
+                it.copy(
+                    quickEntity = it.quickEntity.copy(
+                        payWayId = payWayEntity.id,
+                    )
+                )
+            }
+        }
+    }
+
+    fun updateSyncCloset(sync: Boolean) {
+        _uiState.update { it.copy(syncCloset = sync) }
+        if (_uiState.value.syncStock && sync) {
+            _uiState.update { it.copy(syncStock = false) }
+        }
+    }
+
+    fun updateSyncStock(sync: Boolean) {
+        _uiState.update { it.copy(syncStock = sync) }
+        if (_uiState.value.syncCloset && sync) {
+            _uiState.update { it.copy(syncCloset = false) }
+        }
+    }
+
     fun updateSheetType(type: ShowBottomSheetType) {
         _uiState.update { it.copy(sheetType = type) }
     }
@@ -98,6 +163,38 @@ class AddQuickViewModel(
 
     fun dismissBottomSheet() {
         _uiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
+    }
+
+    fun checkParams(): Boolean {
+        val entity = _uiState.value.quickEntity
+        return when {
+            entity.price.isEmpty() -> {
+                Toaster.show("请输入金额")
+                false
+            }
+
+            entity.subCategoryId == null -> {
+                Toaster.show("请选择分类")
+                false
+            }
+
+            entity.payWayId == 0 -> {
+                Toaster.show("请选择支付方式")
+                false
+            }
+
+            else -> true
+        }
+    }
+
+    fun saveQuickEntityDatabase(onResult: (Boolean) -> Unit) {
+        val entity = _uiState.value.quickEntity
+        if (checkParams()) {
+            viewModelScope.launch {
+                quickRepository.insert(entity)
+                onResult(true)
+            }
+        }
     }
 
 

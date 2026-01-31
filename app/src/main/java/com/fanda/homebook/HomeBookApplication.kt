@@ -39,6 +39,7 @@ class HomeBookApplication : Application() {
             appContainer.rackRepository.initializeDatabase()
             appContainer.periodRepository.initializeDatabase()
             appContainer.transactionRepository.initializeDatabase()
+            appContainer.payWayRepository.initializeDatabase()
         }
     }
 

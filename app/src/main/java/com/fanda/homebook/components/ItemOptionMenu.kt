@@ -74,21 +74,22 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     onPlusClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
-
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .then(if (removeIndication) {
-            Modifier.clickable(
-                // 去掉默认的点击效果
-                interactionSource = remember { MutableInteractionSource() }, indication = null
-            ) {
-                onClick?.invoke()
-            }
-        } else {
-            Modifier.clickable {
-                onClick?.invoke()
-            }
-        })) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (removeIndication) {
+                Modifier.clickable(
+                    // 去掉默认的点击效果
+                    interactionSource = remember { MutableInteractionSource() }, indication = null
+                ) {
+                    onClick?.invoke()
+                }
+            } else {
+                Modifier.clickable {
+                    onClick?.invoke()
+                }
+            })) {
         Column(
             verticalArrangement = Arrangement.Center, modifier = modifier
         ) {
@@ -101,7 +102,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 Spacer(modifier = Modifier.weight(1f))
                 if (showSwitch) {
                     Switch(
-                        modifier = Modifier.scale(0.8f),enabled = isEditState,  checked = checked, onCheckedChange = {
+                        modifier = Modifier.scale(0.8f), enabled = isEditState, checked = checked, onCheckedChange = {
                             onCheckedChange?.invoke(it)
                         }, colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
@@ -127,28 +128,27 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                 }
 
                 if (showTextField) {
-                    BasicTextField(enabled = isEditState, value = inputText, onValueChange = { newText ->
-                        // 否则忽略非法输入
-                        onValueChange?.invoke(newText)
-                    }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = keyboardOptions, textStyle = TextStyle.Default.copy(
-                        color = colorResource(R.color.color_333333), fontSize = 16.sp, textAlign = TextAlign.End
-                    ), decorationBox = { innerTextField ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(contentAlignment = Alignment.CenterEnd) {
-                                // 占位文本
-                                if (inputText.isEmpty()) {
-                                    Text(
-                                        text = "请输入", color = colorResource(R.color.color_83878C), textAlign = TextAlign.End
-                                    )
+                    BasicTextField(
+                        enabled = isEditState, value = inputText, onValueChange = { newText ->
+                            // 否则忽略非法输入
+                            onValueChange?.invoke(newText)
+                        }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = keyboardOptions, textStyle = TextStyle.Default.copy(
+                            color = colorResource(R.color.color_333333), fontSize = 16.sp, textAlign = TextAlign.End
+                        ), decorationBox = { innerTextField ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(contentAlignment = Alignment.CenterEnd) {
+                                    // 占位文本
+                                    if (inputText.isEmpty()) {
+                                        Text(
+                                            text = "请输入", color = colorResource(R.color.color_83878C), textAlign = TextAlign.End, fontSize = 16.sp
+                                        )
+                                    }
+                                    // 输入框内容
+                                    innerTextField()
                                 }
-                                // 输入框内容
-                                innerTextField()
+                                Text(text = if (showInputTextUnit) " 元" else "", color = colorResource(R.color.color_333333), fontSize = 16.sp)
                             }
-                            if (showInputTextUnit) {
-                                Text(text = " 元", color = colorResource(R.color.color_333333), fontSize = 16.sp)
-                            }
-                        }
-                    })
+                        })
                 }
 
                 if (showColor && inputColor != null) {

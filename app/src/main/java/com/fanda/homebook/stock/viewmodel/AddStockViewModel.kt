@@ -120,7 +120,7 @@ class AddStockViewModel(
 
 
     fun updateSheetType(type: ShowBottomSheetType) {
-        if (type == ShowBottomSheetType.CATEGORY && rackEntity.value == null) {
+        if ((type == ShowBottomSheetType.CATEGORY || type == ShowBottomSheetType.STOCK_CATEGORY) && rackEntity.value == null) {
             Toaster.show("请先选择货架")
             return
         }
@@ -239,19 +239,27 @@ class AddStockViewModel(
         _uiState.update { it.copy(imageUri = imageUri) }
     }
 
-    fun saveStockEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
+    fun checkParams(): Boolean {
         val entity = uiState.value.stockEntity
         if (entity.name.isEmpty()) {
             Toaster.show("请输入名称")
+            return false
         } else if (entity.rackId == 0) {
             Toaster.show("请选择货架")
+            return false
         } else if (entity.subCategoryId == 0) {
             Toaster.show("请选择类别")
-        } else {
+            return false
+        }
+        return true
+    }
+
+    fun saveStockEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
+        val entity = uiState.value.stockEntity
+        if (checkParams()) {
             viewModelScope.launch {
                 val imageFile = saveUriToFilesDir(context, uiState.value.imageUri!!)
                 stockRepository.insert(entity.copy(imageLocalPath = imageFile?.absolutePath ?: "", createDate = System.currentTimeMillis()))
-                Toaster.show("保存成功")
                 onResult(true)
             }
         }

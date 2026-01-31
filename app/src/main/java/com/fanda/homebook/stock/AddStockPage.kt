@@ -59,6 +59,7 @@ import com.fanda.homebook.tools.DATE_FORMAT_YMD
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
+import com.hjq.toast.Toaster
 
 
 /*
@@ -93,6 +94,7 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
             onRightActionClick = {
                 focusManager.clearFocus()
                 stockViewModel.saveStockEntityDatabase(context) {
+                    Toaster.show("保存成功")
                     navController.navigateUp()
                 }
             },

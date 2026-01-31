@@ -247,11 +247,18 @@ class AddClosetViewModel(
         _addClosetUiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
     }
 
-    fun saveClosetEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
+    fun checkParams(): Boolean {
         val entity = addClosetUiState.value.closetEntity
         if (entity.ownerId == 0) {
             Toaster.show("请选择归属")
-        } else {
+            return false
+        }
+        return true
+    }
+
+    fun saveClosetEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
+        val entity = addClosetUiState.value.closetEntity
+        if (checkParams()) {
             viewModelScope.launch {
                 val imageFile = saveUriToFilesDir(context, addClosetUiState.value.imageUri!!)
                 val closetId = closetRepository.insert(entity.copy(imageLocalPath = imageFile?.absolutePath ?: "", createDate = System.currentTimeMillis()))
@@ -263,11 +270,9 @@ class AddClosetViewModel(
                     emptyList()
                 }
                 seasonRepository.insertSeasonRelationAll(closetSeasonRelationList)
-                Toaster.show("保存成功")
                 onResult(true)
             }
         }
-
     }
 
     fun updateSelectedCategory(
