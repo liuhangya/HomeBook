@@ -40,6 +40,7 @@ class HomeBookApplication : Application() {
             appContainer.periodRepository.initializeDatabase()
             appContainer.transactionRepository.initializeDatabase()
             appContainer.payWayRepository.initializeDatabase()
+            appContainer.bookRepository.initializeDatabase()
         }
     }
 

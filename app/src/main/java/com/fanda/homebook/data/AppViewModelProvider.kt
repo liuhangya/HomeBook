@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.fanda.homebook.HomeBookApplication
+import com.fanda.homebook.book.viewmodel.BookViewModel
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
 import com.fanda.homebook.closet.viewmodel.CategoryClosetViewModel
 import com.fanda.homebook.closet.viewmodel.CategoryDetailClosetViewModel
@@ -79,6 +80,11 @@ object AppViewModelProvider {
             HomeClosetViewModel(
                 homeBookApplication().appContainer.closetRepository,
                 homeBookApplication().appContainer.ownerRepository,
+            )
+        }
+        initializer {
+            BookViewModel(
+                homeBookApplication().appContainer.bookRepository,
             )
         }
         initializer {

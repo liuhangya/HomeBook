@@ -28,6 +28,6 @@ class LocalPeriodRepository(private val periodDao: PeriodDao) : PeriodRepository
 
 val defaultPeriodData = listOf(
     PeriodEntity(name = "全天"),
-    PeriodEntity(name = "早"),
-    PeriodEntity(name = "晚"),
+    PeriodEntity(name = "日用"),
+    PeriodEntity(name = "夜用"),
 )

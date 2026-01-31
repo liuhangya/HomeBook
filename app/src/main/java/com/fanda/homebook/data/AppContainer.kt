@@ -1,6 +1,8 @@
 package com.fanda.homebook.data
 
 import android.content.Context
+import com.fanda.homebook.data.book.BookRepository
+import com.fanda.homebook.data.book.LocalBookRepository
 import com.fanda.homebook.data.category.CategoryRepository
 import com.fanda.homebook.data.category.LocalCategoryRepository
 import com.fanda.homebook.data.closet.ClosetRepository
@@ -45,6 +47,7 @@ interface AppContainer {
     val transactionRepository: TransactionRepository
     val payWayRepository: PayWayRepository
     val quickRepository: QuickRepository
+    val bookRepository: BookRepository
 }
 
 class AppContainerImpl(private val context: Context) : AppContainer {
@@ -94,6 +97,10 @@ class AppContainerImpl(private val context: Context) : AppContainer {
 
     override val quickRepository: QuickRepository by lazy {
         LocalQuickRepository(HomeBookDatabase.getDatabase(context).quickDao())
+    }
+
+    override val bookRepository: BookRepository by lazy {
+        LocalBookRepository(HomeBookDatabase.getDatabase(context).bookDao())
     }
 
 

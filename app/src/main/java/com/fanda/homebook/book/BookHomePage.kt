@@ -29,6 +29,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -47,46 +49,57 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.book.sheet.TransactionTypeBottomSheet
 import com.fanda.homebook.book.sheet.YearMonthBottomSheet
 import com.fanda.homebook.book.ui.DailyItemWidget
+import com.fanda.homebook.book.viewmodel.BookViewModel
 import com.fanda.homebook.components.ConfirmDialog
 import com.fanda.homebook.components.EditDialog
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.SelectableRoundedButton
+import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.data.book.BookEntity
 import com.fanda.homebook.entity.AmountItemEntity
+import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.entity.TransactionType
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.formatYearMonth
+import com.fanda.homebook.tools.millisToLocalDate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun BookHomePage(
-    modifier: Modifier = Modifier, navController: NavController, onShowDrawer: (@Composable () -> Unit) -> Unit, onCloseDrawer: () -> Unit
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    isDrawerOpen: Boolean,
+    onShowDrawer: (@Composable () -> Unit) -> Unit,
+    onCloseDrawer: () -> Unit,
+    bookViewModel: BookViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
-    var showSelectCategoryBottomSheet by remember { mutableStateOf(false) }
+
+    val uiState by bookViewModel.uiState.collectAsState()
+    val curSelectedBook by bookViewModel.curSelectedBook.collectAsState()
+    val books by bookViewModel.books.collectAsState()
+
     var showMonthPlanDialog by remember { mutableStateOf(false) }
-    var showDeleteBookDialog by remember { mutableStateOf(false) }
-    var showEditBookDialog by remember { mutableStateOf(false) }
-    var showAddBookDialog by remember { mutableStateOf(false) }
-    var isEditBook by remember { mutableStateOf(false) }
-    var showSelectYearMonthBottomSheet by remember { mutableStateOf(false) }
     var curCategory by remember { mutableStateOf("全部类型") }
-    var curBookName by remember { mutableStateOf("居家生活") }
-    var curEditBookName by remember { mutableStateOf("") }
     var planAmount by remember { mutableFloatStateOf(0f) }
 
-    val currentDate = LocalDate.now()
-    var selectedYear by remember { mutableIntStateOf(currentDate.year) }
-    var selectedMonth by remember { mutableIntStateOf(currentDate.monthValue) }
-
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(isDrawerOpen) {
+        if (!isDrawerOpen) {
+            // 侧边栏关闭时，取消编辑
+            bookViewModel.updateEditBookStatus(false)
+        }
+    }
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopAppBar(
@@ -99,17 +112,18 @@ import java.time.LocalDate
                         .background(color = Color.Transparent)
                 ) {
 
-                    Box(modifier = Modifier
-                        .wrapContentWidth()
-                        .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
+                    Box(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
                         .align(Alignment.CenterEnd)
-                        .clickable(
-                            // 去掉默认的点击效果
-                            interactionSource = remember { MutableInteractionSource() }, indication = null
-                        ) {
-                            showSelectCategoryBottomSheet = true
-                        }
-                        .padding(start = 0.dp, end = 20.dp)) {
+                            .clickable(
+                                // 去掉默认的点击效果
+                                interactionSource = remember { MutableInteractionSource() }, indication = null
+                            ) {
+                                bookViewModel.updateSheetType(ShowBottomSheetType.CATEGORY)
+                            }
+                            .padding(start = 0.dp, end = 20.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                         ) {
@@ -131,24 +145,24 @@ import java.time.LocalDate
                                 interactionSource = remember { MutableInteractionSource() }, indication = null
                             ) {
                                 onShowDrawer {
-                                    BookDrawerWidget(isEditBook = isEditBook, onEditClick = {
-                                        curEditBookName = it
-                                        showEditBookDialog = true
+                                    BookDrawerWidget(data = books, isEditBook = uiState.isEditBook, onEditClick = {
+                                        bookViewModel.updateEditBookEntity(it)
+                                        bookViewModel.updateSheetType(ShowBottomSheetType.EDIT)
                                     }, onDeleteClick = {
-                                        showDeleteBookDialog = true
+                                        bookViewModel.updateSheetType(ShowBottomSheetType.DELETE)
                                     }, onToggleEdit = {
-                                        isEditBook = !isEditBook
+                                        bookViewModel.updateEditBookStatus(!uiState.isEditBook)
                                     }, onAddClick = {
-                                        showAddBookDialog = true
+                                        bookViewModel.updateSheetType(ShowBottomSheetType.ADD)
                                     }, onItemClick = {
-                                        curBookName = it
+                                        bookViewModel.updateSelectBook(it.id)
                                         scope.launch {
                                             delay(200)
                                             onCloseDrawer()
                                         }
                                     })
                                 }
-                            }, text = curBookName, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                            }, text = curSelectedBook?.name ?: "未选择账本", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
                     )
                 }
 
@@ -164,12 +178,12 @@ import java.time.LocalDate
                     Column {
                         Row(modifier = Modifier
                             .clip(RoundedCornerShape(25.dp))
-                            .clickable{
-                                showSelectYearMonthBottomSheet = true
+                            .clickable {
+                                bookViewModel.updateSheetType(ShowBottomSheetType.YEAR_MONTH)
                             }
                             .padding(start = 20.dp, top = 14.dp, bottom = 12.dp, end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = formatYearMonth(selectedYear, selectedMonth), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black
+                                text = formatYearMonth(uiState.year, uiState.month), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black
                             )
                             Image(
                                 painter = painterResource(id = R.mipmap.icon_down), contentDescription = null, modifier = Modifier.padding(start = 4.dp)
@@ -216,44 +230,46 @@ import java.time.LocalDate
             planAmount = it.toFloat()
         })
     }
-    if (showEditBookDialog) {
-        EditDialog(title = "账本名称", value = curEditBookName, showSuffix = false, onDismissRequest = {
-            showEditBookDialog = false
+    if (uiState.sheetType == ShowBottomSheetType.EDIT) {
+        EditDialog(title = "编辑账本", value = uiState.curEditBookEntity?.name ?: "", showSuffix = false, onDismissRequest = {
+            bookViewModel.dismissBottomSheet()
         }, onConfirm = {
-            showEditBookDialog = false
-            LogUtils.d("编辑名称：$it")
+            bookViewModel.updateBookEntityDatabase(uiState.curEditBookEntity?.copy(name = it))
+            bookViewModel.dismissBottomSheet()
+            LogUtils.d("编辑账本：$it")
         })
     }
-    if (showAddBookDialog) {
-        EditDialog(title = "账本名称", value = "", showSuffix = false, onDismissRequest = {
-            showAddBookDialog = false
+    if (uiState.sheetType == ShowBottomSheetType.ADD) {
+        EditDialog(title = "添加账本", value = "", showSuffix = false, onDismissRequest = {
+            bookViewModel.dismissBottomSheet()
         }, onConfirm = {
-            showAddBookDialog = false
-            LogUtils.d("添加名称：$it")
+            bookViewModel.insertBookEntityDatabase(it)
+            bookViewModel.dismissBottomSheet()
+            LogUtils.d("添加账本：$it")
         })
     }
-    if (showDeleteBookDialog) {
+    if (uiState.sheetType == ShowBottomSheetType.DELETE) {
         ConfirmDialog(title = "删除该账本", onDismissRequest = {
-            showDeleteBookDialog = false
+            bookViewModel.dismissBottomSheet()
         }, onConfirm = {
-            showDeleteBookDialog = false
-            LogUtils.d("删除账本")
+            bookViewModel.deleteBookEntityDatabase(uiState.curEditBookEntity)
+            bookViewModel.dismissBottomSheet()
         })
     }
-    TransactionTypeBottomSheet(initial = curCategory, title = "选择类型", visible = showSelectCategoryBottomSheet, onDismiss = {
-        showSelectCategoryBottomSheet = false
+    TransactionTypeBottomSheet(initial = curCategory, title = "选择类型", visible = bookViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY), onDismiss = {
+        bookViewModel.dismissBottomSheet()
     }, onConfirm = {
-        showSelectCategoryBottomSheet = false
+        bookViewModel.dismissBottomSheet()
     }, onSettingClick = {
-        showSelectCategoryBottomSheet = false
+        bookViewModel.dismissBottomSheet()
     })
 
-    YearMonthBottomSheet(year = selectedYear, month = selectedMonth, visible = showSelectYearMonthBottomSheet, onDismiss = {
-        showSelectYearMonthBottomSheet = false
-    }) { year, month ->
-        showSelectYearMonthBottomSheet = false
-        selectedYear = year
-        selectedMonth = month
+    YearMonthBottomSheet(
+        year = uiState.year, month = uiState.month, visible = bookViewModel.showBottomSheet(ShowBottomSheetType.YEAR_MONTH), onDismiss = {
+            bookViewModel.dismissBottomSheet()
+        }) { year, month ->
+        bookViewModel.dismissBottomSheet()
+        bookViewModel.updateQueryDate(year, month)
         LogUtils.d("选中的年月${year}-${month}")
     }
 
@@ -261,7 +277,14 @@ import java.time.LocalDate
 
 
 @Composable fun BookDrawerWidget(
-    isEditBook: Boolean, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, onEditClick: (String) -> Unit, onDeleteClick: (String) -> Unit, onToggleEdit: () -> Unit, onAddClick: () -> Unit
+    data: List<BookEntity>,
+    isEditBook: Boolean,
+    modifier: Modifier = Modifier,
+    onItemClick: (BookEntity) -> Unit,
+    onEditClick: (BookEntity) -> Unit,
+    onDeleteClick: (BookEntity) -> Unit,
+    onToggleEdit: () -> Unit,
+    onAddClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier
@@ -297,9 +320,9 @@ import java.time.LocalDate
         LazyColumn(
             modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)
         ) {
-            items(LocalDataSource.bookList, key = { book -> book }) { book ->
+            items(data, key = { book -> book.id }) { book ->
                 BookItem(
-                    isEditBook, name = book, onEditClick = onEditClick, onDeleteClick = onDeleteClick, onItemClick = onItemClick
+                    isEditBook, book = book, onEditClick = onEditClick, onDeleteClick = onDeleteClick, onItemClick = onItemClick
                 )
             }
         }
@@ -319,7 +342,7 @@ import java.time.LocalDate
 }
 
 @Composable fun BookItem(
-    isEditBook: Boolean, modifier: Modifier = Modifier, name: String, onItemClick: (String) -> Unit, onEditClick: (String) -> Unit, onDeleteClick: (String) -> Unit
+    isEditBook: Boolean, modifier: Modifier = Modifier, book: BookEntity, onItemClick: (BookEntity) -> Unit, onEditClick: (BookEntity) -> Unit, onDeleteClick: (BookEntity) -> Unit
 ) {
     GradientRoundedBoxWithStroke(
         colors = listOf(
@@ -328,31 +351,33 @@ import java.time.LocalDate
     ) {
         Row(modifier = modifier
             .fillMaxWidth()
-            .clickable { onItemClick(name) }
+            .clickable { onItemClick(book) }
             .height(54.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = name, fontSize = 16.sp, modifier = Modifier.padding(start = 16.dp, end = 8.dp), color = Color.Black
+                text = book.name, fontSize = 16.sp, modifier = Modifier.padding(start = 16.dp, end = 8.dp), color = Color.Black
             )
 
             Spacer(modifier = Modifier.weight(1f))
             AnimatedVisibility(visible = isEditBook, enter = fadeIn(), exit = fadeOut()) {
                 Row {
-                    Image(painter = painterResource(id = R.mipmap.icon_edit), contentDescription = null, modifier = Modifier
-                        .padding(7.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() }, indication = null
-                        ) {
-                            onEditClick(name)
-                        })
+                    Image(
+                        painter = painterResource(id = R.mipmap.icon_edit), contentDescription = null, modifier = Modifier
+                            .padding(7.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() }, indication = null
+                            ) {
+                                onEditClick(book)
+                            })
 
-                    Image(painter = painterResource(id = R.mipmap.icon_delete_red),
+                    Image(
+                        painter = painterResource(id = R.mipmap.icon_delete_red),
                         contentDescription = null,
                         modifier = Modifier
                             .padding(start = 7.dp, top = 7.dp, end = 20.dp, bottom = 7.dp)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() }, indication = null
                             ) {
-                                onDeleteClick(name)
+                                onDeleteClick(book)
                             })
 
                 }
@@ -381,7 +406,8 @@ import java.time.LocalDate
 }
 
 @Composable @Preview(showBackground = true) fun BookDrawerWidgetPreview() {
-    BookDrawerWidget(isEditBook = true,
+    BookDrawerWidget(
+        isEditBook = true,
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Gray)
@@ -390,13 +416,16 @@ import java.time.LocalDate
         onDeleteClick = {},
         onToggleEdit = {},
         onAddClick = {},
-        onItemClick = {})
+        onItemClick = {},
+        data = emptyList()
+    )
 }
 
 
 @Composable @Preview(showBackground = true) fun BookHomePagePreview() {
-    BookHomePage(modifier = Modifier
-        .fillMaxWidth()
-        .background(Color.Gray)
-        .statusBarsPadding(), navController = rememberNavController(), onShowDrawer = {}, onCloseDrawer = {})
+    BookHomePage(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Gray)
+            .statusBarsPadding(), navController = rememberNavController(), onShowDrawer = {}, onCloseDrawer = {}, isDrawerOpen = true)
 }

@@ -146,6 +146,7 @@ fun HomeBookApp() {
                             BookHomePage(
                                 modifier = Modifier.fillMaxSize(),
                                 navController = navController,
+                                isDrawerOpen = isDrawerOpen,
                                 onShowDrawer = { content ->
                                     drawerContent = content
                                     scope.launch { drawerState.open() }

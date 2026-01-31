@@ -7,6 +7,8 @@ object UserCache : MMKVOwner(mmapID = "UserCache") {
 
     var rackId by mmkvInt(1)
 
+    var bookId by mmkvInt(1)
+
     fun clear() {
         kv.clearAll()
     }

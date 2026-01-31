@@ -2,7 +2,10 @@ package com.fanda.homebook.tools
 
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -11,10 +14,42 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+fun formatYearMonth(date: Long): String {
+    val (year, month) = millisToLocalDate(date)
+    return if (month == 0) {
+        "${year}年全年"
+    } else {
+        "${year}年${month}月"
+    }
+}
+
 fun formatYearMonth(year: Int, month: Int): String = if (month == 0) {
     "${year}年全年"
 } else {
     "${year}年${month}月"
+}
+
+/**
+ * 获取指定年月最后一天的时间戳（毫秒）
+ * @param year 年份，如 2023
+ * @param month 月份，1-12
+ * @return 该月最后一天 23:59:59.999 的时间戳（毫秒）
+ */
+fun getLastDayTimestamp(year: Int, month: Int): Long {
+    val yearMonth = if (month == 0) {
+        // 如果月份为0，使用12月作为全年最后一个月
+        YearMonth.of(year, 12)
+    } else {
+        // 正常月份
+        YearMonth.of(year, month)
+    }
+
+    val lastDay = yearMonth.atEndOfMonth()
+    val endOfDay = lastDay.atTime(LocalTime.MAX)
+
+    return endOfDay.atZone(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
 }
 
 
@@ -121,14 +156,10 @@ fun convertToLocalMidnight(utcMillis: Long): Long {
     return try {
         // 将 UTC 时间戳转换为 LocalDate
         val utcInstant = java.time.Instant.ofEpochMilli(utcMillis)
-        val localDate = utcInstant.atZone(ZoneOffset.UTC)
-            .withZoneSameInstant(ZoneId.systemDefault())
-            .toLocalDate()
+        val localDate = utcInstant.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.systemDefault()).toLocalDate()
 
         // 将 LocalDate 转换为本地时区的 0 点时间戳
-        localDate.atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
+        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     } catch (e: Exception) {
         // 方法2：使用 Calendar（兼容旧版本）
         val calendar = Calendar.getInstance()
@@ -139,4 +170,11 @@ fun convertToLocalMidnight(utcMillis: Long): Long {
         calendar.set(Calendar.MILLISECOND, 0)
         calendar.timeInMillis
     }
+}
+
+// 毫秒时间戳 → LocalDate
+fun millisToLocalDate(timestampMillis: Long): Pair<Int, Int> {
+    val localDate = Instant.ofEpochMilli(timestampMillis).atZone(ZoneId.systemDefault()) // 使用系统默认时区
+        .toLocalDate()
+    return localDate.year to localDate.monthValue
 }
