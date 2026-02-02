@@ -64,7 +64,7 @@ import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.entity.DashBoarItemEntity
-import com.fanda.homebook.entity.TransactionType
+import com.fanda.homebook.entity.TransactionAmountType
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.formatYearMonth
@@ -78,7 +78,7 @@ import kotlin.random.Random
     val currentDate = LocalDate.now()
     var selectedYear by remember { mutableIntStateOf(currentDate.year) }
     var selectedMonth by remember { mutableIntStateOf(currentDate.monthValue) }
-    var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
+    var transactionType by remember { mutableStateOf(TransactionAmountType.EXPENSE) }
 
     var chartData by remember { mutableStateOf(generateRandomExpenseData()) }
     var expenses by remember { mutableStateOf(generateDailyExpenses()) }
@@ -132,15 +132,15 @@ import kotlin.random.Random
                     ) {
 
                         SelectableRoundedButton(
-                            fontSize = 12.sp, text = "支出", selected = transactionType == TransactionType.EXPENSE, onClick = {
-                                transactionType = TransactionType.EXPENSE
+                            fontSize = 12.sp, text = "支出", selected = transactionType == TransactionAmountType.EXPENSE, onClick = {
+                                transactionType = TransactionAmountType.EXPENSE
                             })
                         SelectableRoundedButton(
                             modifier = Modifier.padding(start = 8.dp),
                             fontSize = 12.sp,
                             text = "入账",
-                            selected = transactionType == TransactionType.INCOME,
-                            onClick = { transactionType = TransactionType.INCOME })
+                            selected = transactionType == TransactionAmountType.INCOME,
+                            onClick = { transactionType = TransactionAmountType.INCOME })
                     }
                 }
             },
@@ -228,7 +228,7 @@ import kotlin.random.Random
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         LocalDataSource.rankList.forEach {
-            DailyAmountItemWidget(item = it)
+//            DailyAmountItemWidget(item = it)
         }
     }
 
@@ -381,8 +381,8 @@ import kotlin.random.Random
 // 数据生成函数
 fun generateDailyExpenses(): List<DailyExpense> {
     val expenses = mutableListOf<DailyExpense>()
-    repeat(Random.nextInt(7, 30)){
-        expenses.add(DailyExpense("9.${it+10}", 450f *Random.nextInt(1, 10)))
+    repeat(Random.nextInt(7, 30)) {
+        expenses.add(DailyExpense("9.${it + 10}", 450f * Random.nextInt(1, 10)))
     }
     return expenses
 }
@@ -452,7 +452,7 @@ fun generateRandomExpenseData(): List<Pair<String, Float>> {
     return categories.zip(adjustedPercentages)
 }
 
-private fun Float.roundTo(decimalPlaces: Int): Float {
+fun Float.roundTo(decimalPlaces: Int): Float {
     val factor = 10f.pow(decimalPlaces)
     return (this * factor).roundToInt() / factor
 }

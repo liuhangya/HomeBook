@@ -32,7 +32,7 @@ import com.fanda.homebook.data.LocalDataSource
     }) { padding ->
         LazyColumn(contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier.padding(padding)) {
             items( LocalDataSource.rankList, key = { it.category }){
-                DailyAmountItemWidget(item = it)
+//                DailyAmountItemWidget(item = it)
             }
         }
     }

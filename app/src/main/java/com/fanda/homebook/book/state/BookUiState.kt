@@ -8,8 +8,9 @@ data class BookUiState(
     val curSelectBookId: Int = 1,
     val curEditBookEntity: BookEntity? = null,
     val showEditBookDialog: Boolean = false,
-    val queryDate: Long = System.currentTimeMillis(),
     val year : Int = 2026,
     val month : Int = 1,
+    val categoryId: Int? = null,
+    val subCategoryId: Int? = null,
     val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE
 )

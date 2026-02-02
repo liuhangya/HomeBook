@@ -3,51 +3,43 @@ package com.fanda.homebook.data
 import com.fanda.homebook.R
 import com.fanda.homebook.data.closet.CategoryBottomMenuEntity
 import com.fanda.homebook.data.stock.StockMenuEntity
-import com.fanda.homebook.data.stock.StockStatusEntity
-import com.fanda.homebook.entity.AmountItemEntity
-import com.fanda.homebook.entity.BaseCategoryEntity
 import com.fanda.homebook.entity.DailyAmountEntity
 import com.fanda.homebook.entity.DailyItemEntity
 import com.fanda.homebook.entity.DashBoarItemEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.entity.StateMenuEntity
-import com.fanda.homebook.entity.StockGridEntity
-import com.fanda.homebook.entity.StockState
 import com.fanda.homebook.entity.TransactionCategory
-import com.fanda.homebook.entity.TransactionType
-import com.fanda.homebook.quick.sheet.Category
-import com.fanda.homebook.quick.sheet.SubCategory
+import com.fanda.homebook.entity.TransactionAmountType
 
 object LocalDataSource {
     val expenseCategoryData = listOf(
-        TransactionCategory("餐饮", R.mipmap.icon_dining, TransactionType.EXPENSE),
-        TransactionCategory("交通", R.mipmap.icon_traffic, TransactionType.EXPENSE),
-        TransactionCategory("服饰", R.mipmap.icon_clothing, TransactionType.EXPENSE),
-        TransactionCategory("护肤", R.mipmap.icon_skincare, TransactionType.EXPENSE),
-        TransactionCategory("购物", R.mipmap.icon_shopping, TransactionType.EXPENSE),
-        TransactionCategory("服务", R.mipmap.icon_services, TransactionType.EXPENSE),
-        TransactionCategory("医疗", R.mipmap.icon_health, TransactionType.EXPENSE),
-        TransactionCategory("娱乐", R.mipmap.icon_play, TransactionType.EXPENSE),
-        TransactionCategory("生活", R.mipmap.icon_daily, TransactionType.EXPENSE),
-        TransactionCategory("旅行", R.mipmap.icon_travel, TransactionType.EXPENSE),
-        TransactionCategory("保险", R.mipmap.icon_insurance, TransactionType.EXPENSE),
-        TransactionCategory("发红包", R.mipmap.icon_red_envelope, TransactionType.EXPENSE),
-        TransactionCategory("人情", R.mipmap.icon_social, TransactionType.EXPENSE),
-        TransactionCategory("其他", R.mipmap.icon_others, TransactionType.EXPENSE),
+        TransactionCategory("餐饮", R.mipmap.icon_dining, TransactionAmountType.EXPENSE),
+        TransactionCategory("交通", R.mipmap.icon_traffic, TransactionAmountType.EXPENSE),
+        TransactionCategory("服饰", R.mipmap.icon_clothing, TransactionAmountType.EXPENSE),
+        TransactionCategory("护肤", R.mipmap.icon_skincare, TransactionAmountType.EXPENSE),
+        TransactionCategory("购物", R.mipmap.icon_shopping, TransactionAmountType.EXPENSE),
+        TransactionCategory("服务", R.mipmap.icon_services, TransactionAmountType.EXPENSE),
+        TransactionCategory("医疗", R.mipmap.icon_health, TransactionAmountType.EXPENSE),
+        TransactionCategory("娱乐", R.mipmap.icon_play, TransactionAmountType.EXPENSE),
+        TransactionCategory("生活", R.mipmap.icon_daily, TransactionAmountType.EXPENSE),
+        TransactionCategory("旅行", R.mipmap.icon_travel, TransactionAmountType.EXPENSE),
+        TransactionCategory("保险", R.mipmap.icon_insurance, TransactionAmountType.EXPENSE),
+        TransactionCategory("发红包", R.mipmap.icon_red_envelope, TransactionAmountType.EXPENSE),
+        TransactionCategory("人情", R.mipmap.icon_social, TransactionAmountType.EXPENSE),
+        TransactionCategory("其他", R.mipmap.icon_others, TransactionAmountType.EXPENSE),
     )
 
     val incomeCategoryData = listOf(
-        TransactionCategory("工资", R.mipmap.icon_salary, TransactionType.INCOME),
-        TransactionCategory("收红包", R.mipmap.icon_get_money, TransactionType.INCOME),
-        TransactionCategory("人情", R.mipmap.icon_social, TransactionType.INCOME),
-        TransactionCategory("奖金", R.mipmap.icon_bonus, TransactionType.INCOME),
-        TransactionCategory("其他", R.mipmap.icon_others, TransactionType.INCOME),
+        TransactionCategory("工资", R.mipmap.icon_salary, TransactionAmountType.INCOME),
+        TransactionCategory("收红包", R.mipmap.icon_get_money, TransactionAmountType.INCOME),
+        TransactionCategory("人情", R.mipmap.icon_social, TransactionAmountType.INCOME),
+        TransactionCategory("奖金", R.mipmap.icon_bonus, TransactionAmountType.INCOME),
+        TransactionCategory("其他", R.mipmap.icon_others, TransactionAmountType.INCOME),
     )
 
     val excludeCategoryData = listOf(
-        TransactionCategory("理财", R.mipmap.icon_finance, TransactionType.EXCLUDED),
-        TransactionCategory("借还款", R.mipmap.icon_debts, TransactionType.EXCLUDED),
-        TransactionCategory("其他", R.mipmap.icon_others, TransactionType.EXCLUDED),
+        TransactionCategory("理财", R.mipmap.icon_finance, TransactionAmountType.EXCLUDED),
+        TransactionCategory("借还款", R.mipmap.icon_debts, TransactionAmountType.EXCLUDED),
+        TransactionCategory("其他", R.mipmap.icon_others, TransactionAmountType.EXCLUDED),
     )
 
     val closetCategoryBottomMenuList = listOf(
@@ -75,34 +67,13 @@ object LocalDataSource {
         "回购",
     )
 
-    // 账本页面
-
-    val amountItemList = mutableListOf<AmountItemEntity>().apply {
-        add(
-            AmountItemEntity(
-                name = "本月支出", amount = 5800f, type = TransactionType.EXPENSE
-            )
-        )
-        add(
-            AmountItemEntity(
-                name = "本月收入", amount = 10000f, type = TransactionType.INCOME
-            )
-        )
-        add(
-            AmountItemEntity(
-                name = "添加预算", amount = 4200f, type = TransactionType.PLAN
-            )
-        )
-
-    }
-
     val dailyListData = mutableListOf<DailyAmountEntity>().apply {
         val children = mutableListOf<DailyItemEntity>().apply {
             repeat(5) {
                 add(
                     DailyItemEntity(
                         1,
-                        TransactionType.EXPENSE,
+                        TransactionAmountType.EXPENSE,
                         100f,
                         "购物",
                         "支付宝",
@@ -119,7 +90,7 @@ object LocalDataSource {
                 add(
                     DailyItemEntity(
                         1,
-                        TransactionType.INCOME,
+                        TransactionAmountType.INCOME,
                         100f,
                         "购物",
                         "支付宝",
@@ -137,9 +108,9 @@ object LocalDataSource {
     }
 
     val dashBoarList = listOf(
-        DashBoarItemEntity(1, TransactionType.INCOME, 10000f, "购物", 0.5f),
-        DashBoarItemEntity(2, TransactionType.INCOME, 450.23f, "护肤", 0.2f),
-        DashBoarItemEntity(3, TransactionType.INCOME, 220.66f, "生活", 0.3f),
+        DashBoarItemEntity(1, TransactionAmountType.INCOME, 10000f, "购物", 0.5f),
+        DashBoarItemEntity(2, TransactionAmountType.INCOME, 450.23f, "护肤", 0.2f),
+        DashBoarItemEntity(3, TransactionAmountType.INCOME, 220.66f, "生活", 0.3f),
     )
 
     val rankList = mutableListOf<DailyItemEntity>().apply {
@@ -147,7 +118,7 @@ object LocalDataSource {
             add(
                 DailyItemEntity(
                     it + 1,
-                    TransactionType.INCOME,
+                    TransactionAmountType.INCOME,
                     100f,
                     "购物",
                     "支付宝",
@@ -159,7 +130,7 @@ object LocalDataSource {
             add(
                 DailyItemEntity(
                     it + 10,
-                    TransactionType.EXPENSE,
+                    TransactionAmountType.EXPENSE,
                     100f,
                     "购物",
                     "支付宝",

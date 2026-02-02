@@ -135,8 +135,9 @@ fun getCategoryIcon(type: Int) = when (type) {
     TransactionType.FINANCE.type -> R.mipmap.icon_finance
     TransactionType.DEBTS.type -> R.mipmap.icon_debts
     TransactionType.OTHERS.type -> R.mipmap.icon_others
+    TransactionType.ADD.type -> R.mipmap.icon_category_add
     else -> {
-        0
+        R.mipmap.icon_category_custom
     }
 }
 

@@ -39,7 +39,7 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
 
 @Database(
     entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class, RackEntity::class, RackSubCategoryEntity::class, PeriodEntity::class, StockEntity::class, ClosetSeasonRelation::class, TransactionEntity::class, TransactionSubEntity::class, PayWayEntity::class, QuickEntity::class, BookEntity::class],
-    version = 13,
+    version = 15,
     exportSchema = false
 ) abstract class HomeBookDatabase() : RoomDatabase() {
 

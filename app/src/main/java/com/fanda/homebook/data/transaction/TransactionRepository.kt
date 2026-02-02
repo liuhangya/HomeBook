@@ -1,7 +1,6 @@
 package com.fanda.homebook.data.transaction
 
-import com.fanda.homebook.data.category.CategoryDao
-import com.fanda.homebook.data.category.CategoryWithSubCategories
+import com.fanda.homebook.entity.TransactionAmountType
 import kotlinx.coroutines.flow.Flow
 
 interface TransactionRepository {
@@ -22,11 +21,12 @@ interface TransactionRepository {
     fun getSubItemsById(id: Int): Flow<List<TransactionSubEntity>>
     fun getSubItemById(id: Int): Flow<TransactionSubEntity>
     suspend fun getItemByName(name: String): TransactionEntity?
-    suspend fun getSubItemByName(name: String): TransactionSubEntity?
+    suspend fun getSubItemByName(name: String, parentId: Int): TransactionSubEntity?
     suspend fun getSubItemMaxSortOrder(): Int?
     suspend fun updateItemsSortOrders(list: List<TransactionEntity>): Int
     suspend fun updateSubItemsSortOrders(list: List<TransactionSubEntity>): Int
     fun getAllItemsWithSub(): Flow<List<TransactionWithSubCategories>>
+    suspend fun insertSubItemWithAutoOrder(entity: TransactionSubEntity): Long
 }
 
 class LocalTransactionRepository(private val transactionDao: TransactionDao) : TransactionRepository {
@@ -71,7 +71,7 @@ class LocalTransactionRepository(private val transactionDao: TransactionDao) : T
 
     override suspend fun getItemByName(name: String): TransactionEntity? = transactionDao.getItemByName(name)
 
-    override suspend fun getSubItemByName(name: String): TransactionSubEntity? = transactionDao.getSubItemByName(name)
+    override suspend fun getSubItemByName(name: String, parentId: Int): TransactionSubEntity? = transactionDao.getSubItemByName(name, parentId)
 
     override suspend fun getSubItemMaxSortOrder() = transactionDao.getSubItemMaxSortOrder()
 
@@ -80,37 +80,38 @@ class LocalTransactionRepository(private val transactionDao: TransactionDao) : T
     override suspend fun updateSubItemsSortOrders(list: List<TransactionSubEntity>) = transactionDao.updateSubItemsSortOrders(list)
 
     override fun getAllItemsWithSub(): Flow<List<TransactionWithSubCategories>> = transactionDao.getAllItemsWithSub()
+    override suspend fun insertSubItemWithAutoOrder(entity: TransactionSubEntity) = transactionDao.insertSubItemWithAutoOrder(entity)
 
     private suspend fun insertAllDefaultSubItems(items: List<TransactionEntity>) {
         val subItems = mutableListOf<TransactionSubEntity>()
         items.forEach { item ->
-            when (item.name) {
-                "支出" -> {
-                    subItems.add(TransactionSubEntity(name ="餐饮", categoryId = item.id, sortOrder = 0, type = TransactionType.DINING.type))
-                    subItems.add(TransactionSubEntity(name ="交通", categoryId = item.id, sortOrder = 1, type = TransactionType.TRAFFIC.type ))
-                    subItems.add(TransactionSubEntity(name ="服饰", categoryId = item.id, sortOrder = 2, type = TransactionType.CLOTHING.type))
-                    subItems.add(TransactionSubEntity(name ="护肤", categoryId = item.id, sortOrder = 3, type = TransactionType.SKINCARE.type))
-                    subItems.add(TransactionSubEntity(name ="购物", categoryId = item.id, sortOrder = 4, type = TransactionType.SHOPPING.type))
-                    subItems.add(TransactionSubEntity(name ="服务", categoryId = item.id, sortOrder = 5, type = TransactionType.SERVICES.type))
-                    subItems.add(TransactionSubEntity(name ="医疗", categoryId = item.id, sortOrder = 6, type = TransactionType.HEALTH.type))
-                    subItems.add(TransactionSubEntity(name ="娱乐",  categoryId = item.id, sortOrder = 7, type = TransactionType.PLAY.type))
-                    subItems.add(TransactionSubEntity(name ="生活",  categoryId = item.id, sortOrder = 8, type = TransactionType.DAILY.type))
-                    subItems.add(TransactionSubEntity(name ="旅行",  categoryId = item.id, sortOrder = 9, type = TransactionType.TRAVEL.type))
-                    subItems.add(TransactionSubEntity(name ="保险",  categoryId = item.id, sortOrder = 10, type = TransactionType.INSURANCE.type))
-                    subItems.add(TransactionSubEntity(name ="发红包", categoryId = item.id, sortOrder = 11, type = TransactionType.RED_ENVELOPE.type))
-                    subItems.add(TransactionSubEntity(name ="人情",  categoryId = item.id, sortOrder = 12, type = TransactionType.SOCIAL.type))
-                    subItems.add(TransactionSubEntity(name ="其他",  categoryId = item.id, sortOrder = 13, type = TransactionType.OTHERS.type))
+            when (item.type) {
+                TransactionAmountType.EXPENSE.ordinal -> {
+                    subItems.add(TransactionSubEntity(name = "餐饮", categoryId = item.id, sortOrder = 0, type = TransactionType.DINING.type))
+                    subItems.add(TransactionSubEntity(name = "交通", categoryId = item.id, sortOrder = 1, type = TransactionType.TRAFFIC.type))
+                    subItems.add(TransactionSubEntity(name = "服饰", categoryId = item.id, sortOrder = 2, type = TransactionType.CLOTHING.type))
+                    subItems.add(TransactionSubEntity(name = "护肤", categoryId = item.id, sortOrder = 3, type = TransactionType.SKINCARE.type))
+                    subItems.add(TransactionSubEntity(name = "购物", categoryId = item.id, sortOrder = 4, type = TransactionType.SHOPPING.type))
+                    subItems.add(TransactionSubEntity(name = "服务", categoryId = item.id, sortOrder = 5, type = TransactionType.SERVICES.type))
+                    subItems.add(TransactionSubEntity(name = "医疗", categoryId = item.id, sortOrder = 6, type = TransactionType.HEALTH.type))
+                    subItems.add(TransactionSubEntity(name = "娱乐", categoryId = item.id, sortOrder = 7, type = TransactionType.PLAY.type))
+                    subItems.add(TransactionSubEntity(name = "生活", categoryId = item.id, sortOrder = 8, type = TransactionType.DAILY.type))
+                    subItems.add(TransactionSubEntity(name = "旅行", categoryId = item.id, sortOrder = 9, type = TransactionType.TRAVEL.type))
+                    subItems.add(TransactionSubEntity(name = "保险", categoryId = item.id, sortOrder = 10, type = TransactionType.INSURANCE.type))
+                    subItems.add(TransactionSubEntity(name = "发红包", categoryId = item.id, sortOrder = 11, type = TransactionType.RED_ENVELOPE.type))
+                    subItems.add(TransactionSubEntity(name = "人情", categoryId = item.id, sortOrder = 12, type = TransactionType.SOCIAL.type))
+                    subItems.add(TransactionSubEntity(name = "其他", categoryId = item.id, sortOrder = 13, type = TransactionType.OTHERS.type))
                 }
 
-                "入账" -> {
-                    subItems.add(TransactionSubEntity(name = "工资",  categoryId = item.id, sortOrder = 0, type = TransactionType.SALARY.type))
+                TransactionAmountType.INCOME.ordinal -> {
+                    subItems.add(TransactionSubEntity(name = "工资", categoryId = item.id, sortOrder = 0, type = TransactionType.SALARY.type))
                     subItems.add(TransactionSubEntity(name = "收红包", categoryId = item.id, sortOrder = 1, type = TransactionType.GET_ENVELOPE.type))
-                    subItems.add(TransactionSubEntity(name = "人情",  categoryId = item.id, sortOrder = 2, type = TransactionType.SOCIAL.type))
-                    subItems.add(TransactionSubEntity(name = "奖金",  categoryId = item.id, sortOrder = 3, type = TransactionType.BONUS.type))
-                    subItems.add(TransactionSubEntity(name = "其他",  categoryId = item.id, sortOrder = 4, type = TransactionType.OTHERS.type))
+                    subItems.add(TransactionSubEntity(name = "人情", categoryId = item.id, sortOrder = 2, type = TransactionType.SOCIAL.type))
+                    subItems.add(TransactionSubEntity(name = "奖金", categoryId = item.id, sortOrder = 3, type = TransactionType.BONUS.type))
+                    subItems.add(TransactionSubEntity(name = "其他", categoryId = item.id, sortOrder = 4, type = TransactionType.OTHERS.type))
                 }
 
-                "不计入收支" -> {
+                TransactionAmountType.EXCLUDED.ordinal -> {
                     subItems.add(TransactionSubEntity(name = "理财", categoryId = item.id, sortOrder = 0, type = TransactionType.FINANCE.type))
                     subItems.add(TransactionSubEntity(name = "借还款", categoryId = item.id, sortOrder = 1, type = TransactionType.DEBTS.type))
                     subItems.add(TransactionSubEntity(name = "其他", categoryId = item.id, sortOrder = 2, type = TransactionType.OTHERS.type))
@@ -121,9 +122,13 @@ class LocalTransactionRepository(private val transactionDao: TransactionDao) : T
     }
 }
 
+const val TRANSACTION_INCOME = "入账"
+const val TRANSACTION_EXPENSE = "支出"
+const val TRANSACTION_EXCLUDED = "不计入收支"
+
 val defaultCategoryData = listOf(
-    TransactionEntity(name = "支出"),
-    TransactionEntity(name = "入账"),
-    TransactionEntity(name = "不计入收支"),
+    TransactionEntity(name = TRANSACTION_EXPENSE, type = TransactionAmountType.EXPENSE.ordinal),
+    TransactionEntity(name = TRANSACTION_INCOME, type = TransactionAmountType.INCOME.ordinal),
+    TransactionEntity(name = TRANSACTION_EXCLUDED, type = TransactionAmountType.EXCLUDED.ordinal),
 )
 

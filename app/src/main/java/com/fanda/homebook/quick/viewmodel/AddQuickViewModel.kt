@@ -14,6 +14,7 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.state.AddQuickUiState
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
+import com.fanda.homebook.tools.UserCache
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -188,7 +189,7 @@ class AddQuickViewModel(
     }
 
     fun saveQuickEntityDatabase(onResult: (Boolean) -> Unit) {
-        val entity = _uiState.value.quickEntity
+        val entity = _uiState.value.quickEntity.copy(bookId = UserCache.bookId)
         if (checkParams()) {
             viewModelScope.launch {
                 quickRepository.insert(entity)

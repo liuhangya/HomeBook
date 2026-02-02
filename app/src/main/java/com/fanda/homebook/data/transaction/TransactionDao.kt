@@ -8,6 +8,8 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.fanda.homebook.data.category.CategoryWithSubCategories
+import com.fanda.homebook.data.category.SubCategoryEntity
+import com.fanda.homebook.tools.LogUtils
 import kotlinx.coroutines.flow.Flow
 
 @Dao interface TransactionDao {
@@ -51,7 +53,7 @@ import kotlinx.coroutines.flow.Flow
 
     @Query("SELECT * FROM transaction_category WHERE name = :name") suspend fun getItemByName(name: String): TransactionEntity?
 
-    @Query("SELECT * FROM transaction_sub_category WHERE name = :name") suspend fun getSubItemByName(name: String): TransactionSubEntity?
+    @Query("SELECT * FROM transaction_sub_category WHERE name = :name AND  categoryId = :parentId ") suspend fun getSubItemByName(name: String, parentId: Int): TransactionSubEntity?
 
     @Query("SELECT MAX(sortOrder) FROM transaction_sub_category") suspend fun getSubItemMaxSortOrder(): Int?
 
@@ -61,6 +63,15 @@ import kotlinx.coroutines.flow.Flow
     @Update suspend fun updateSubItemsSortOrders(list: List<TransactionSubEntity>): Int
 
     @Transaction @Query("SELECT * FROM transaction_category") fun getAllItemsWithSub(): Flow<List<TransactionWithSubCategories>>
+
+    // 插入时自动设置排序（放在最后）
+    @Transaction suspend fun insertSubItemWithAutoOrder(entity: TransactionSubEntity): Long {
+        val maxOrder = getSubItemMaxSortOrder() ?: 0
+        LogUtils.i("最大排序值为：$maxOrder")
+        val insertEntity = entity.copy(sortOrder = maxOrder + 1)
+        LogUtils.i("插入数据：$insertEntity")
+        return insertSubItem(insertEntity)
+    }
 
 
     // 重置为默认数据

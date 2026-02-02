@@ -44,6 +44,7 @@ import com.fanda.homebook.book.BookHomePage
 import com.fanda.homebook.book.DashBoarDetailPage
 import com.fanda.homebook.book.DashBoarPage
 import com.fanda.homebook.book.DashBoarRankPage
+import com.fanda.homebook.book.EditTransactionCategoryPage
 import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
@@ -72,8 +73,7 @@ import kotlinx.coroutines.launch
 /*
 * 应用入口
 * */
-@Composable
-fun HomeBookApp() {
+@Composable fun HomeBookApp() {
     val context = LocalContext.current
     val navController: NavHostController = rememberNavController()
     var lastBackPressed by remember { mutableLongStateOf(0L) }
@@ -110,14 +110,10 @@ fun HomeBookApp() {
     ModalNavigationDrawer(
         gesturesEnabled = drawerState.isOpen, drawerState = drawerState, drawerContent = {
             ModalDrawerSheet(
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                drawerContainerColor = Color.Transparent,
-                drawerShape = RoundedCornerShape(0.dp)
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerContainerColor = Color.Transparent, drawerShape = RoundedCornerShape(0.dp)
             ) {
                 ModalDrawerSheet(
-                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                    drawerShape = RoundedCornerShape(0.dp),
-                    drawerContainerColor = Color.Transparent
+                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerShape = RoundedCornerShape(0.dp), drawerContainerColor = Color.Transparent
                 ) {
                     drawerContent()
                 }
@@ -133,27 +129,19 @@ fun HomeBookApp() {
                     .fillMaxWidth()
             ) {
                 NavHost(
-                    navController = navController,
-                    startDestination = RoutePath.BookGraph.route,
-                    modifier = Modifier.fillMaxSize()
+                    navController = navController, startDestination = RoutePath.BookGraph.route, modifier = Modifier.fillMaxSize()
                 ) {
                     // ====== 账本 Tab 嵌套 Graph ======
                     navigation(
-                        startDestination = RoutePath.BookHome.route,
-                        route = RoutePath.BookGraph.route
+                        startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route
                     ) {
                         composable(RoutePath.BookHome.route) {
-                            BookHomePage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController,
-                                isDrawerOpen = isDrawerOpen,
-                                onShowDrawer = { content ->
-                                    drawerContent = content
-                                    scope.launch { drawerState.open() }
-                                },
-                                onCloseDrawer = {
-                                    scope.launch { drawerState.close() }
-                                })
+                            BookHomePage(modifier = Modifier.fillMaxSize(), navController = navController, isDrawerOpen = isDrawerOpen, onShowDrawer = { content ->
+                                drawerContent = content
+                                scope.launch { drawerState.open() }
+                            }, onCloseDrawer = {
+                                scope.launch { drawerState.close() }
+                            })
                         }
                         composable(RoutePath.DashBoar.route) {
                             DashBoarPage(
@@ -174,8 +162,7 @@ fun HomeBookApp() {
 
                     // ====== 看板 Tab ======
                     navigation(
-                        startDestination = RoutePath.DashboardHome.route,
-                        route = RoutePath.DashboardGraph.route
+                        startDestination = RoutePath.DashboardHome.route, route = RoutePath.DashboardGraph.route
                     ) {
                         composable(RoutePath.DashboardHome.route) {
                             Text(
@@ -188,8 +175,7 @@ fun HomeBookApp() {
 
                     // ====== 衣橱 Tab ======
                     navigation(
-                        startDestination = RoutePath.ClosetHome.route,
-                        route = RoutePath.ClosetGraph.route
+                        startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route
                     ) {
                         composable(RoutePath.ClosetHome.route) {
                             ClosetHomePage(
@@ -197,8 +183,7 @@ fun HomeBookApp() {
                             )
                         }
                         composable(
-                            route = "${RoutePath.AddCloset.route}?imagePath={imagePath}",
-                            arguments = listOf(navArgument("imagePath") {
+                            route = "${RoutePath.AddCloset.route}?imagePath={imagePath}", arguments = listOf(navArgument("imagePath") {
                                 type = NavType.StringType
                             })
                         ) {
@@ -217,8 +202,7 @@ fun HomeBookApp() {
                             )
                         }
                         composable(
-                            "${RoutePath.AddColor.route}?colorId={colorId}",
-                            arguments = listOf(navArgument("colorId") {
+                            "${RoutePath.AddColor.route}?colorId={colorId}", arguments = listOf(navArgument("colorId") {
                                 type = NavType.IntType
                             })
                         ) {
@@ -229,8 +213,7 @@ fun HomeBookApp() {
 
 
                         composable(
-                            "${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}",
-                            arguments = listOf(navArgument("categoryEntity") {
+                            "${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}", arguments = listOf(navArgument("categoryEntity") {
                                 type = NavType.StringType
                             })
                         ) {
@@ -257,8 +240,7 @@ fun HomeBookApp() {
                         }
 
                         composable(
-                            "${RoutePath.WatchAndEditCloset.route}?closetId={closetId}",
-                            arguments = listOf(navArgument("closetId") {
+                            "${RoutePath.WatchAndEditCloset.route}?closetId={closetId}", arguments = listOf(navArgument("closetId") {
                                 type = NavType.IntType
                             })
                         ) {
@@ -272,8 +254,7 @@ fun HomeBookApp() {
 
                     // ====== 囤货 Tab ======
                     navigation(
-                        startDestination = RoutePath.StockHome.route,
-                        route = RoutePath.StockGraph.route
+                        startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route
                     ) {
                         composable(RoutePath.StockHome.route) {
                             StockHomePage(
@@ -281,8 +262,7 @@ fun HomeBookApp() {
                             )
                         }
                         composable(
-                            route = "${RoutePath.AddStock.route}?imagePath={imagePath}",
-                            arguments = listOf(navArgument("imagePath") {
+                            route = "${RoutePath.AddStock.route}?imagePath={imagePath}", arguments = listOf(navArgument("imagePath") {
                                 type = NavType.StringType
                             })
                         ) {
@@ -292,8 +272,7 @@ fun HomeBookApp() {
                         }
 
                         composable(
-                            "${RoutePath.WatchAndEditStock.route}?stockId={stockId}",
-                            arguments = listOf(navArgument("stockId") {
+                            "${RoutePath.WatchAndEditStock.route}?stockId={stockId}", arguments = listOf(navArgument("stockId") {
                                 type = NavType.IntType
                             })
                         ) {
@@ -322,15 +301,20 @@ fun HomeBookApp() {
                         )
                     }
 
-                    composable(RoutePath.EditPayWay.route) {
-                        EditPayWayPage(
+                    composable(RoutePath.EditSize.route) {
+                        EditSizePage(
+                            modifier = Modifier.fillMaxSize(), navController = navController
+                        )
+                    }
+
+                    composable(RoutePath.EditTransactionCategory.route) {
+                        EditTransactionCategoryPage(
                             modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
 
                     composable(
-                        "${RoutePath.EditSubCategory.route}?categoryId={categoryId}&categoryName={categoryName}",
-                        arguments = listOf(navArgument("categoryId") {
+                        "${RoutePath.EditSubCategory.route}?categoryId={categoryId}&categoryName={categoryName}", arguments = listOf(navArgument("categoryId") {
                             type = NavType.IntType
                         }, navArgument("categoryName") {
                             type = NavType.StringType
@@ -345,19 +329,15 @@ fun HomeBookApp() {
 
             if (isTabRoute) {
                 // 确保在有手势导航的设备上留出安全区
-                CustomBottomBar(
-                    modifier = Modifier.navigationBarsPadding(),
-                    selectedTab = selectedTab,
-                    onTabClick = { tab ->
-                        navController.navigate(tab.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                            popUpTo(navController.graph.id) { saveState = true }
-                        }
-                    },
-                    onQuickAddClick = {
-                        navController.navigate(RoutePath.QuickAdd.route)
-                    })
+                CustomBottomBar(modifier = Modifier.navigationBarsPadding(), selectedTab = selectedTab, onTabClick = { tab ->
+                    navController.navigate(tab.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                        popUpTo(navController.graph.id) { saveState = true }
+                    }
+                }, onQuickAddClick = {
+                    navController.navigate(RoutePath.QuickAdd.route)
+                })
             }
         }
     }
@@ -371,8 +351,7 @@ fun HomeBookApp() {
  * @param navController 导航控制器
  * @param defaultTab 默认选中的 Tab（通常为首页）
  */
-@Composable
-private fun rememberSelectedTab(
+@Composable private fun rememberSelectedTab(
     navController: NavController, defaultTab: String = RoutePath.BookGraph.route
 ): Pair<String, Boolean> {
     val currentEntry by navController.currentBackStackEntryAsState()
@@ -386,16 +365,13 @@ private fun rememberSelectedTab(
     }
     isTabRoute = currentRoute in tabRootRoutes
     Log.d(
-        "HomeBookApp",
-        "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute"
+        "HomeBookApp", "selectedTab: $selectedTab , isTabRoute: $isTabRoute , currentRoute: $currentRoute"
     )
 
     return Pair(selectedTab, isTabRoute)
 }
 
-@Composable
-@Preview(showBackground = true)
-private fun HomeBookAppPreview() {
+@Composable @Preview(showBackground = true) private fun HomeBookAppPreview() {
     HomeBookTheme {
         HomeBookApp()
     }

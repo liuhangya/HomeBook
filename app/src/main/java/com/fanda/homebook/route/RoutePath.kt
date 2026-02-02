@@ -39,6 +39,8 @@ sealed class RoutePath(val route: String) {
 
     data object EditCategory : RoutePath("edit_category")
 
+    data object EditTransactionCategory : RoutePath("edit_transaction_category")
+
     data object EditColor : RoutePath("edit_color")
 
     data object EditProduct : RoutePath("edit_product")

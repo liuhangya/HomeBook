@@ -12,6 +12,7 @@ import com.fanda.homebook.data.category.CategoryEntity
 @Entity(tableName = "transaction_category") data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0, // 分类的ID，自动生成
     val name: String, // 分类的名称
+    val type: Int
 )
 
 @Entity(
@@ -44,8 +45,11 @@ class TransactionWithSubCategories {
 
 
 enum class TransactionType(val type: Int) {
-    DINING(0), TRAFFIC(1), CLOTHING(2), SKINCARE(3), SHOPPING(4), SERVICES(5), HEALTH(6), PLAY(7), DAILY(8), TRAVEL(9), INSURANCE(10), RED_ENVELOPE(11), SOCIAL(12), SALARY(13), GET_ENVELOPE(14), BONUS(
+    CUSTOM(-1), DINING(0), TRAFFIC(1), CLOTHING(2), SKINCARE(3), SHOPPING(4), SERVICES(5), HEALTH(6), PLAY(7), DAILY(8), TRAVEL(9), INSURANCE(10), RED_ENVELOPE(11), SOCIAL(12), SALARY(13), GET_ENVELOPE(
+        14
+    ),
+    BONUS(
         15
     ),
-    FINANCE(16), DEBTS(17), OTHERS(18),
+    FINANCE(16), DEBTS(17), OTHERS(18), ADD(1000)
 }

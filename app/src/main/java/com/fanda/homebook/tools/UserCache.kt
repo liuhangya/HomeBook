@@ -9,6 +9,9 @@ object UserCache : MMKVOwner(mmapID = "UserCache") {
 
     var bookId by mmkvInt(1)
 
+    // 预算
+    var planAmount by mmkvFloat(0.0f)
+
     fun clear() {
         kv.clearAll()
     }

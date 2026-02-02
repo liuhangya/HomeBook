@@ -32,12 +32,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,25 +51,25 @@ import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.book.sheet.TransactionTypeBottomSheet
 import com.fanda.homebook.book.sheet.YearMonthBottomSheet
+import com.fanda.homebook.book.state.BookUiState
 import com.fanda.homebook.book.ui.DailyItemWidget
 import com.fanda.homebook.book.viewmodel.BookViewModel
 import com.fanda.homebook.components.ConfirmDialog
 import com.fanda.homebook.components.EditDialog
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
+import com.fanda.homebook.components.NumberEditDialog
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.AppViewModelProvider
-import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.book.BookEntity
 import com.fanda.homebook.entity.AmountItemEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.entity.TransactionType
+import com.fanda.homebook.entity.TransactionAmountType
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
+import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.formatYearMonth
-import com.fanda.homebook.tools.millisToLocalDate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun BookHomePage(
     modifier: Modifier = Modifier,
@@ -87,10 +83,12 @@ import java.time.LocalDate
     val uiState by bookViewModel.uiState.collectAsState()
     val curSelectedBook by bookViewModel.curSelectedBook.collectAsState()
     val books by bookViewModel.books.collectAsState()
+    val categories by bookViewModel.categories.collectAsState()
+    val subCategory by bookViewModel.subCategory.collectAsState()
+    val transactionDayGroupedData by bookViewModel.transactionDayGroupedData.collectAsState()
 
-    var showMonthPlanDialog by remember { mutableStateOf(false) }
-    var curCategory by remember { mutableStateOf("全部类型") }
-    var planAmount by remember { mutableFloatStateOf(0f) }
+    LogUtils.i("uiState: $uiState")
+    LogUtils.i("transactionDayGroupedData: $transactionDayGroupedData")
 
     val scope = rememberCoroutineScope()
 
@@ -128,7 +126,7 @@ import java.time.LocalDate
                             verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                         ) {
                             Text(
-                                text = curCategory, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                                text = subCategory?.name ?: "全部类型", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
                             )
                             Image(
                                 modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null
@@ -174,105 +172,139 @@ import java.time.LocalDate
             modifier = modifier.padding(padding), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp)
         ) {
             item {
-                GradientRoundedBoxWithStroke {
-                    Column {
-                        Row(modifier = Modifier
-                            .clip(RoundedCornerShape(25.dp))
-                            .clickable {
-                                bookViewModel.updateSheetType(ShowBottomSheetType.YEAR_MONTH)
+                TopTotalAmountWidget(
+                    totalIncome = transactionDayGroupedData?.monthTotalIncome?.toFloat() ?: 0.0f,
+                    totalExpense = transactionDayGroupedData?.monthTotalExpense?.toFloat() ?: 0.0f,
+                    totalPlan = UserCache.planAmount,
+                    onYearMonthClick = {
+                        bookViewModel.updateSheetType(ShowBottomSheetType.YEAR_MONTH)
+                    },
+                    uiState = uiState,
+                    onItemClick = { type ->
+                        when (type) {
+                            TransactionAmountType.INCOME -> {
+                                navController.navigate(RoutePath.DashBoar.route)
                             }
-                            .padding(start = 20.dp, top = 14.dp, bottom = 12.dp, end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = formatYearMonth(uiState.year, uiState.month), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black
-                            )
-                            Image(
-                                painter = painterResource(id = R.mipmap.icon_down), contentDescription = null, modifier = Modifier.padding(start = 4.dp)
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            LocalDataSource.amountItemList.forEach { item ->
-                                TopAmountItemWidget(item = item, modifier = Modifier.weight(1f)) {
-                                    when (item.type) {
-                                        TransactionType.INCOME -> {
-                                            navController.navigate(RoutePath.DashBoar.route)
-                                        }
 
-                                        TransactionType.EXPENSE -> {
-                                            navController.navigate(RoutePath.DashBoar.route)
-                                        }
-
-                                        TransactionType.PLAN -> {
-                                            showMonthPlanDialog = true
-                                        }
-
-                                        TransactionType.EXCLUDED -> {}
-                                    }
-                                }
+                            TransactionAmountType.EXPENSE -> {
+                                navController.navigate(RoutePath.DashBoar.route)
                             }
+
+                            TransactionAmountType.PLAN -> {
+                                bookViewModel.updateSheetType(ShowBottomSheetType.MONTH_PLAN)
+                            }
+
+                            TransactionAmountType.EXCLUDED -> {}
                         }
+                    })
+            }
+
+            transactionDayGroupedData?.groups?.let {
+                items( transactionDayGroupedData?.groups!!, key = { it.hashCode() }) {
+                    DailyItemWidget(item = it)
+                }
+            }
+
+        }
+
+        if (uiState.sheetType == ShowBottomSheetType.MONTH_PLAN) {
+            NumberEditDialog(title = "设置本月预算", value = UserCache.planAmount.toString(), showSuffix = false, onDismissRequest = {
+                bookViewModel.dismissBottomSheet()
+            }, onConfirm = {
+                bookViewModel.dismissBottomSheet()
+                LogUtils.d("设置预算：$it")
+                UserCache.planAmount = it.toFloat()
+            })
+        }
+        if (uiState.sheetType == ShowBottomSheetType.EDIT) {
+            EditDialog(title = "编辑账本", value = uiState.curEditBookEntity?.name ?: "", showSuffix = false, onDismissRequest = {
+                bookViewModel.dismissBottomSheet()
+            }, onConfirm = {
+                bookViewModel.updateBookEntityDatabase(uiState.curEditBookEntity?.copy(name = it))
+                bookViewModel.dismissBottomSheet()
+                LogUtils.d("编辑账本：$it")
+            })
+        }
+        if (uiState.sheetType == ShowBottomSheetType.ADD) {
+            EditDialog(title = "添加账本", value = "", showSuffix = false, onDismissRequest = {
+                bookViewModel.dismissBottomSheet()
+            }, onConfirm = {
+                bookViewModel.insertBookEntityDatabase(it)
+                bookViewModel.dismissBottomSheet()
+                LogUtils.d("添加账本：$it")
+            })
+        }
+        if (uiState.sheetType == ShowBottomSheetType.DELETE) {
+            ConfirmDialog(title = "删除该账本", onDismissRequest = {
+                bookViewModel.dismissBottomSheet()
+            }, onConfirm = {
+                bookViewModel.deleteBookEntityDatabase(uiState.curEditBookEntity)
+                bookViewModel.dismissBottomSheet()
+            })
+        }
+        TransactionTypeBottomSheet(initial = subCategory, title = "选择类型", data = categories, visible = bookViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY), onDismiss = {
+            bookViewModel.dismissBottomSheet()
+        }, onConfirm = {
+            bookViewModel.dismissBottomSheet()
+            bookViewModel.updateQueryCategory(it)
+        }, onSettingClick = {
+            bookViewModel.dismissBottomSheet()
+            navController.navigate(RoutePath.EditTransactionCategory.route)
+        })
+
+        YearMonthBottomSheet(
+            year = uiState.year, month = uiState.month, visible = bookViewModel.showBottomSheet(ShowBottomSheetType.YEAR_MONTH), onDismiss = {
+                bookViewModel.dismissBottomSheet()
+            }) { year, month ->
+            bookViewModel.dismissBottomSheet()
+            bookViewModel.updateQueryDate(year, month)
+            LogUtils.d("选中的年月${year}-${month}")
+        }
+
+    }
+}
+
+@Composable fun TopTotalAmountWidget(
+    modifier: Modifier = Modifier, totalIncome: Float, totalExpense: Float, totalPlan: Float, uiState: BookUiState, onYearMonthClick: () -> Unit, onItemClick: (type: TransactionAmountType) -> Unit
+) {
+    GradientRoundedBoxWithStroke {
+        Column {
+            Row(modifier = modifier
+                .clip(RoundedCornerShape(25.dp))
+                .clickable {
+                    onYearMonthClick()
+                }
+                .padding(start = 20.dp, top = 14.dp, bottom = 12.dp, end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = formatYearMonth(uiState.year, uiState.month), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black
+                )
+                Image(
+                    painter = painterResource(id = R.mipmap.icon_down), contentDescription = null, modifier = Modifier.padding(start = 4.dp)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (uiState.month <= 0) {
+                    // 全年的
+                } else {
+                    // 每月的
+                    val expenseEntity = AmountItemEntity("本月支出", totalExpense.roundTo(1), TransactionAmountType.EXPENSE)
+                    val incomeEntity = AmountItemEntity("本月收入", totalIncome.roundTo(1), TransactionAmountType.INCOME)
+                    val planEntity = AmountItemEntity("添加预算", totalPlan.roundTo(1), TransactionAmountType.PLAN)
+                    TopAmountItemWidget(item = expenseEntity, modifier = Modifier.weight(1f)) {
+                        onItemClick(it.type)
+                    }
+                    TopAmountItemWidget(item = incomeEntity, modifier = Modifier.weight(1f)) {
+                        onItemClick(it.type)
+                    }
+                    TopAmountItemWidget(item = planEntity, modifier = Modifier.weight(1f)) {
+                        onItemClick(it.type)
                     }
                 }
             }
-            items(LocalDataSource.dailyListData, key = { it.id }) {
-                DailyItemWidget(item = it)
-            }
         }
     }
-
-    if (showMonthPlanDialog) {
-        EditDialog(title = "设置本月预算", value = planAmount.toString(), showSuffix = false, onDismissRequest = {
-            showMonthPlanDialog = false
-        }, onConfirm = {
-            showMonthPlanDialog = false
-            LogUtils.d("设置预算：$it")
-            planAmount = it.toFloat()
-        })
-    }
-    if (uiState.sheetType == ShowBottomSheetType.EDIT) {
-        EditDialog(title = "编辑账本", value = uiState.curEditBookEntity?.name ?: "", showSuffix = false, onDismissRequest = {
-            bookViewModel.dismissBottomSheet()
-        }, onConfirm = {
-            bookViewModel.updateBookEntityDatabase(uiState.curEditBookEntity?.copy(name = it))
-            bookViewModel.dismissBottomSheet()
-            LogUtils.d("编辑账本：$it")
-        })
-    }
-    if (uiState.sheetType == ShowBottomSheetType.ADD) {
-        EditDialog(title = "添加账本", value = "", showSuffix = false, onDismissRequest = {
-            bookViewModel.dismissBottomSheet()
-        }, onConfirm = {
-            bookViewModel.insertBookEntityDatabase(it)
-            bookViewModel.dismissBottomSheet()
-            LogUtils.d("添加账本：$it")
-        })
-    }
-    if (uiState.sheetType == ShowBottomSheetType.DELETE) {
-        ConfirmDialog(title = "删除该账本", onDismissRequest = {
-            bookViewModel.dismissBottomSheet()
-        }, onConfirm = {
-            bookViewModel.deleteBookEntityDatabase(uiState.curEditBookEntity)
-            bookViewModel.dismissBottomSheet()
-        })
-    }
-    TransactionTypeBottomSheet(initial = curCategory, title = "选择类型", visible = bookViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY), onDismiss = {
-        bookViewModel.dismissBottomSheet()
-    }, onConfirm = {
-        bookViewModel.dismissBottomSheet()
-    }, onSettingClick = {
-        bookViewModel.dismissBottomSheet()
-    })
-
-    YearMonthBottomSheet(
-        year = uiState.year, month = uiState.month, visible = bookViewModel.showBottomSheet(ShowBottomSheetType.YEAR_MONTH), onDismiss = {
-            bookViewModel.dismissBottomSheet()
-        }) { year, month ->
-        bookViewModel.dismissBottomSheet()
-        bookViewModel.updateQueryDate(year, month)
-        LogUtils.d("选中的年月${year}-${month}")
-    }
-
 }
 
 

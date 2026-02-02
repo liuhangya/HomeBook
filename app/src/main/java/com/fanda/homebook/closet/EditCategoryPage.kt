@@ -41,10 +41,6 @@ import com.fanda.homebook.data.category.CategoryEntity
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 
-/*
-*
-* 衣橱页面
-* */
 @Composable fun EditCategoryPage(modifier: Modifier = Modifier, navController: NavController, categoryViewModel: CategoryViewModel = viewModel(factory = AppViewModelProvider.factory)) {
 
     val categories by categoryViewModel.categories.collectAsState()
@@ -85,7 +81,7 @@ import com.fanda.homebook.tools.LogUtils
     }
 
     if (uiState.addDialog) {
-        EditDialog(title = "添加", value = "", placeholder = "不能与已有名称重复", onDismissRequest = {
+        EditDialog(title = "添加", value = "", placeholder = "不能与已有分类重复", onDismissRequest = {
             categoryViewModel.toggleAddDialog(false)
         }, onConfirm = {
             categoryViewModel.insertWithAutoOrder(it)
