@@ -10,38 +10,48 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.book.ui.DailyAmountItemWidget
+import com.fanda.homebook.book.viewmodel.DashboardViewModel
 import com.fanda.homebook.components.TopIconAppBar
-import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.data.AppViewModelProvider
+import com.fanda.homebook.tools.LogUtils
 
-@Composable fun DashBoarRankPage(modifier: Modifier = Modifier, navController: NavController) {
+@Composable fun DashBoarRankPage(modifier: Modifier = Modifier, navController: NavController, dashboardViewModel: DashboardViewModel = viewModel(factory = AppViewModelProvider.factory)) {
+
+    val uiState by dashboardViewModel.uiState.collectAsState()
+    val transactionDataByDate by dashboardViewModel.transactionDataByDate.collectAsState()
+
+    LogUtils.d("transactionDataByDate: $transactionDataByDate")
 
     Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
         TopIconAppBar(
-            title = "支出排行",
-            onBackClick = {
+            title = uiState.title, onBackClick = {
                 navController.navigateUp()
-            }
-        )
+            })
     }) { padding ->
         LazyColumn(contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier.padding(padding)) {
-            items( LocalDataSource.rankList, key = { it.category }){
-//                DailyAmountItemWidget(item = it)
+            items(transactionDataByDate, key = { it.quick.id }) {
+                DailyAmountItemWidget(item = it)
             }
         }
     }
 }
 
-@Composable
-@Preview(showBackground = true)
-fun DashBoarRankPagePreview() {
-    DashBoarRankPage(modifier = Modifier.fillMaxSize().background(
-        Color.Gray
-    ), navController = rememberNavController())
+@Composable @Preview(showBackground = true) fun DashBoarRankPagePreview() {
+    DashBoarRankPage(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Color.Gray
+            ), navController = rememberNavController(), viewModel(factory = AppViewModelProvider.factory)
+    )
 }

@@ -22,10 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
-import com.fanda.homebook.book.roundTo
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.quick.TransactionDateGroup
-import com.fanda.homebook.entity.DailyAmountEntity
+import com.fanda.homebook.tools.roundToString
 
 @Composable
 fun DailyAmountListWidget(modifier: Modifier = Modifier) {
@@ -51,13 +50,13 @@ fun DailyItemWidget(modifier: Modifier = Modifier , item: TransactionDateGroup) 
                 text = "出", fontWeight = FontWeight.Medium, fontSize = 12.sp, color = Color.Black, modifier = Modifier.background(color = Color.White.copy(0.4f), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 0.dp)
             )
             Text(
-                modifier = Modifier.padding( start = 4.dp), text = item.totalExpense.toFloat().roundTo(1).toString(), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = colorResource(id = R.color.color_FF2822)
+                modifier = Modifier.padding( start = 4.dp), text = item.totalExpense.toFloat().roundToString(), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = colorResource(id = R.color.color_FF2822)
             )
             Text(
                  text = "入", fontWeight = FontWeight.Medium, fontSize = 12.sp, color = Color.Black,modifier = Modifier.padding( start = 12.dp).background(color = Color.White.copy(0.4f), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 0.dp)
             )
             Text(
-                modifier = Modifier.padding( start = 4.dp), text = item.totalIncome.toFloat().roundTo(1).toString(), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = colorResource(id = R.color.color_106CF0)
+                modifier = Modifier.padding( start = 4.dp), text = item.totalIncome.toFloat().roundToString(), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = colorResource(id = R.color.color_106CF0)
             )
         }
 

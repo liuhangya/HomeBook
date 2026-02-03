@@ -7,6 +7,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.fanda.homebook.HomeBookApplication
 import com.fanda.homebook.book.viewmodel.BookViewModel
+import com.fanda.homebook.book.viewmodel.DashboardDetailViewModel
+import com.fanda.homebook.book.viewmodel.DashboardViewModel
 import com.fanda.homebook.book.viewmodel.EditTransactionCategoryViewModel
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
 import com.fanda.homebook.closet.viewmodel.CategoryClosetViewModel
@@ -84,10 +86,13 @@ object AppViewModelProvider {
             )
         }
         initializer {
+            DashboardDetailViewModel(
+                this.createSavedStateHandle(),
+            )
+        }
+        initializer {
             BookViewModel(
-                homeBookApplication().appContainer.bookRepository,
-                homeBookApplication().appContainer.transactionRepository,
-                homeBookApplication().appContainer.quickRepository
+                homeBookApplication().appContainer.bookRepository, homeBookApplication().appContainer.transactionRepository, homeBookApplication().appContainer.quickRepository
             )
         }
         initializer {
@@ -110,6 +115,11 @@ object AppViewModelProvider {
         }
         initializer {
             CategoryClosetViewModel(this.createSavedStateHandle(), homeBookApplication().appContainer.closetRepository)
+        }
+        initializer {
+            DashboardViewModel(
+                this.createSavedStateHandle(), homeBookApplication().appContainer.quickRepository
+            )
         }
         initializer {
             EditTransactionCategoryViewModel(homeBookApplication().appContainer.transactionRepository)

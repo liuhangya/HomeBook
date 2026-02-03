@@ -2,7 +2,6 @@ package com.fanda.homebook
 
 import android.app.Activity
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -42,9 +42,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.fanda.homebook.book.BookHomePage
 import com.fanda.homebook.book.DashBoarDetailPage
-import com.fanda.homebook.book.DashBoarPage
+import com.fanda.homebook.book.DashBoardPage
 import com.fanda.homebook.book.DashBoarRankPage
 import com.fanda.homebook.book.EditTransactionCategoryPage
+import com.fanda.homebook.book.viewmodel.DashboardViewModel
 import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
@@ -54,10 +55,10 @@ import com.fanda.homebook.closet.EditCategoryPage
 import com.fanda.homebook.closet.EditSubCategoryPage
 import com.fanda.homebook.closet.WatchAndEditClosetPage
 import com.fanda.homebook.common.EditColorPage
-import com.fanda.homebook.common.EditPayWayPage
 import com.fanda.homebook.common.EditProductPage
 import com.fanda.homebook.common.EditSizePage
 import com.fanda.homebook.components.CustomBottomBar
+import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.quick.QuickHomePage
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabGraphs
@@ -143,17 +144,36 @@ import kotlinx.coroutines.launch
                                 scope.launch { drawerState.close() }
                             })
                         }
-                        composable(RoutePath.DashBoar.route) {
-                            DashBoarPage(
+                        composable(
+                            route = "${RoutePath.DashBoar.route}?year={year}&month={month}&type={type}", arguments = listOf(navArgument("year") {
+                                type = NavType.IntType
+                            }, navArgument("month") {
+                                type = NavType.IntType
+                            }, navArgument("type") {
+                                type = NavType.IntType
+                            })
+
+                        ) {
+                            DashBoardPage(
                                 modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
-                        composable(RoutePath.DashBoarRank.route) {
+                        composable(route = "${RoutePath.DashBoarRank.route}?year={year}&month={month}&type={type}&title={title}", arguments = listOf(navArgument("year") {
+                            type = NavType.IntType
+                        }, navArgument("month") {
+                            type = NavType.IntType
+                        }, navArgument("type") {
+                            type = NavType.IntType
+                        }, navArgument("title") {
+                            type = NavType.StringType
+                        })) {
                             DashBoarRankPage(
                                 modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
-                        composable(RoutePath.DashBoarDetail.route) {
+                        composable(route = "${RoutePath.DashBoarDetail.route}?title={title}", arguments = listOf(navArgument("title"){
+                            type = NavType.StringType
+                        })) {
                             DashBoarDetailPage(
                                 modifier = Modifier.fillMaxSize(), navController = navController
                             )

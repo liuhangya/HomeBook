@@ -1,5 +1,6 @@
 package com.fanda.homebook.book
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,16 +38,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
+import com.fanda.homebook.book.state.QueryWay
 import com.fanda.homebook.book.ui.DailyAmountItemWidget
+import com.fanda.homebook.book.viewmodel.DashboardDetailViewModel
 import com.fanda.homebook.components.SelectableRoundedButton
+import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.tools.LogUtils
+import com.fanda.homebook.tools.UserCache
+import com.fanda.homebook.tools.roundToString
 
-@OptIn(ExperimentalMaterial3Api::class) @Composable fun DashBoarDetailPage(modifier: Modifier = Modifier, navController: NavController) {
+@OptIn(ExperimentalMaterial3Api::class) @Composable fun DashBoarDetailPage(
+    modifier: Modifier = Modifier, navController: NavController, dashboardDetailViewModel: DashboardDetailViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
 
-    var selectType by remember { mutableStateOf("按金额") }
+    val uiState by dashboardDetailViewModel.uiState.collectAsState()
+
+    BackHandler {
+        LogUtils.d("移除分类列表数据")
+        UserCache.categoryQuickList = emptyList()
+        navController.navigateUp()
+    }
 
     Scaffold(topBar = {
         // 只能用 TopAppBar 才能将背景色嵌入到状态栏
@@ -73,10 +90,15 @@ import com.fanda.homebook.data.LocalDataSource
                         .padding(bottom = 28.dp), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "10月转账支出", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                        text = uiState.title, fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
                     )
                     Text(
-                        text = "12000", fontWeight = FontWeight.Medium, fontSize = 32.sp, color = Color.Black, modifier = modifier.padding(top = 8.dp), textAlign = TextAlign.Center
+                        text = uiState.data.sumOf { it.quick.price.toDouble() }.toFloat().roundToString(),
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 32.sp,
+                        color = Color.Black,
+                        modifier = modifier.padding(top = 8.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -86,15 +108,23 @@ import com.fanda.homebook.data.LocalDataSource
                 ) {
 
                     SelectableRoundedButton(
-                        fontSize = 14.sp, text = "按金额", selected = selectType == "按金额", onClick = {
-                            selectType = "按金额"
+                        fontSize = 14.sp, text = "按金额", selected = uiState.queryWay == QueryWay.AMOUNT, onClick = {
+                            dashboardDetailViewModel.updateQueryWay(QueryWay.AMOUNT)
                         })
                     SelectableRoundedButton(
-                        modifier = Modifier.padding(start = 8.dp), fontSize = 14.sp, text = "按时间", selected = selectType == "按时间", onClick = { selectType = "按时间" })
+                        modifier = Modifier.padding(start = 8.dp), fontSize = 14.sp, text = "按时间", selected = uiState.queryWay == QueryWay.TIME, onClick = {
+                            dashboardDetailViewModel.updateQueryWay(QueryWay.TIME)
+                        })
                 }
             }
-            items(LocalDataSource.rankList, key = { it.category }) {
-//                DailyAmountItemWidget(item = it, modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 0.dp, bottom = 8.dp))
+            val filterData = when (uiState.queryWay) {
+                QueryWay.AMOUNT -> uiState.data.sortedByDescending { it.quick.price.toDouble() }
+                QueryWay.TIME -> uiState.data.sortedByDescending { it.quick.date }
+            }
+            items(filterData, key = { it.quick.id }) {
+                DailyAmountItemWidget(
+                    item = it, modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 0.dp, bottom = 8.dp)
+                )
             }
         }
     }

@@ -32,8 +32,9 @@ import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.data.quick.AddQuickEntity
-import com.fanda.homebook.entity.DailyItemEntity
 import com.fanda.homebook.entity.TransactionAmountType
+import com.fanda.homebook.quick.ui.getCategoryIcon
+import com.fanda.homebook.tools.roundToString
 
 @Composable fun DailyAmountItemWidget(modifier: Modifier = Modifier, item: AddQuickEntity) {
     Box(modifier = modifier) {
@@ -57,7 +58,7 @@ import com.fanda.homebook.entity.TransactionAmountType
                         .background(Color.White)
                 ) {
                     Image(
-                        painter = painterResource(id = R.mipmap.icon_shopping), contentDescription = null, modifier = Modifier.scale(0.8f)
+                        painter = painterResource(id = getCategoryIcon(item.subCategory?.type ?: 0)), contentDescription = null, modifier = Modifier.scale(0.8f)
 
                     )
 
@@ -72,26 +73,28 @@ import com.fanda.homebook.entity.TransactionAmountType
                         Text(
                             text = item.payWay?.name ?: "", fontWeight = FontWeight.Medium, fontSize = 10.sp, color = colorResource(id = R.color.color_84878C)
                         )
-                        VerticalDivider(modifier = Modifier
-                            .padding(horizontal = 6.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .height(6.dp), color = colorResource(id = R.color.color_B2C6D9))
-                        Text(
-                            text = item.quick.quickComment, fontWeight = FontWeight.Medium, fontSize = 10.sp, color = colorResource(id = R.color.color_84878C)
-                        )
+                        if (item.quick.quickComment.isNotEmpty()){
+                            VerticalDivider(modifier = Modifier
+                                .padding(horizontal = 6.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .height(6.dp), color = colorResource(id = R.color.color_B2C6D9))
+                            Text(
+                                text = item.quick.quickComment, fontWeight = FontWeight.Medium, fontSize = 10.sp, color = colorResource(id = R.color.color_84878C)
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
                 val amount = when (item.category?.type) {
                     TransactionAmountType.INCOME.ordinal -> {
-                        "+${item.quick.price}"
+                        "+${item.quick.price.toFloat().roundToString()}"
                     }
                     TransactionAmountType.EXPENSE.ordinal -> {
-                        "-${item.quick.price}"
+                        "-${item.quick.price.toFloat().roundToString()}"
                     }
                     else -> {
-                        "${item.quick.price}"
+                        item.quick.price.toFloat().roundToString()
                     }
                 }
 

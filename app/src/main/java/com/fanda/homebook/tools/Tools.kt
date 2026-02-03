@@ -13,6 +13,8 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 fun formatYearMonth(date: Long): String {
     val (year, month) = millisToLocalDate(date)
@@ -178,3 +180,15 @@ fun millisToLocalDate(timestampMillis: Long): Pair<Int, Int> {
         .toLocalDate()
     return localDate.year to localDate.monthValue
 }
+
+fun Float.roundTo(decimalPlaces: Int = 1): Float {
+    val factor = 10f.pow(decimalPlaces)
+    return (this * factor).roundToInt() / factor
+}
+
+fun Float.roundToString(decimalPlaces: Int = 2): String {
+    val factor = 10f.pow(decimalPlaces)
+    val roundedValue = (this * factor).roundToInt() / factor
+    return "%.${decimalPlaces}f".format(roundedValue)
+}
+

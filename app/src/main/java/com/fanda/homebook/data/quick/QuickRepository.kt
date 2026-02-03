@@ -14,7 +14,7 @@ interface QuickRepository {
     suspend fun getQuickById(id: Int): AddQuickEntity
 
     fun getQuickListByCategory(
-        bookId: Int? = null, categoryId: Int? = null, subCategoryId: Int? = null
+        bookId: Int? = null, categoryId: Int? = null, subCategoryId: Int? = null, categoryType: Int? = null
     ): Flow<List<AddQuickEntity>>
 }
 
@@ -29,6 +29,6 @@ class LocalQuickRepository(private val quickDao: QuickDao) : QuickRepository {
 
     override suspend fun getQuickById(id: Int) = quickDao.getQuickById(id)
     override fun getQuickListByCategory(
-        bookId: Int?, categoryId: Int?, subCategoryId: Int?
-    ): Flow<List<AddQuickEntity>> = quickDao.getQuickListByCategory(bookId, categoryId, subCategoryId)
+        bookId: Int?, categoryId: Int?, subCategoryId: Int?, categoryType: Int?
+    ): Flow<List<AddQuickEntity>> = quickDao.getQuickListByCategory(bookId, categoryId, subCategoryId,categoryType)
 }

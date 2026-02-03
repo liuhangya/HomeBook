@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
+import com.fanda.homebook.book.viewmodel.MonthTransactionData
 import com.fanda.homebook.tools.LogUtils
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.AxisBase
@@ -23,15 +24,13 @@ import java.text.DecimalFormat
  * 表示每月柱状图数据项
  */
 data class MonthlyBarData(
-    val month: String,
-    val value: Float,
-    val color: Color = Color.Blue
+    val month: String, val value: Float, val color: Color = Color(0xFF4CAF50)
 )
 
 /**
  * 通用函数：配置并更新 BarChart 的数据与样式
  */
-private fun configureBarChart(chart: BarChart, barData: List<MonthlyBarData>, visibleCount: Int) {
+private fun configureBarChart(chart: BarChart, barData: List<MonthTransactionData>, visibleCount: Int) {
     val formatter = object : ValueFormatter() {
         private val format = DecimalFormat("#,###")
         override fun getFormattedValue(value: Float): String {
@@ -44,7 +43,7 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthlyBarData>, vi
     }
 
     val entries = barData.mapIndexed { index, item ->
-        BarEntry(index.toFloat(), item.value)
+        BarEntry(index.toFloat(), item.totalAmount.toFloat())
     }
 
     val dataSet = BarDataSet(entries, "").apply {
@@ -80,7 +79,7 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthlyBarData>, vi
         valueFormatter = object : ValueFormatter() {
             override fun getAxisLabel(value: Float, axis: AxisBase?): String {
                 val index = value.toInt()
-                return if (index in barData.indices) barData[index].month else ""
+                return if (index in barData.indices) barData[index].monthName else ""
             }
         }
     }
@@ -136,42 +135,35 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthlyBarData>, vi
  * @param modifier Compose 修饰符
  * @param visibleCount 同时可见的柱子数量（默认 6 个）
  */
-@Composable
-fun ScrollableBarChartWithIndicator(
-    barData: List<MonthlyBarData>,
-    modifier: Modifier = Modifier,
-    visibleCount: Int = 6
+@Composable fun ScrollableBarChartWithIndicator(
+    barData: List<MonthTransactionData>, modifier: Modifier = Modifier, visibleCount: Int = 6
 ) {
     // 缓存上一次的数据，用于 diff 判断是否需要更新
-    var lastBarData by remember { mutableStateOf<List<MonthlyBarData>?>(null) }
+    var lastBarData by remember { mutableStateOf<List<MonthTransactionData>?>(null) }
     var lastVisibleCount by remember { mutableStateOf<Int?>(null) }
 
     AndroidView(
         factory = { context ->
-            BarChart(context).apply {
-                configureBarChart(this, barData, visibleCount)
-                // 初始化后记录状态
-                lastBarData = barData.toList()
-                lastVisibleCount = visibleCount
-            }
-        },
-        update = { chart ->
-            // 🔍 仅当数据或可见数量真正变化时才更新图表
-            val shouldUpdate =
-                lastBarData != barData ||
-                        lastVisibleCount != visibleCount
+        BarChart(context).apply {
+            configureBarChart(this, barData, visibleCount)
+            // 初始化后记录状态
+            lastBarData = barData.toList()
+            lastVisibleCount = visibleCount
+        }
+    }, update = { chart ->
+        // 🔍 仅当数据或可见数量真正变化时才更新图表
+        val shouldUpdate = lastBarData != barData || lastVisibleCount != visibleCount
 
-            if (shouldUpdate) {
-                LogUtils.d("月对比柱状图数据变更，执行刷新！")
-                configureBarChart(chart, barData, visibleCount)
+        if (shouldUpdate) {
+            LogUtils.d("月对比柱状图数据变更，执行刷新！")
+            configureBarChart(chart, barData, visibleCount)
 
-                // 更新缓存（创建副本防止外部修改干扰下次比较）
-                lastBarData = barData.toList()
-                lastVisibleCount = visibleCount
-            } else {
-                LogUtils.d("月对比柱状图数据未变，跳过刷新")
-            }
-        },
-        modifier = modifier
+            // 更新缓存（创建副本防止外部修改干扰下次比较）
+            lastBarData = barData.toList()
+            lastVisibleCount = visibleCount
+        } else {
+            LogUtils.d("月对比柱状图数据未变，跳过刷新")
+        }
+    }, modifier = modifier
     )
 }

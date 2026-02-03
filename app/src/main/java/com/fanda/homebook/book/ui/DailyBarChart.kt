@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
+import com.fanda.homebook.book.viewmodel.DailyTransactionData
 import com.fanda.homebook.tools.LogUtils
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.AxisBase
@@ -29,7 +30,7 @@ data class DailyExpense(
  */
 private fun configureDailyExpenseChart(
     chart: BarChart,
-    expenses: List<DailyExpense>,
+    expenses: List<DailyTransactionData>,
     visibleDays: Int
 ) {
     val barColor = Color(0xFF2196F3).toArgb()
@@ -55,7 +56,7 @@ private fun configureDailyExpenseChart(
 
     // 构建数据
     val entries = expenses.mapIndexed { index, expense ->
-        BarEntry(index.toFloat(), expense.amount)
+        BarEntry(index.toFloat(), expense.totalAmount.toFloat())
     }
 
     val dataSet = BarDataSet(entries, "").apply {
@@ -164,31 +165,31 @@ private fun configureDailyExpenseChart(
 
 @Composable
 fun DailyExpenseBarChart(
-    expenses: List<DailyExpense>,
+    data: List<DailyTransactionData>,
     modifier: Modifier = Modifier,
     visibleDays: Int = 5
 ) {
     // 缓存上一次的输入，用于 diff
-    var lastExpenses by remember { mutableStateOf<List<DailyExpense>?>(null) }
+    var lastExpenses by remember { mutableStateOf<List<DailyTransactionData>>(emptyList()) }
     var lastVisibleDays by remember { mutableStateOf<Int?>(null) }
 
     AndroidView(
         factory = { context ->
             BarChart(context).apply {
-                configureDailyExpenseChart(this, expenses, visibleDays)
-                lastExpenses = expenses.toList()
+                configureDailyExpenseChart(this, data, visibleDays)
+                lastExpenses = data.toList()
                 lastVisibleDays = visibleDays
             }
         },
         update = { chart ->
             val shouldUpdate =
-                lastExpenses != expenses ||
+                lastExpenses != data ||
                         lastVisibleDays != visibleDays
 
             if (shouldUpdate) {
                 LogUtils.d("每日支出柱状图数据变更，执行刷新！")
-                configureDailyExpenseChart(chart, expenses, visibleDays)
-                lastExpenses = expenses.toList()
+                configureDailyExpenseChart(chart, data, visibleDays)
+                lastExpenses = data.toList()
                 lastVisibleDays = visibleDays
             } else {
                 LogUtils.d("每日支出柱状图数据未变，跳过刷新")

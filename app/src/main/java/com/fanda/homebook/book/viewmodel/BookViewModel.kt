@@ -19,6 +19,8 @@ import com.fanda.homebook.tools.TIMEOUT_MILLIS
 import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.millisToLocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -71,23 +73,20 @@ class BookViewModel(
 
     private val queryParams = combine(
         _uiState.map { it.curSelectBookId },
-        _uiState.map { it.categoryId },
         _uiState.map { it.subCategoryId },
         _uiState.map { it.year },
-        _uiState.map { it.month }) { bookId, categoryId, subCategoryId, year, month ->
-        QueryParams(bookId, categoryId, subCategoryId, year, month)
+        _uiState.map { it.month },
+        _uiState.map { it.refresh },) { bookId, subCategoryId, year, month, refresh ->
+        QueryParams(bookId, subCategoryId, year, month,refresh )
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class) val transactionDayGroupedData: StateFlow<TransactionGroupedData?> = queryParams.flatMapLatest { params ->
         LogUtils.d("queryParams: $params")
-        quickRepository.getQuickListByCategory(params.bookId, params.categoryId, params.subCategoryId).map { transactions ->
-            if (params.month <= 0) {
-                // 全年的数据处理，不在这里处理，单独处理
-                null
-            } else {
-                // 按日期分组并格式化
-                groupTransactionsByDate(transactions)
-            }
+        quickRepository.getQuickListByCategory(params.bookId, uiState.value.categoryId, params.subCategoryId).map { transactions ->
+            // 1. 按选中的年月过滤
+            val filteredTransactions = filterTransactions(transactions, params.year, params.month)
+            // 按日期分组并格式化
+            groupTransactionsByDate(filteredTransactions)
         }
     }.stateIn(
         scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
@@ -161,6 +160,41 @@ class BookViewModel(
         _uiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
     }
 
+    fun refreshBooks() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(refresh = !it.refresh)
+            }
+        }
+    }
+
+    // 按选中的年月过滤交易数据
+    private fun filterTransactionsByMonth(
+        transactions: List<AddQuickEntity>, selectedYear: Int, selectedMonth: Int
+    ): List<AddQuickEntity> {
+        // 计算选中年月的开始和结束时间戳
+        val (startTime, endTime) = getMonthTimeRange(selectedYear, selectedMonth)
+
+        return transactions.filter { transaction ->
+            transaction.quick.date in startTime..<endTime
+        }
+    }
+
+    // 获取指定年月的开始和结束时间戳
+    private fun getMonthTimeRange(year: Int, month: Int): Pair<Long, Long> {
+        val calendar = Calendar.getInstance().apply {
+            set(year, month - 1, 1, 0, 0, 0) // 月份从0开始
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startTime = calendar.timeInMillis
+
+        // 下个月的第一天
+        calendar.add(Calendar.MONTH, 1)
+        val endTime = calendar.timeInMillis
+
+        return Pair(startTime, endTime)
+    }
+
     // 按日期分组并格式化的核心方法
     private fun groupTransactionsByDate(
         transactions: List<AddQuickEntity>
@@ -184,7 +218,7 @@ class BookViewModel(
         // 2. 创建日期分组并格式化显示
         val dateGroups = groupedByDay.map { (dateMillis, dayTransactions) ->
             createDateGroup(dateMillis, dayTransactions)
-        }.sortedByDescending { it.sortOrder } // 按日期倒序排列
+        }.sortedByDescending { it.date } // 按日期倒序排列
 
         return TransactionGroupedData(
             year = currentYear, month = currentMonth, groups = dateGroups

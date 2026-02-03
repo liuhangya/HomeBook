@@ -89,6 +89,7 @@ class AddQuickViewModel(
                 it.copy(
                     quickEntity = it.quickEntity.copy(
                         categoryId = categoryEntity.id,
+                        categoryType = categoryEntity.type,
                     )
                 )
             }

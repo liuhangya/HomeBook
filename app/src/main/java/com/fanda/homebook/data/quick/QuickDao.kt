@@ -30,13 +30,14 @@ import kotlinx.coroutines.flow.Flow
 
     // 根据分类和子分类查询
     fun getQuickListByCategory(
-        bookId: Int? = null, categoryId: Int? = null, subCategoryId: Int? = null
+        bookId: Int? = null, categoryId: Int? = null, subCategoryId: Int? = null, categoryType: Int? = null
     ): Flow<List<AddQuickEntity>> {
         val queryBuilder = QuickQueryBuilder()
 
         bookId?.let { queryBuilder.withBookId(it) }
         categoryId?.let { queryBuilder.withCategoryId(it) }
         subCategoryId?.let { queryBuilder.withSubCategoryId(it) }
+        categoryType?.let { queryBuilder.withCategoryType(it) }
 
         LogUtils.d("getQuickListByCategory query: ${queryBuilder.build().sql}")
         return getQuickListByDynamicQuery(queryBuilder.build())

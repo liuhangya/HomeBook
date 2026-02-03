@@ -10,6 +10,7 @@ data class BookUiState(
     val showEditBookDialog: Boolean = false,
     val year : Int = 2026,
     val month : Int = 1,
+    val refresh: Boolean = false,
     val categoryId: Int? = null,
     val subCategoryId: Int? = null,
     val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE

@@ -4,7 +4,7 @@ import androidx.sqlite.db.SimpleSQLiteQuery
 
 // 查询参数数据类
 data class QueryParams(
-    val bookId: Int?, val categoryId: Int?,val subCategoryId: Int?, val year: Int ,val month: Int
+    val bookId: Int?, val subCategoryId: Int?, val year: Int, val month: Int,val refresh: Boolean
 )
 
 class QuickQueryBuilder {
@@ -46,6 +46,14 @@ class QuickQueryBuilder {
     fun withSubCategoryId(subCategoryId: Int?): QuickQueryBuilder {
         subCategoryId?.let {
             conditions.add("subCategoryId = ?")
+            args.add(it)
+        }
+        return this
+    }
+
+    fun withCategoryType(categoryType: Int?): QuickQueryBuilder {
+        categoryType?.let {
+            conditions.add("categoryType = ?")
             args.add(it)
         }
         return this

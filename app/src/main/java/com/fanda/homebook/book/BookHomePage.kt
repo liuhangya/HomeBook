@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,6 +46,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -68,6 +72,7 @@ import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.formatYearMonth
+import com.fanda.homebook.tools.roundToString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -87,10 +92,33 @@ import kotlinx.coroutines.launch
     val subCategory by bookViewModel.subCategory.collectAsState()
     val transactionDayGroupedData by bookViewModel.transactionDayGroupedData.collectAsState()
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     LogUtils.i("uiState: $uiState")
     LogUtils.i("transactionDayGroupedData: $transactionDayGroupedData")
 
     val scope = rememberCoroutineScope()
+
+    // 监听生命周期变化
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    // 可见时刷新数据
+                    LogUtils.d("可见时刷新数据 BookHomePage: ON_RESUME")
+                    bookViewModel.refreshBooks()
+                }
+
+                else -> Unit
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(isDrawerOpen) {
         if (!isDrawerOpen) {
@@ -183,11 +211,11 @@ import kotlinx.coroutines.launch
                     onItemClick = { type ->
                         when (type) {
                             TransactionAmountType.INCOME -> {
-                                navController.navigate(RoutePath.DashBoar.route)
+                                navController.navigate("${RoutePath.DashBoar.route}?year=${uiState.year}&month=${uiState.month}&type=${TransactionAmountType.INCOME.ordinal}")
                             }
 
                             TransactionAmountType.EXPENSE -> {
-                                navController.navigate(RoutePath.DashBoar.route)
+                                navController.navigate("${RoutePath.DashBoar.route}?year=${uiState.year}&month=${uiState.month}&type=${TransactionAmountType.EXPENSE.ordinal}")
                             }
 
                             TransactionAmountType.PLAN -> {
@@ -200,7 +228,7 @@ import kotlinx.coroutines.launch
             }
 
             transactionDayGroupedData?.groups?.let {
-                items( transactionDayGroupedData?.groups!!, key = { it.hashCode() }) {
+                items(transactionDayGroupedData?.groups!!, key = { it.hashCode() }) {
                     DailyItemWidget(item = it)
                 }
             }
@@ -208,7 +236,7 @@ import kotlinx.coroutines.launch
         }
 
         if (uiState.sheetType == ShowBottomSheetType.MONTH_PLAN) {
-            NumberEditDialog(title = "设置本月预算", value = UserCache.planAmount.toString(), showSuffix = false, onDismissRequest = {
+            NumberEditDialog(title = "设置本月预算", value = UserCache.planAmount.roundToString(), showSuffix = false, onDismissRequest = {
                 bookViewModel.dismissBottomSheet()
             }, onConfirm = {
                 bookViewModel.dismissBottomSheet()
@@ -289,9 +317,9 @@ import kotlinx.coroutines.launch
                     // 全年的
                 } else {
                     // 每月的
-                    val expenseEntity = AmountItemEntity("本月支出", totalExpense.roundTo(1), TransactionAmountType.EXPENSE)
-                    val incomeEntity = AmountItemEntity("本月收入", totalIncome.roundTo(1), TransactionAmountType.INCOME)
-                    val planEntity = AmountItemEntity("添加预算", totalPlan.roundTo(1), TransactionAmountType.PLAN)
+                    val expenseEntity = AmountItemEntity("本月支出", totalExpense, TransactionAmountType.EXPENSE)
+                    val incomeEntity = AmountItemEntity("本月收入", totalIncome, TransactionAmountType.INCOME)
+                    val planEntity = AmountItemEntity("添加预算", totalPlan, TransactionAmountType.PLAN)
                     TopAmountItemWidget(item = expenseEntity, modifier = Modifier.weight(1f)) {
                         onItemClick(it.type)
                     }
@@ -429,7 +457,7 @@ import kotlinx.coroutines.launch
         }, horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            modifier = Modifier.padding(top = 12.dp), text = item.amount.toString(), fontWeight = FontWeight.Medium, fontSize = 22.sp, color = Color.Black
+            modifier = Modifier.padding(top = 12.dp), text = item.amount.roundToString(), fontWeight = FontWeight.Medium, fontSize = 22.sp, color = Color.Black
         )
         Text(
             modifier = Modifier.padding(top = 3.dp, bottom = 16.dp), text = item.name, fontWeight = FontWeight.Medium, fontSize = 10.sp, color = colorResource(id = R.color.color_83878C)
