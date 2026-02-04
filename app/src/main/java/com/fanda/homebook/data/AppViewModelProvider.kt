@@ -33,6 +33,7 @@ import com.fanda.homebook.data.season.SeasonRepository
 import com.fanda.homebook.data.size.SizeRepository
 import com.fanda.homebook.data.stock.StockRepository
 import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
+import com.fanda.homebook.quick.viewmodel.WatchAndEditQuickViewModel
 import com.fanda.homebook.stock.viewmodel.AddStockViewModel
 import com.fanda.homebook.stock.viewmodel.StockHomeViewModel
 import com.fanda.homebook.stock.viewmodel.WatchAndEditStockViewModel
@@ -82,6 +83,14 @@ object AppViewModelProvider {
             )
         }
         initializer {
+            WatchAndEditQuickViewModel(
+                this.createSavedStateHandle(),
+                homeBookApplication().appContainer.transactionRepository,
+                homeBookApplication().appContainer.payWayRepository,
+                homeBookApplication().appContainer.quickRepository
+            )
+        }
+        initializer {
             HomeClosetViewModel(
                 homeBookApplication().appContainer.closetRepository,
                 homeBookApplication().appContainer.ownerRepository,
@@ -121,6 +130,7 @@ object AppViewModelProvider {
         initializer {
             CategoryClosetViewModel(this.createSavedStateHandle(), homeBookApplication().appContainer.closetRepository)
         }
+
         initializer {
             DashboardViewModel(
                 this.createSavedStateHandle(), homeBookApplication().appContainer.quickRepository

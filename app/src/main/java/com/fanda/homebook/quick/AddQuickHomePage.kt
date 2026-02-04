@@ -1,6 +1,5 @@
 package com.fanda.homebook.quick
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -19,10 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -36,7 +32,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
-import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
@@ -51,11 +46,9 @@ import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.sheet.CategoryBottomSheet
-import com.fanda.homebook.quick.sheet.ColorType
 import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
 import com.fanda.homebook.quick.sheet.GridBottomSheet
 import com.fanda.homebook.quick.sheet.ListBottomSheet
-import com.fanda.homebook.quick.sheet.SelectedCategory
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.quick.ui.EditAmountField
 import com.fanda.homebook.quick.ui.EditQuickClosetScreen
@@ -77,7 +70,7 @@ import kotlinx.coroutines.launch
 /*
 * 记一笔页面
 * */
-@Composable fun QuickHomePage(
+@Composable fun AddQuickHomePage(
     modifier: Modifier = Modifier,
     navController: NavController,
     quickViewModel: AddQuickViewModel = viewModel(factory = AppViewModelProvider.factory),
@@ -430,8 +423,8 @@ import kotlinx.coroutines.launch
 }
 
 
-@Composable @Preview(showBackground = true) fun QuickHomePagePreview() {
+@Composable @Preview(showBackground = true) fun AddQuickHomePagePreview() {
     HomeBookTheme {
-        QuickHomePage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
+        AddQuickHomePage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
     }
 }

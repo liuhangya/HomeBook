@@ -2,6 +2,11 @@ package com.fanda.homebook.book.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fanda.homebook.book.entity.CategoryData
+import com.fanda.homebook.book.entity.MonthData
+import com.fanda.homebook.book.entity.MonthGroup
+import com.fanda.homebook.book.entity.MonthKey
+import com.fanda.homebook.book.entity.YearSummaryData
 import com.fanda.homebook.book.state.BookUiState
 import com.fanda.homebook.data.book.BookEntity
 import com.fanda.homebook.data.book.BookRepository
@@ -14,13 +19,12 @@ import com.fanda.homebook.data.transaction.TransactionRepository
 import com.fanda.homebook.data.transaction.TransactionSubEntity
 import com.fanda.homebook.data.transaction.TransactionWithSubCategories
 import com.fanda.homebook.entity.ShowBottomSheetType
+import com.fanda.homebook.entity.TransactionAmountType
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
 import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.millisToLocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +37,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 class BookViewModel(
@@ -76,20 +79,49 @@ class BookViewModel(
         _uiState.map { it.subCategoryId },
         _uiState.map { it.year },
         _uiState.map { it.month },
-        _uiState.map { it.refresh },) { bookId, subCategoryId, year, month, refresh ->
-        QueryParams(bookId, subCategoryId, year, month,refresh )
+        _uiState.map { it.refresh },
+    ) { bookId, subCategoryId, year, month, refresh ->
+        QueryParams(bookId, subCategoryId, year, month, refresh)
     }.distinctUntilChanged()
 
-    @OptIn(ExperimentalCoroutinesApi::class) val transactionDayGroupedData: StateFlow<TransactionGroupedData?> = queryParams.flatMapLatest { params ->
-        LogUtils.d("queryParams: $params")
-        quickRepository.getQuickListByCategory(params.bookId, uiState.value.categoryId, params.subCategoryId).map { transactions ->
+    @OptIn(ExperimentalCoroutinesApi::class) val transactionData: StateFlow<List<AddQuickEntity>> = queryParams.flatMapLatest { params ->
+        LogUtils.d("queryParams transactionData: $params")
+        quickRepository.getQuickListByCategory(params.bookId, uiState.value.categoryId, params.subCategoryId)
+    }.stateIn(
+        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+    )
+
+    // 按日期分类的 StateFlow
+    val monthSummaryData: StateFlow<TransactionGroupedData?> = combine(_uiState.map { it.year }, _uiState.map { it.month }, transactionData) { year, month, list ->
+        Triple(year, month, list)
+    }.map { params ->
+        // 如果是全年，返回空列表，全年的数据单独处理
+        if (params.second <= 0) {
+            null
+        } else {
             // 1. 按选中的年月过滤
-            val filteredTransactions = filterTransactions(transactions, params.year, params.month)
+            val filteredTransactions = filterTransactions(params.third, params.first, params.second)
             // 按日期分组并格式化
             groupTransactionsByDate(filteredTransactions)
         }
     }.stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
+    )
+
+    // 全年按日期分类的 StateFlow
+    val yearSummaryData: StateFlow<YearSummaryData?> = combine(_uiState.map { it.year }, _uiState.map { it.month }, transactionData) { year, month, list ->
+        Triple(year, month, list)
+    }.map { params ->
+        // 如果不是全年，返回空列表
+        if (params.second > 0) {
+            null
+        } else {
+            // 1. 按选中的年月过滤
+            val filteredTransactions = filterTransactions(params.third, params.first, params.second)
+            groupAndCalculateStatistics(filteredTransactions)
+        }
+    }.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
     )
 
     // 账本列表
@@ -273,4 +305,97 @@ class BookViewModel(
             else -> ""
         }
     }
+
+    // 处理年统计数据 ===================================================================================================
+
+    // 分组和统计逻辑
+    private fun groupAndCalculateStatistics(
+        transactions: List<AddQuickEntity>
+    ): YearSummaryData {
+        if (transactions.isEmpty()) {
+            return YearSummaryData()
+        }
+
+        // 按年月分组
+        val groupedByMonth = transactions.groupBy { entity ->
+            val calendar = Calendar.getInstance().apply {
+                timeInMillis = entity.quick.date
+            }
+            MonthKey(
+                year = calendar.get(Calendar.YEAR), month = calendar.get(Calendar.MONTH) + 1
+            )
+        }
+
+        // 转换并排序月份
+        val monthDataList = groupedByMonth.map { (monthKey, monthTransactions) ->
+            createMonthData(monthKey, monthTransactions)
+        }.sortedByDescending { "${it.year}${String.format("%02d", it.month)}" }
+
+        // 计算全年总计
+        val totalIncome = monthDataList.sumOf { it.totalIncome }
+        val totalExpense = monthDataList.sumOf { it.totalExpense }
+
+        return YearSummaryData(
+            totalIncome = totalIncome, totalExpense = totalExpense, monthList = monthDataList
+        )
+    }
+
+    private fun createMonthData(
+        monthKey: MonthKey, transactions: List<AddQuickEntity>
+    ): MonthData {
+        // 分离收入和支出
+        val incomeTransactions = transactions.filter {
+            it.quick.categoryType == TransactionAmountType.INCOME.ordinal
+        }
+        val expenseTransactions = transactions.filter {
+            it.quick.categoryType == TransactionAmountType.EXPENSE.ordinal
+        }
+
+        // 计算月总计
+        val monthTotalIncome = incomeTransactions.sumOf {
+            it.quick.price.toDoubleOrNull() ?: 0.0
+        }
+        val monthTotalExpense = expenseTransactions.sumOf {
+            it.quick.price.toDoubleOrNull() ?: 0.0
+        }
+
+        // 按分类分组
+        val categoryGroups = transactions.groupBy {
+            Pair(it.subCategory, it.quick.categoryType)
+        }
+
+        // 构建分类数据并排序
+        val categoryDataList = categoryGroups.map { (key, categoryTransactions) ->
+            val (subCategory, categoryType) = key
+            CategoryData(
+                subCategory = subCategory, categoryType = categoryType, totalAmount = categoryTransactions.sumOf {
+                    it.quick.price.toDoubleOrNull() ?: 0.0
+                }, transactions = categoryTransactions, monthDisplay = "${monthKey.month}月"
+            )
+        }.sortedWith(compareByDescending<CategoryData> {
+            it.categoryType == TransactionAmountType.INCOME.ordinal
+        }.thenByDescending {
+            it.totalAmount
+        })
+
+        return MonthData(
+            yearMonth = "${monthKey.year}-${String.format("%02d", monthKey.month)}",
+            monthDisplay = "${monthKey.month}月",
+            year = monthKey.year,
+            month = monthKey.month,
+            totalIncome = monthTotalIncome,
+            totalExpense = monthTotalExpense,
+            categories = categoryDataList,
+            transactions = transactions
+        )
+    }
+
+    fun getCategoryDetailTitle(type: Int, monthDisplay: String, category: String): String {
+        return if (type == TransactionAmountType.EXPENSE.ordinal) {
+            "${monthDisplay}${category}支出"
+        } else {
+            "${monthDisplay}${category}收入"
+        }
+    }
+
 }

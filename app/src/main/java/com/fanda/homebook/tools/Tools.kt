@@ -81,11 +81,12 @@ fun isValidDecimalInput(text: String): Boolean {
 
 const val DATE_FORMAT_YMD = "yyyy-MM-dd"
 const val DATE_FORMAT_MD = "MM月dd日"
+const val DATE_FORMAT_MD_HM = "M月d HH:mm"
 
 
 fun convertMillisToDate(millis: Long, format: String = "MM月-dd日"): String {
     if (millis <= 0) return ""
-    val formatter = SimpleDateFormat(format, Locale.getDefault())
+    val formatter = SimpleDateFormat(format,  Locale.getDefault())
     return formatter.format(Date(millis))
 }
 
@@ -151,27 +152,27 @@ fun formatExpireTimeDetailed(
 }
 
 /**
- * 将 DatePicker 返回的 UTC 0 点时间戳转换为本地时区的 0 点时间戳
+ * 将日期的时间戳加上当前时间的时分秒
+ * @param dateMillis 日期的时间戳（0点）
+ * @return 加上当前时分秒后的时间戳
  */
-fun convertToLocalMidnight(utcMillis: Long): Long {
-    // 方法1：使用 Java Time API（推荐，API 26+）
-    return try {
-        // 将 UTC 时间戳转换为 LocalDate
-        val utcInstant = java.time.Instant.ofEpochMilli(utcMillis)
-        val localDate = utcInstant.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.systemDefault()).toLocalDate()
+fun addCurrentTimeToDate(dateMillis: Long): Long {
+    val calendar = Calendar.getInstance()
 
-        // 将 LocalDate 转换为本地时区的 0 点时间戳
-        localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-    } catch (e: Exception) {
-        // 方法2：使用 Calendar（兼容旧版本）
-        val calendar = Calendar.getInstance()
-        calendar.timeInMillis = utcMillis
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        calendar.timeInMillis
-    }
+    // 获取当前时间的时分秒毫秒
+    val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+    val currentMinute = calendar.get(Calendar.MINUTE)
+    val currentSecond = calendar.get(Calendar.SECOND)
+    val currentMillisecond = calendar.get(Calendar.MILLISECOND)
+
+    // 设置到选中的日期
+    calendar.timeInMillis = dateMillis
+    calendar.set(Calendar.HOUR_OF_DAY, currentHour)
+    calendar.set(Calendar.MINUTE, currentMinute)
+    calendar.set(Calendar.SECOND, currentSecond)
+    calendar.set(Calendar.MILLISECOND, currentMillisecond)
+
+    return calendar.timeInMillis
 }
 
 // 毫秒时间戳 → LocalDate

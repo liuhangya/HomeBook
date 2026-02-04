@@ -30,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -42,11 +41,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.fanda.homebook.book.BookHomePage
 import com.fanda.homebook.book.DashBoarDetailPage
-import com.fanda.homebook.book.DashBoardPage
 import com.fanda.homebook.book.DashBoarRankPage
+import com.fanda.homebook.book.DashBoardPage
 import com.fanda.homebook.book.EditTransactionCategoryPage
-import com.fanda.homebook.book.viewmodel.DashboardViewModel
-import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.closet.AddClosetPage
 import com.fanda.homebook.closet.ClosetCategoryDetailPage
 import com.fanda.homebook.closet.ClosetCategoryPage
@@ -54,12 +51,13 @@ import com.fanda.homebook.closet.ClosetHomePage
 import com.fanda.homebook.closet.EditCategoryPage
 import com.fanda.homebook.closet.EditSubCategoryPage
 import com.fanda.homebook.closet.WatchAndEditClosetPage
+import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.common.EditColorPage
 import com.fanda.homebook.common.EditProductPage
 import com.fanda.homebook.common.EditSizePage
 import com.fanda.homebook.components.CustomBottomBar
-import com.fanda.homebook.data.AppViewModelProvider
-import com.fanda.homebook.quick.QuickHomePage
+import com.fanda.homebook.quick.AddQuickHomePage
+import com.fanda.homebook.quick.WatchAndEditQuickPage
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.route.bottomTabGraphs
 import com.fanda.homebook.route.tabRootRoutes
@@ -171,7 +169,7 @@ import kotlinx.coroutines.launch
                                 modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
-                        composable(route = "${RoutePath.DashBoarDetail.route}?title={title}", arguments = listOf(navArgument("title"){
+                        composable(route = "${RoutePath.DashBoarDetail.route}?title={title}", arguments = listOf(navArgument("title") {
                             type = NavType.StringType
                         })) {
                             DashBoarDetailPage(
@@ -304,7 +302,13 @@ import kotlinx.coroutines.launch
 
                     // ====== 全局页面（不属于任何 Tab）======
                     composable(RoutePath.QuickAdd.route) {
-                        QuickHomePage(
+                        AddQuickHomePage(
+                            modifier = Modifier.fillMaxSize(), navController = navController
+                        )
+                    }
+
+                    composable(RoutePath.QuickWatchAndEdit.route) {
+                        WatchAndEditQuickPage(
                             modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }

@@ -57,6 +57,7 @@ import com.fanda.homebook.book.sheet.TransactionTypeBottomSheet
 import com.fanda.homebook.book.sheet.YearMonthBottomSheet
 import com.fanda.homebook.book.state.BookUiState
 import com.fanda.homebook.book.ui.DailyItemWidget
+import com.fanda.homebook.book.ui.MonthItemWidget
 import com.fanda.homebook.book.viewmodel.BookViewModel
 import com.fanda.homebook.components.ConfirmDialog
 import com.fanda.homebook.components.EditDialog
@@ -73,6 +74,7 @@ import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.formatYearMonth
 import com.fanda.homebook.tools.roundToString
+import com.fanda.homebook.tools.toJson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -90,12 +92,14 @@ import kotlinx.coroutines.launch
     val books by bookViewModel.books.collectAsState()
     val categories by bookViewModel.categories.collectAsState()
     val subCategory by bookViewModel.subCategory.collectAsState()
-    val transactionDayGroupedData by bookViewModel.transactionDayGroupedData.collectAsState()
+    val monthSummaryData by bookViewModel.monthSummaryData.collectAsState()
+    val yearSummaryData by bookViewModel.yearSummaryData.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LogUtils.i("uiState: $uiState")
-    LogUtils.i("transactionDayGroupedData: $transactionDayGroupedData")
+    LogUtils.d("uiState: $uiState")
+    LogUtils.d("monthSummaryData: $monthSummaryData")
+    LogUtils.d("yearSummaryData: ${yearSummaryData?.toJson()}")
 
     val scope = rememberCoroutineScope()
 
@@ -200,9 +204,21 @@ import kotlinx.coroutines.launch
             modifier = modifier.padding(padding), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp)
         ) {
             item {
-                TopTotalAmountWidget(
-                    totalIncome = transactionDayGroupedData?.monthTotalIncome?.toFloat() ?: 0.0f,
-                    totalExpense = transactionDayGroupedData?.monthTotalExpense?.toFloat() ?: 0.0f,
+                var totalIncome: Double
+                var totalExpense: Double
+                if (uiState.month <= 0) {
+                    // 全年的数据
+                    totalIncome = yearSummaryData?.totalIncome ?: 0.0
+                    totalExpense = yearSummaryData?.totalExpense ?: 0.0
+                } else {
+                    totalIncome = monthSummaryData?.monthTotalIncome ?: 0.0
+                    totalExpense = monthSummaryData?.monthTotalExpense ?: 0.0
+
+                }
+                YearMonthAmountWidget(
+                    totalIncome = totalIncome.toFloat(),
+                    isFullYear = uiState.month <= 0,
+                    totalExpense = totalExpense.toFloat(),
                     totalPlan = UserCache.planAmount,
                     onYearMonthClick = {
                         bookViewModel.updateSheetType(ShowBottomSheetType.YEAR_MONTH)
@@ -227,9 +243,28 @@ import kotlinx.coroutines.launch
                     })
             }
 
-            transactionDayGroupedData?.groups?.let {
-                items(transactionDayGroupedData?.groups!!, key = { it.hashCode() }) {
+
+            monthSummaryData?.groups?.let {
+                items(monthSummaryData?.groups!!, key = { it.hashCode() }) {
                     DailyItemWidget(item = it)
+                }
+            }
+            yearSummaryData?.monthList?.let {
+                items(yearSummaryData?.monthList!!, key = { it.hashCode() }) {
+                    MonthItemWidget(item = it, onItemClick = { category ->
+                        // 当前分类组点击
+                        UserCache.categoryQuickList = category.transactions
+                        navController.navigate(
+                            "${RoutePath.DashBoarDetail.route}?title=${
+                                bookViewModel.getCategoryDetailTitle(
+                                    category.categoryType, category.monthDisplay, category.subCategory?.name ?: ""
+                                )
+                            }"
+                        )
+                    }, onMonthClick = { monthData ->
+//                        UserCache.categoryQuickList = monthData.transactions
+//                        navController.navigate("${RoutePath.DashBoarDetail.route}?title=${monthData.monthDisplay}账单")
+                    })
                 }
             }
 
@@ -292,8 +327,16 @@ import kotlinx.coroutines.launch
     }
 }
 
-@Composable fun TopTotalAmountWidget(
-    modifier: Modifier = Modifier, totalIncome: Float, totalExpense: Float, totalPlan: Float, uiState: BookUiState, onYearMonthClick: () -> Unit, onItemClick: (type: TransactionAmountType) -> Unit
+
+@Composable fun YearMonthAmountWidget(
+    modifier: Modifier = Modifier,
+    isFullYear: Boolean = false,
+    totalIncome: Float,
+    totalExpense: Float,
+    totalPlan: Float,
+    uiState: BookUiState,
+    onYearMonthClick: () -> Unit,
+    onItemClick: (type: TransactionAmountType) -> Unit
 ) {
     GradientRoundedBoxWithStroke {
         Column {
@@ -313,20 +356,17 @@ import kotlinx.coroutines.launch
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (uiState.month <= 0) {
-                    // 全年的
-                } else {
-                    // 每月的
-                    val expenseEntity = AmountItemEntity("本月支出", totalExpense, TransactionAmountType.EXPENSE)
-                    val incomeEntity = AmountItemEntity("本月收入", totalIncome, TransactionAmountType.INCOME)
+                val expenseEntity = AmountItemEntity(if (isFullYear) "本年支出" else "本月支出", totalExpense, TransactionAmountType.EXPENSE)
+                val incomeEntity = AmountItemEntity(if (isFullYear) "本年收入" else "本月收入", totalIncome, TransactionAmountType.INCOME)
+                TopAmountItemWidget(item = expenseEntity, modifier = Modifier.weight(1f)) {
+                    onItemClick(it.type)
+                }
+                TopAmountItemWidget(item = incomeEntity, modifier = Modifier.weight(1f)) {
+                    onItemClick(it.type)
+                }
+                AnimatedVisibility(visible = !isFullYear, modifier = Modifier.weight(1f)) {
                     val planEntity = AmountItemEntity("添加预算", totalPlan, TransactionAmountType.PLAN)
-                    TopAmountItemWidget(item = expenseEntity, modifier = Modifier.weight(1f)) {
-                        onItemClick(it.type)
-                    }
-                    TopAmountItemWidget(item = incomeEntity, modifier = Modifier.weight(1f)) {
-                        onItemClick(it.type)
-                    }
-                    TopAmountItemWidget(item = planEntity, modifier = Modifier.weight(1f)) {
+                    TopAmountItemWidget(item = planEntity) {
                         onItemClick(it.type)
                     }
                 }

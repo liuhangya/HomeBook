@@ -37,6 +37,8 @@ sealed class RoutePath(val route: String) {
     // 全局页面（不属于任何 Tab）
     data object QuickAdd : RoutePath("quick_add")
 
+    data object QuickWatchAndEdit : RoutePath("quick_watch_and_edit")
+
     data object EditCategory : RoutePath("edit_category")
 
     data object EditTransactionCategory : RoutePath("edit_transaction_category")

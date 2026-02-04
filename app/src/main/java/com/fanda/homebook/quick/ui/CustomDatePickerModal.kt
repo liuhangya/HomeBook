@@ -25,28 +25,22 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
-import com.fanda.homebook.tools.convertToLocalMidnight
+import com.fanda.homebook.tools.addCurrentTimeToDate
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomDatePickerModal(
+@OptIn(ExperimentalMaterial3Api::class) @Composable fun CustomDatePickerModal(
     onDateSelected: (Long?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val datePickerState = rememberDatePickerState()
 
     Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnClickOutside = true,
-            usePlatformDefaultWidth = false
+        onDismissRequest = onDismiss, properties = DialogProperties(
+            dismissOnClickOutside = true, usePlatformDefaultWidth = false
         )
     ) {
         GradientRoundedBoxWithStroke(
-            colors = listOf(colorResource(R.color.color_E3EBF5), Color.White), cornerRadius = 12.dp,
-            strokeColor = Color.White,
-            modifier = Modifier
+            colors = listOf(colorResource(R.color.color_E3EBF5), Color.White), cornerRadius = 12.dp, strokeColor = Color.White, modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
@@ -64,14 +58,11 @@ fun CustomDatePickerModal(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
                 ) {
 
                     Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors()
-                            .copy(containerColor = colorResource(R.color.color_E1E9F3))
+                        onClick = onDismiss, colors = ButtonDefaults.buttonColors().copy(containerColor = colorResource(R.color.color_E1E9F3))
                     ) {
                         Text("取消", color = Color.Black)
                     }
@@ -79,11 +70,11 @@ fun CustomDatePickerModal(
                     FilledTonalButton(
                         onClick = {
                             val selectedMillis = datePickerState.selectedDateMillis
-                            // 转换为本地时区的 0 点时间戳
+                            // 转换为本地时区的时间戳
                             val localMidnightMillis = if (selectedMillis != null) {
-                                convertToLocalMidnight(selectedMillis)
+                                addCurrentTimeToDate(selectedMillis)
                             } else {
-                                null
+                                -1L
                             }
                             onDateSelected(localMidnightMillis)
                             onDismiss()

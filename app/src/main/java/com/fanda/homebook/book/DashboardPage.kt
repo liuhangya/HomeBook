@@ -196,7 +196,7 @@ import com.fanda.homebook.tools.roundToString
                     dashboardViewModel.saveCategoryDataList(it.data)
                     navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.displayDate)}")
                 }
-                MonthBarChatWidget(barData = transactionDataByMonth){
+                MonthBarChatWidget(barData = transactionDataByMonth) {
                     if (it.data.isEmpty()) return@MonthBarChatWidget
                     dashboardViewModel.saveCategoryDataList(it.data)
                     navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.monthName)}")
@@ -305,7 +305,7 @@ import com.fanda.homebook.tools.roundToString
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .background(Color.White, RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+            .background(Color.White, RoundedCornerShape(12.dp))
     ) {
         val chatData = data.map { Pair(it.category.name, it.ratio) }
         DonutChartMPWithLabels(
@@ -318,12 +318,10 @@ import com.fanda.homebook.tools.roundToString
 
     }
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
+        verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .border(1.dp, Color.White.copy(0.4f), RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(vertical = 8.dp)
     ) {
         data.forEach {
             GradientRoundedBoxWithStroke(
@@ -360,9 +358,15 @@ import com.fanda.homebook.tools.roundToString
                                 .padding(start = 12.dp)
                                 .weight(1f), verticalArrangement = Arrangement.Center
                         ) {
-                            Text(
-                                text = it.category.name, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color.Black, modifier = Modifier.padding(bottom = 8.dp)
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+                                Text(
+                                    text = it.category.name, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color.Black
+                                )
+                                Text(
+                                    text = "${data.size}笔", fontWeight = FontWeight.Medium, fontSize = 10.sp, color = colorResource(R.color.color_84878C), modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+
                             // 进度是 0 - 1
                             LinearProgressIndicator(
                                 progress = { it.ratio },

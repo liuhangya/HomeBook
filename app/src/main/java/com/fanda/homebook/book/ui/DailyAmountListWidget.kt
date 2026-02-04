@@ -26,14 +26,6 @@ import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.quick.TransactionDateGroup
 import com.fanda.homebook.tools.roundToString
 
-@Composable
-fun DailyAmountListWidget(modifier: Modifier = Modifier) {
-     LazyColumn(modifier = modifier, contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp)) {
-         items(LocalDataSource.dailyListData, key = { it.id }) {
-//             DailyItemWidget(item = it)
-         }
-     }
-}
 
 @Composable
 fun DailyItemWidget(modifier: Modifier = Modifier , item: TransactionDateGroup) {
@@ -67,9 +59,4 @@ fun DailyItemWidget(modifier: Modifier = Modifier , item: TransactionDateGroup) 
         }
 
     }
-}
-
-@Composable
-@Preview(showBackground =  true) fun DailyAmountListWidgetPreview() {
-    DailyAmountListWidget()
 }
