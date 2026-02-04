@@ -1,5 +1,7 @@
 package com.fanda.homebook.components
 
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,13 +29,21 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -74,6 +84,12 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
     onPlusClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    // 用于触发键盘刷新的标志
+    var refreshKeyboard by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -132,7 +148,23 @@ import com.fanda.homebook.ui.theme.HomeBookTheme
                         enabled = isEditState, value = inputText, onValueChange = { newText ->
                             // 否则忽略非法输入
                             onValueChange?.invoke(newText)
-                        }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End), keyboardOptions = keyboardOptions, textStyle = TextStyle.Default.copy(
+                        }, singleLine = true, modifier = Modifier.wrapContentWidth(Alignment.End)
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { state ->
+                                if (state.isFocused && refreshKeyboard) {
+                                    // 每次获取焦点都触发键盘刷新
+                                    refreshKeyboard = false
+                                    // 用户点击时，先清焦再聚焦
+                                    focusManager.clearFocus(true)
+                                    Handler(Looper.getMainLooper()).postDelayed({
+                                        focusRequester.requestFocus()
+                                    }, 50)
+                                    Handler(Looper.getMainLooper()).postDelayed({
+                                        refreshKeyboard = true
+                                    }, 100)
+                                }
+
+                            }, keyboardOptions = keyboardOptions, textStyle = TextStyle.Default.copy(
                             color = colorResource(R.color.color_333333), fontSize = 16.sp, textAlign = TextAlign.End
                         ), decorationBox = { innerTextField ->
                             Row(verticalAlignment = Alignment.CenterVertically) {

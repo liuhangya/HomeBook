@@ -55,8 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.book.sheet.YearMonthBottomSheet
 import com.fanda.homebook.book.ui.DailyAmountItemWidget
-import com.fanda.homebook.book.ui.DailyExpenseBarChart
-import com.fanda.homebook.book.ui.MonthlyBarData
+import com.fanda.homebook.book.ui.DailyBarChart
 import com.fanda.homebook.book.ui.ScrollableBarChartWithIndicator
 import com.fanda.homebook.book.viewmodel.DailyTransactionData
 import com.fanda.homebook.book.viewmodel.DashboardSubCategoryGroupData
@@ -73,7 +72,6 @@ import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.formatYearMonth
 import com.fanda.homebook.tools.roundToString
-import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun DashBoardPage(
     modifier: Modifier = Modifier, navController: NavController, dashboardViewModel: DashboardViewModel = viewModel(factory = AppViewModelProvider.factory)
@@ -190,11 +188,19 @@ import kotlin.random.Random
                 if (transactionDataByCategory.isNotEmpty()) {
                     PieChatWidget(data = transactionDataByCategory, title = dashboardViewModel.getPieChatTitle()) {
                         dashboardViewModel.saveCategoryDataList(it.data)
-                        navController.navigate("${RoutePath.DashBoarDetail.route}?title?=${dashboardViewModel.getCategoryDetailTitle(it.category.name)}")
+                        navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getCategoryDetailTitle(it.category.name)}")
                     }
                 }
-                DailyBarChatWidget(data = transactionDataByDaily)
-                MonthBarChatWidget(barData = transactionDataByMonth)
+                DailyBarChatWidget(data = transactionDataByDaily) {
+                    if (it.data.isEmpty()) return@DailyBarChatWidget
+                    dashboardViewModel.saveCategoryDataList(it.data)
+                    navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.displayDate)}")
+                }
+                MonthBarChatWidget(barData = transactionDataByMonth){
+                    if (it.data.isEmpty()) return@MonthBarChatWidget
+                    dashboardViewModel.saveCategoryDataList(it.data)
+                    navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.monthName)}")
+                }
                 if (transactionDataByDate.isNotEmpty()) {
                     MonthRankWidget(data = transactionDataByDate.take(10), title = dashboardViewModel.getRankTitle()) {
                         navController.navigate("${RoutePath.DashBoarRank.route}?year=${uiState.year}&month=${uiState.month}&type=${uiState.transactionAmountType.ordinal}&title=${dashboardViewModel.getRankTitle()}")
@@ -248,7 +254,7 @@ import kotlin.random.Random
 
 
 // 每月对比柱状图
-@Composable fun MonthBarChatWidget(modifier: Modifier = Modifier, barData: List<MonthTransactionData>) {
+@Composable fun MonthBarChatWidget(modifier: Modifier = Modifier, barData: List<MonthTransactionData>, onBarClick: ((MonthTransactionData) -> Unit)) {
     Text(
         text = "月度对比", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
@@ -264,13 +270,13 @@ import kotlin.random.Random
             barData = barData, modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 12.dp, end = 12.dp, top = 5.dp, bottom = 12.dp)
-                .height(250.dp)
+                .height(250.dp), onBarClick = onBarClick
         )
     }
 }
 
 // 每日对比柱状图
-@Composable fun DailyBarChatWidget(modifier: Modifier = Modifier, data: List<DailyTransactionData>) {
+@Composable fun DailyBarChatWidget(modifier: Modifier = Modifier, data: List<DailyTransactionData>, onBarClick: ((DailyTransactionData) -> Unit)) {
     Text(
         text = "每日对比", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
@@ -280,11 +286,11 @@ import kotlin.random.Random
             .wrapContentHeight()
             .background(Color.White, RoundedCornerShape(12.dp))
     ) {
-        DailyExpenseBarChart(
+        DailyBarChart(
             data = data, modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 6.dp, end = 12.dp, top = 15.dp, bottom = 12.dp)
-                .height(250.dp), visibleDays = 7
+                .height(250.dp), visibleDays = 7, onBarClick = onBarClick
         )
     }
 }

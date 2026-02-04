@@ -25,7 +25,7 @@ import com.fanda.homebook.tools.convertMillisToDate
     ), ForeignKey(
         entity = BookEntity::class, parentColumns = ["id"], childColumns = ["bookId"], onDelete = ForeignKey.SET_NULL
     ), ForeignKey(
-        entity = PayWayEntity::class, parentColumns = ["id"], childColumns = ["payWayId"], onDelete = ForeignKey.CASCADE
+        entity = PayWayEntity::class, parentColumns = ["id"], childColumns = ["payWayId"], onDelete = ForeignKey.SET_NULL
     )],
     indices = [Index(value = ["categoryId"]), Index(value = ["bookId"]), Index(value = ["subCategoryId"]), Index(value = ["payWayId"]), Index(value = ["categoryId", "subCategoryId"]), Index(value = ["categoryId", "subCategoryId", "payWayId"]), Index(
         value = ["categoryId", "subCategoryId", "payWayId", "bookId"]
@@ -38,10 +38,10 @@ import com.fanda.homebook.tools.convertMillisToDate
     val categoryType: Int = TransactionAmountType.EXPENSE.ordinal,
     val subCategoryId: Int? = null,
     val quickComment: String = "",
-    val payWayId: Int = 0,
+    val payWayId: Int? = null,
     val bookId: Int? = null,
-    val closetId: Int? = null,
-    val stockId: Int? = null,
+    val syncCloset: Boolean = false,
+    val syncStock: Boolean = false,
 )
 
 data class AddQuickEntity(

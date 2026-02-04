@@ -1,5 +1,8 @@
 package com.fanda.homebook.quick.ui
 
+import android.os.Handler
+import android.os.Looper
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -18,8 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -31,8 +39,11 @@ import com.fanda.homebook.tools.isValidDecimalInput
 import kotlinx.coroutines.delay
 
 @Composable fun EditAmountField(modifier: Modifier = Modifier, price: String = "", onValueChange: (String) -> Unit) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    // 用于触发键盘刷新的标志
+    var refreshKeyboard by remember { mutableStateOf(true) }
 
     GradientRoundedBoxWithStroke(
         modifier = modifier
@@ -47,26 +58,37 @@ import kotlinx.coroutines.delay
             )
             BasicTextField(
                 value = price, onValueChange = { newText ->
-                    // 🔒 限制只能输入数字和一个小数点
-                    if (isValidDecimalInput(newText)) {
-                        onValueChange(newText)
-                    }
-                    // 否则忽略非法输入
-                }, singleLine = true, modifier = Modifier
+                // 🔒 限制只能输入数字和一个小数点
+                if (isValidDecimalInput(newText)) {
+                    onValueChange(newText)
+                }
+                // 否则忽略非法输入
+            }, singleLine = true, modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp)
-                    .focusRequester(focusRequester), keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done
-                ), textStyle = TextStyle.Default.copy(
-                    fontSize = 32.sp,
-                    color = Color.Black,
-                )
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { state ->
+                        // 为了解决不同类型的输入法无法切换的问题，比如数字和文本类型
+                        if (state.isFocused && refreshKeyboard) {
+                            // 每次获取焦点都触发键盘刷新
+                            refreshKeyboard = false
+                            // 用户点击时，先清焦再聚焦
+                            focusManager.clearFocus(true)
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                focusRequester.requestFocus()
+                            }, 50)
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                refreshKeyboard = true
+                            }, 100)
+                        }
+
+                    }, keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done
+            ), textStyle = TextStyle.Default.copy(
+                fontSize = 32.sp,
+                color = Color.Black,
             )
-        }
-        LaunchedEffect(Unit) {
-            delay(100) // 短暂延迟确保布局完成
-            focusRequester.requestFocus()   // 先获取焦点
-            keyboardController?.hide() // 只想获取焦点，不想自动弹出键盘
+            )
         }
     }
 }

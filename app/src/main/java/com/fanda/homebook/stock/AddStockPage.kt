@@ -93,9 +93,24 @@ import com.hjq.toast.Toaster
             rightText = "保存",
             onRightActionClick = {
                 focusManager.clearFocus()
-                stockViewModel.saveStockEntityDatabase(context) {
-                    Toaster.show("保存成功")
-                    navController.navigateUp()
+
+                // 先校验囤货的参数
+                if (stockViewModel.checkParams()) {
+                    // 再根据是否选中同步到账单
+                    if (uiState.stockEntity.syncBook) {
+                        if (stockViewModel.checkBookParams()) {
+                            // 先插入账单数据
+                            stockViewModel.saveQuickEntityDatabase()
+                        } else {
+                            return@TopIconAppBar
+                        }
+                    }
+                    // 插入囤货数据
+                    stockViewModel.saveStockEntityDatabase(context) {
+                        Toaster.show("保存成功")
+                        navController.navigateUp()
+                    }
+
                 }
             },
             backIconPainter = painterResource(R.mipmap.icon_back),

@@ -231,16 +231,24 @@ class DashboardViewModel(savedStateHandle: SavedStateHandle, private val quickRe
     fun getCategoryDetailTitle(category: String): String {
         return if (uiState.value.transactionAmountType == TransactionAmountType.EXPENSE) {
             if (uiState.value.month <= 0) {
-                "${uiState.value.year}年${category}支出排行"
+                "${uiState.value.year}年${category}支出"
             } else {
-                "${uiState.value.month}月${category}支出排行"
+                "${uiState.value.month}月${category}支出"
             }
         } else {
             if (uiState.value.month <= 0) {
-                "${uiState.value.year}年${category}收入排行"
+                "${uiState.value.year}年${category}收入"
             } else {
-                "${uiState.value.month}月${category}收入排行"
+                "${uiState.value.month}月${category}收入"
             }
+        }
+    }
+
+    fun getDayCategoryDetailTitle(date: String): String {
+        return if (uiState.value.transactionAmountType == TransactionAmountType.EXPENSE) {
+            "${date}支出"
+        } else {
+            "${date}收入"
         }
     }
 
@@ -300,6 +308,7 @@ class DashboardViewModel(savedStateHandle: SavedStateHandle, private val quickRe
                         displayDate = displayDateStr,
                         dayOfMonth = day,
                         fullDate = dateMillis,
+                        data = emptyList(),
                         totalAmount = 0.0,
                     )
                 )
@@ -314,6 +323,7 @@ class DashboardViewModel(savedStateHandle: SavedStateHandle, private val quickRe
         val totalAmount = transactions.sumOf { it.quick.price.toDouble() }
         return MonthTransactionData(
             month = month,
+            data = transactions,
             monthName = "${month}月",
             totalAmount = totalAmount,
         )
@@ -338,6 +348,7 @@ private fun calculateDayData(
         displayDate = displayDateStr,
         dayOfMonth = dayOfMonth,
         fullDate = dateMillis,
+        data = transactions,
         totalAmount = totalAmount,
     )
 }
@@ -354,6 +365,7 @@ data class DashboardSubCategoryGroupData(
 data class DailyTransactionData(
     val date: String,           // 格式: "M.d" 如 "9.10"
     val displayDate: String,    // 显示文本: "9月10日"
+    val data: List<AddQuickEntity>,
     val dayOfMonth: Int,        // 月份中的第几天 (1-31)
     val fullDate: Long,         // 完整时间戳（用于排序）
     val totalAmount: Double,    // 当天所有分类的总金额
@@ -362,7 +374,7 @@ data class DailyTransactionData(
 // 每日统计数据模型
 data class MonthTransactionData(
     val month: Int, val monthName: String,    // 月份名称 "1月"
-    val totalAmount: Double,    // 当天所有分类的总金额
+    val data: List<AddQuickEntity>, val totalAmount: Double,    // 当天所有分类的总金额
     val color: Color = Color(0xFF4CAF50)
 )
 

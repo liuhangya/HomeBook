@@ -56,7 +56,9 @@ object AppViewModelProvider {
                 homeBookApplication().appContainer.productRepository,
                 homeBookApplication().appContainer.sizeRepository,
                 homeBookApplication().appContainer.ownerRepository,
-                homeBookApplication().appContainer.categoryRepository
+                homeBookApplication().appContainer.categoryRepository,
+                homeBookApplication().appContainer.quickRepository,
+                homeBookApplication().appContainer.transactionRepository
             )
         }
         initializer {
@@ -101,8 +103,11 @@ object AppViewModelProvider {
                 homeBookApplication().appContainer.stockRepository,
                 homeBookApplication().appContainer.rackRepository,
                 homeBookApplication().appContainer.productRepository,
-                homeBookApplication().appContainer.periodRepository
-            )
+                homeBookApplication().appContainer.periodRepository,
+                homeBookApplication().appContainer.transactionRepository,
+                homeBookApplication().appContainer.quickRepository,
+
+                )
         }
         initializer {
             WatchAndEditStockViewModel(

@@ -17,21 +17,21 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import java.text.DecimalFormat
 
-data class DailyExpense(
-    val date: String,  // 格式如 "9.10"
-    val amount: Float, // 金额
-)
 
 /**
- * 配置每日支出柱状图的通用逻辑
+ * 配置每日柱状图的通用逻辑
  */
-private fun configureDailyExpenseChart(
+private fun configureDailyChart(
     chart: BarChart,
     expenses: List<DailyTransactionData>,
-    visibleDays: Int
+    visibleDays: Int,
+    onBarClick: ((DailyTransactionData) -> Unit)? = null
 ) {
     val barColor = Color(0xFF2196F3).toArgb()
 
@@ -151,6 +151,28 @@ private fun configureDailyExpenseChart(
         // 动画
         animateY(800)
 
+        // 设置点击监听器
+        onBarClick?.let { callback ->
+            setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                override fun onValueSelected(e: Entry?, h: Highlight?) {
+                    e?.let { entry ->
+                        val index = entry.x.toInt()
+                        if (index in expenses.indices) {
+                            val selectedData = expenses[index]
+                            LogUtils.d("柱状图点击：${selectedData}")
+                            callback(selectedData)
+                        }
+                    }
+                }
+
+                override fun onNothingSelected() {
+                    // 点击空白区域时清除选中状态
+                    highlightValues(null)
+                }
+            })
+        }
+
+
         notifyDataSetChanged()
         invalidate()
 
@@ -164,10 +186,11 @@ private fun configureDailyExpenseChart(
 }
 
 @Composable
-fun DailyExpenseBarChart(
+fun DailyBarChart(
     data: List<DailyTransactionData>,
     modifier: Modifier = Modifier,
-    visibleDays: Int = 5
+    visibleDays: Int = 5,
+    onBarClick: ((DailyTransactionData) -> Unit)
 ) {
     // 缓存上一次的输入，用于 diff
     var lastExpenses by remember { mutableStateOf<List<DailyTransactionData>>(emptyList()) }
@@ -176,7 +199,8 @@ fun DailyExpenseBarChart(
     AndroidView(
         factory = { context ->
             BarChart(context).apply {
-                configureDailyExpenseChart(this, data, visibleDays)
+                configureDailyChart(this, data, visibleDays,onBarClick)
+
                 lastExpenses = data.toList()
                 lastVisibleDays = visibleDays
             }
@@ -188,7 +212,7 @@ fun DailyExpenseBarChart(
 
             if (shouldUpdate) {
                 LogUtils.d("每日支出柱状图数据变更，执行刷新！")
-                configureDailyExpenseChart(chart, data, visibleDays)
+                configureDailyChart(chart, data, visibleDays,onBarClick)
                 lastExpenses = data.toList()
                 lastVisibleDays = visibleDays
             } else {

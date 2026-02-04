@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
+import com.fanda.homebook.book.viewmodel.DailyTransactionData
 import com.fanda.homebook.book.viewmodel.MonthTransactionData
 import com.fanda.homebook.tools.LogUtils
 import com.github.mikephil.charting.charts.BarChart
@@ -17,20 +18,17 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import java.text.DecimalFormat
 
-/**
- * 表示每月柱状图数据项
- */
-data class MonthlyBarData(
-    val month: String, val value: Float, val color: Color = Color(0xFF4CAF50)
-)
 
 /**
  * 通用函数：配置并更新 BarChart 的数据与样式
  */
-private fun configureBarChart(chart: BarChart, barData: List<MonthTransactionData>, visibleCount: Int) {
+private fun configureBarChart(chart: BarChart, barData: List<MonthTransactionData>, visibleCount: Int, onBarClick: ((MonthTransactionData) -> Unit)) {
     val formatter = object : ValueFormatter() {
         private val format = DecimalFormat("#,###")
         override fun getFormattedValue(value: Float): String {
@@ -120,6 +118,25 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthTransactionDat
     chart.notifyDataSetChanged()
     chart.invalidate()
 
+    // 设置点击监听器
+    chart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+        override fun onValueSelected(e: Entry?, h: Highlight?) {
+            e?.let { entry ->
+                val index = entry.x.toInt()
+                if (index in barData.indices) {
+                    val selectedData = barData[index]
+                    LogUtils.d("柱状图点击：${selectedData}")
+                    onBarClick(selectedData)
+                }
+            }
+        }
+
+        override fun onNothingSelected() {
+            // 点击空白区域时清除选中状态
+            chart.highlightValues(null)
+        }
+    })
+
     // 延迟确保布局完成后再定位（尤其首次加载）
     chart.postDelayed({
         chart.setVisibleXRangeMaximum(visibleCount.toFloat())
@@ -136,7 +153,7 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthTransactionDat
  * @param visibleCount 同时可见的柱子数量（默认 6 个）
  */
 @Composable fun ScrollableBarChartWithIndicator(
-    barData: List<MonthTransactionData>, modifier: Modifier = Modifier, visibleCount: Int = 6
+    barData: List<MonthTransactionData>, modifier: Modifier = Modifier, visibleCount: Int = 6, onBarClick: ((MonthTransactionData) -> Unit)
 ) {
     // 缓存上一次的数据，用于 diff 判断是否需要更新
     var lastBarData by remember { mutableStateOf<List<MonthTransactionData>?>(null) }
@@ -145,7 +162,7 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthTransactionDat
     AndroidView(
         factory = { context ->
         BarChart(context).apply {
-            configureBarChart(this, barData, visibleCount)
+            configureBarChart(this, barData, visibleCount, onBarClick)
             // 初始化后记录状态
             lastBarData = barData.toList()
             lastVisibleCount = visibleCount
@@ -156,7 +173,7 @@ private fun configureBarChart(chart: BarChart, barData: List<MonthTransactionDat
 
         if (shouldUpdate) {
             LogUtils.d("月对比柱状图数据变更，执行刷新！")
-            configureBarChart(chart, barData, visibleCount)
+            configureBarChart(chart, barData, visibleCount, onBarClick)
 
             // 更新缓存（创建副本防止外部修改干扰下次比较）
             lastBarData = barData.toList()

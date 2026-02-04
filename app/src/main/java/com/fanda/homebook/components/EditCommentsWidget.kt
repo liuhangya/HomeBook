@@ -1,5 +1,7 @@
 package com.fanda.homebook.components
 
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,8 +11,16 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +35,11 @@ import com.fanda.homebook.R
 @Composable fun EditCommentsWidget(
     modifier: Modifier = Modifier, isEditState: Boolean = true, inputText: String = "", onValueChange: (String) -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    // 用于触发键盘刷新的标志
+    var refreshKeyboard by remember { mutableStateOf(true) }
     Column(
         verticalArrangement = Arrangement.Center, modifier = modifier
     ) {
@@ -37,6 +52,22 @@ import com.fanda.homebook.R
                 // 否则忽略非法输入
                 onValueChange(newText)
             }, singleLine = true, modifier = Modifier
+                .focusRequester(focusRequester)
+                .onFocusChanged { state ->
+                    if (state.isFocused && refreshKeyboard) {
+                        // 每次获取焦点都触发键盘刷新
+                        refreshKeyboard = false
+                        // 用户点击时，先清焦再聚焦
+                        focusManager.clearFocus(true)
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            focusRequester.requestFocus()
+                        }, 50)
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            refreshKeyboard = true
+                        }, 100)
+                    }
+
+                }
                 .fillMaxWidth()
                 .padding(top = 8.dp, bottom = 20.dp), keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Text, imeAction = ImeAction.Done

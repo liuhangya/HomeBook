@@ -21,13 +21,20 @@ import com.fanda.homebook.data.owner.OwnerEntity
 import com.fanda.homebook.data.owner.OwnerRepository
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.product.ProductRepository
+import com.fanda.homebook.data.quick.QuickEntity
+import com.fanda.homebook.data.quick.QuickRepository
 import com.fanda.homebook.data.season.ClosetSeasonRelation
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.season.SeasonRepository
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.data.size.SizeRepository
+import com.fanda.homebook.data.transaction.TransactionRepository
 import com.fanda.homebook.entity.ShowBottomSheetType
+import com.fanda.homebook.entity.TransactionAmountType
+import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
+import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
+import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.saveUriToFilesDir
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,7 +57,9 @@ class AddClosetViewModel(
     private val productRepository: ProductRepository,
     private val sizeRepository: SizeRepository,
     private val ownerRepository: OwnerRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val quickRepository: QuickRepository,
+    private val transactionRepository: TransactionRepository
 ) : ViewModel() {
 
     private val imageUri: String = savedStateHandle["imagePath"] ?: ""
@@ -256,6 +265,19 @@ class AddClosetViewModel(
         return true
     }
 
+    fun checkBookParams(): Boolean {
+        val entity = addClosetUiState.value.closetEntity
+        if (entity.price.isEmpty() || entity.price.toFloat() <= 0) {
+            Toaster.show("请输入价格")
+            return false
+        }
+        if (entity.date <= 0) {
+            Toaster.show("请选择购入时间")
+            return false
+        }
+        return true
+    }
+
     fun saveClosetEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
         val entity = addClosetUiState.value.closetEntity
         if (checkParams()) {
@@ -272,6 +294,23 @@ class AddClosetViewModel(
                 seasonRepository.insertSeasonRelationAll(closetSeasonRelationList)
                 onResult(true)
             }
+        }
+    }
+
+    fun saveQuickEntityDatabase() {
+        viewModelScope.launch {
+            val entity = addClosetUiState.value.closetEntity
+            val subCategory = transactionRepository.getSubItemByName("服饰", 1)
+            val quickEntity = QuickEntity(
+                date = entity.date,
+                price = entity.price,
+                categoryId = 1,
+                bookId = UserCache.bookId,
+                categoryType = TransactionAmountType.EXPENSE.ordinal,
+                subCategoryId = subCategory?.id,
+            )
+            LogUtils.d("saveQuickEntityDatabase", quickEntity)
+            quickRepository.insert(quickEntity)
         }
     }
 

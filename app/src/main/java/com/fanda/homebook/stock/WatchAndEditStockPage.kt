@@ -325,6 +325,7 @@ import kotlin.collections.forEach
                         openDate = convertMillisToDate(uiState.stockEntity.openDate, DATE_FORMAT_YMD),
                         expireDate = convertMillisToDate(uiState.stockEntity.expireDate, DATE_FORMAT_YMD),
                         syncBook = uiState.stockEntity.syncBook,
+                        showSyncBook = false,
                         price = uiState.stockEntity.price,
                         onCheckedChange = {
                             stockViewModel.updateSyncBook(it)

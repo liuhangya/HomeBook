@@ -14,13 +14,18 @@ import com.fanda.homebook.data.period.PeriodEntity
 import com.fanda.homebook.data.period.PeriodRepository
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.product.ProductRepository
+import com.fanda.homebook.data.quick.QuickEntity
+import com.fanda.homebook.data.quick.QuickRepository
 import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackRepository
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
+import com.fanda.homebook.data.season.ClosetSeasonRelation
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.data.stock.StockRepository
 import com.fanda.homebook.data.stock.StockUseStatus
+import com.fanda.homebook.data.transaction.TransactionRepository
 import com.fanda.homebook.entity.ShowBottomSheetType
+import com.fanda.homebook.entity.TransactionAmountType
 import com.fanda.homebook.stock.state.AddStockUiState
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
@@ -40,13 +45,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.collections.map
 
 class AddStockViewModel(
     savedStateHandle: SavedStateHandle,
     private val stockRepository: StockRepository,
     private val rackRepository: RackRepository,
     private val productRepository: ProductRepository,
-    private val periodRepository: PeriodRepository
+    private val periodRepository: PeriodRepository,
+    private val transactionRepository: TransactionRepository,
+    private val quickRepository: QuickRepository
 ) : ViewModel() {
 
     private val imageUri: String = savedStateHandle["imagePath"] ?: ""
@@ -252,6 +260,36 @@ class AddStockViewModel(
             return false
         }
         return true
+    }
+
+    fun checkBookParams(): Boolean {
+        val entity = uiState.value.stockEntity
+        if (entity.price.isEmpty() || entity.price.toFloat() <= 0) {
+            Toaster.show("请输入价格")
+            return false
+        }
+        if (entity.buyDate <= 0) {
+            Toaster.show("请选择购入时间")
+            return false
+        }
+        return true
+    }
+
+    fun saveQuickEntityDatabase() {
+        viewModelScope.launch {
+            val entity = uiState.value.stockEntity
+            val subCategory = transactionRepository.getSubItemByName("购物", 1)
+            val quickEntity = QuickEntity(
+                date = entity.buyDate,
+                price = entity.price,
+                categoryId = 1,
+                bookId = UserCache.bookId,
+                categoryType = TransactionAmountType.EXPENSE.ordinal,
+                subCategoryId = subCategory?.id,
+            )
+            LogUtils.d("saveQuickEntityDatabase", quickEntity)
+            quickRepository.insert(quickEntity)
+        }
     }
 
     fun saveStockEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {

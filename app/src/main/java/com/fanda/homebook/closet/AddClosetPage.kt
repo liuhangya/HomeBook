@@ -114,9 +114,22 @@ import kotlinx.coroutines.launch
             rightText = "保存",
             onRightActionClick = {
                 focusManager.clearFocus()
-                addClosetViewModel.saveClosetEntityDatabase(context) {
-                    Toaster.show("保存成功")
-                    navController.navigateUp()
+                // 先校验衣橱的参数
+                if (addClosetViewModel.checkParams()) {
+                    // 再根据是否选中同步到账单
+                    if (addClosetUiState.closetEntity.syncBook) {
+                        if (addClosetViewModel.checkBookParams()) {
+                            // 先插入账单数据
+                            addClosetViewModel.saveQuickEntityDatabase()
+                        } else {
+                            return@TopIconAppBar
+                        }
+                    }
+                    // 保存衣橱数据
+                    addClosetViewModel.saveClosetEntityDatabase(context) {
+                        Toaster.show("保存成功")
+                        navController.navigateUp()
+                    }
                 }
             },
             backIconPainter = painterResource(R.mipmap.icon_back),

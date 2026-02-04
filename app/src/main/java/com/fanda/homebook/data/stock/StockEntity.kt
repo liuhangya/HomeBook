@@ -75,7 +75,6 @@ fun StockEntity.getStockDes(): String = if (useStatus == StockUseStatus.USED.cod
     val syncBook: Boolean = false,
     val comment: String = "",
     val remain: String = "",
-    val date: String = "",
     val feel: String = "",
     val price: String = "",
     val imageLocalPath: String = "",

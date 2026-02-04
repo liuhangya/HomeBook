@@ -65,7 +65,7 @@ class AddQuickViewModel(
     // 当前选中的支付方式
     @OptIn(ExperimentalCoroutinesApi::class) val payWay: StateFlow<PayWayEntity?> = _uiState.map { it.quickEntity.payWayId }.distinctUntilChanged()              // 避免重复 ID 触发
         .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            payWayRepository.getItemById(id)
+            payWayRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
@@ -170,7 +170,7 @@ class AddQuickViewModel(
     fun checkParams(): Boolean {
         val entity = _uiState.value.quickEntity
         return when {
-            entity.price.isEmpty() -> {
+            entity.price.isEmpty() || entity.price.toDouble() <= 0 -> {
                 Toaster.show("请输入金额")
                 false
             }

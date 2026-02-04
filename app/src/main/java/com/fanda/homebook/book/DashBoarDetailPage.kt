@@ -106,7 +106,6 @@ import com.fanda.homebook.tools.roundToString
                 Row(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
-
                     SelectableRoundedButton(
                         fontSize = 14.sp, text = "按金额", selected = uiState.queryWay == QueryWay.AMOUNT, onClick = {
                             dashboardDetailViewModel.updateQueryWay(QueryWay.AMOUNT)

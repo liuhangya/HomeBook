@@ -219,6 +219,7 @@ import com.hjq.toast.Toaster
                         season = closetViewModel.getSeasonDes(selectSeasons),
                         date = convertMillisToDate(addClosetUiState.closetEntity.date, DATE_FORMAT_YMD),
                         syncBook = addClosetUiState.closetEntity.syncBook,
+                        showSyncBook = false,
                         size = size?.name ?: "",
                         isEditState = addClosetUiState.isEditState,
                         price = addClosetUiState.closetEntity.price,
