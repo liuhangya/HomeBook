@@ -357,7 +357,7 @@ import kotlin.collections.forEach
 
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = uiState.stockEntity.buyDate, onDateSelected = {
             stockViewModel.updateBuyDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             stockViewModel.dismissBottomSheet()
@@ -400,7 +400,7 @@ import kotlin.collections.forEach
 
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.OPEN_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = uiState.stockEntity.openDate, onDateSelected = {
             stockViewModel.updateOpenDate(it ?: System.currentTimeMillis())
             stockViewModel.updateUseStatus(context, StockUseStatus.USING)
         }, onDismiss = {
@@ -410,7 +410,7 @@ import kotlin.collections.forEach
 
     if (uiState.showUsedUpDateSelectDialog) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = uiState.stockEntity.usedDate, onDateSelected = {
             stockViewModel.updateUsedUpDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             stockViewModel.updateUsedUpDateSelectDialog(false)
@@ -419,7 +419,7 @@ import kotlin.collections.forEach
 
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.EXPIRE_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = uiState.stockEntity.expireDate, onDateSelected = {
             stockViewModel.updateExpireDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             stockViewModel.dismissBottomSheet()

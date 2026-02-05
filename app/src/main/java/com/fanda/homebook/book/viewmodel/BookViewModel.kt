@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fanda.homebook.book.entity.CategoryData
 import com.fanda.homebook.book.entity.MonthData
-import com.fanda.homebook.book.entity.MonthGroup
 import com.fanda.homebook.book.entity.MonthKey
 import com.fanda.homebook.book.entity.YearSummaryData
 import com.fanda.homebook.book.state.BookUiState
@@ -12,6 +11,7 @@ import com.fanda.homebook.data.book.BookEntity
 import com.fanda.homebook.data.book.BookRepository
 import com.fanda.homebook.data.quick.AddQuickEntity
 import com.fanda.homebook.data.quick.QueryParams
+import com.fanda.homebook.data.quick.QuickEntity
 import com.fanda.homebook.data.quick.QuickRepository
 import com.fanda.homebook.data.quick.TransactionDateGroup
 import com.fanda.homebook.data.quick.TransactionGroupedData
@@ -192,39 +192,17 @@ class BookViewModel(
         _uiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
     }
 
-    fun refreshBooks() {
+    fun refresh() {
+        _uiState.update {
+            it.copy(refresh = !it.refresh)
+        }
+    }
+
+    fun deleteQuickDatabase(quick: QuickEntity) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(refresh = !it.refresh)
-            }
+            quickRepository.delete(quick)
         }
-    }
-
-    // 按选中的年月过滤交易数据
-    private fun filterTransactionsByMonth(
-        transactions: List<AddQuickEntity>, selectedYear: Int, selectedMonth: Int
-    ): List<AddQuickEntity> {
-        // 计算选中年月的开始和结束时间戳
-        val (startTime, endTime) = getMonthTimeRange(selectedYear, selectedMonth)
-
-        return transactions.filter { transaction ->
-            transaction.quick.date in startTime..<endTime
-        }
-    }
-
-    // 获取指定年月的开始和结束时间戳
-    private fun getMonthTimeRange(year: Int, month: Int): Pair<Long, Long> {
-        val calendar = Calendar.getInstance().apply {
-            set(year, month - 1, 1, 0, 0, 0) // 月份从0开始
-            set(Calendar.MILLISECOND, 0)
-        }
-        val startTime = calendar.timeInMillis
-
-        // 下个月的第一天
-        calendar.add(Calendar.MONTH, 1)
-        val endTime = calendar.timeInMillis
-
-        return Pair(startTime, endTime)
+        refresh()
     }
 
     // 按日期分组并格式化的核心方法

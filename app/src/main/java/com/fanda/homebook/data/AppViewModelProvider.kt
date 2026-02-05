@@ -21,17 +21,6 @@ import com.fanda.homebook.common.viewmodel.PayWayViewModel
 import com.fanda.homebook.common.viewmodel.ProductViewModel
 import com.fanda.homebook.common.viewmodel.SizeViewModel
 import com.fanda.homebook.common.viewmodel.SubCategoryViewModel
-import com.fanda.homebook.data.category.CategoryRepository
-import com.fanda.homebook.data.closet.ClosetRepository
-import com.fanda.homebook.data.color.ColorTypeRepository
-import com.fanda.homebook.data.owner.OwnerRepository
-import com.fanda.homebook.data.pay.PayWayRepository
-import com.fanda.homebook.data.period.PeriodRepository
-import com.fanda.homebook.data.product.ProductRepository
-import com.fanda.homebook.data.rack.RackRepository
-import com.fanda.homebook.data.season.SeasonRepository
-import com.fanda.homebook.data.size.SizeRepository
-import com.fanda.homebook.data.stock.StockRepository
 import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
 import com.fanda.homebook.quick.viewmodel.WatchAndEditQuickViewModel
 import com.fanda.homebook.stock.viewmodel.AddStockViewModel
@@ -99,8 +88,10 @@ object AppViewModelProvider {
         initializer {
             DashboardDetailViewModel(
                 this.createSavedStateHandle(),
+                homeBookApplication().appContainer.quickRepository
             )
         }
+
         initializer {
             BookViewModel(
                 homeBookApplication().appContainer.bookRepository, homeBookApplication().appContainer.transactionRepository, homeBookApplication().appContainer.quickRepository

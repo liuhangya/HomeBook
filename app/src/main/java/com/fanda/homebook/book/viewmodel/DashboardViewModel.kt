@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fanda.homebook.book.state.DashboardUiState
 import com.fanda.homebook.data.quick.AddQuickEntity
+import com.fanda.homebook.data.quick.QuickEntity
 import com.fanda.homebook.data.quick.QuickRepository
 import com.fanda.homebook.data.quick.TransactionDateGroup
 import com.fanda.homebook.data.transaction.TransactionRepository
@@ -27,7 +28,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.Calendar
+
+data class DashboardQueryParams(
+    val transactionAmountType: TransactionAmountType, val year: Int, val month: Int, val refresh: Boolean
+)
 
 class DashboardViewModel(savedStateHandle: SavedStateHandle, private val quickRepository: QuickRepository) : ViewModel() {
 
@@ -59,13 +65,16 @@ class DashboardViewModel(savedStateHandle: SavedStateHandle, private val quickRe
         }
     }
 
-    private val queryParams = combine(_uiState.map { it.transactionAmountType }, _uiState.map { it.year }, _uiState.map { it.month }) { type, year, month ->
-        Triple(type, year, month)
+    private val queryParams = combine(
+        _uiState.map { it.transactionAmountType }, _uiState.map { it.year }, _uiState.map { it.month },
+        _uiState.map { it.refresh },
+    ) { type, year, month, refresh ->
+        DashboardQueryParams(type, year, month, refresh)
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class) val transactionData: StateFlow<List<AddQuickEntity>> = queryParams.flatMapLatest { params ->
         LogUtils.d("queryParams transactionDataByDate: $params")
-        quickRepository.getQuickListByCategory(UserCache.bookId, null, null, params.first.ordinal)
+        quickRepository.getQuickListByCategory(UserCache.bookId, null, null, params.transactionAmountType.ordinal)
     }.stateIn(
         scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
     )
@@ -215,6 +224,20 @@ class DashboardViewModel(savedStateHandle: SavedStateHandle, private val quickRe
 
     fun dismissBottomSheet() {
         _uiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
+    }
+
+    fun refresh() {
+        _uiState.update {
+            LogUtils.d("刷新数据...")
+            it.copy(refresh = !it.refresh)
+        }
+    }
+
+    fun deleteQuickDatabase(quick: QuickEntity) {
+        viewModelScope.launch {
+            quickRepository.delete(quick)
+        }
+        refresh()
     }
 
     fun getTotalAmountTitle() = if (uiState.value.transactionAmountType == TransactionAmountType.EXPENSE) {

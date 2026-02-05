@@ -1,12 +1,8 @@
 package com.fanda.homebook.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -36,9 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.fanda.homebook.R
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.ui.theme.HomeBookTheme
@@ -56,7 +50,7 @@ data class BottomTabEntity(
 ) {
     val leftTabs = listOf(
         BottomTabEntity(RoutePath.BookGraph.route, R.mipmap.icon_book, R.mipmap.icon_book_selected),
-        BottomTabEntity(RoutePath.DashboardGraph.route, R.mipmap.icon_dashboard, R.mipmap.icon_dashboard_selected)
+        BottomTabEntity(RoutePath.MoneyGraph.route, R.mipmap.icon_dashboard, R.mipmap.icon_dashboard_selected)
     )
     val rightTabs = listOf(
         BottomTabEntity(RoutePath.ClosetGraph.route, R.mipmap.icon_closet, R.mipmap.icon_closet_selected),

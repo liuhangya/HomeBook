@@ -92,12 +92,14 @@ import kotlinx.coroutines.launch
     val books by bookViewModel.books.collectAsState()
     val categories by bookViewModel.categories.collectAsState()
     val subCategory by bookViewModel.subCategory.collectAsState()
+    val transactionData by bookViewModel.transactionData.collectAsState()
     val monthSummaryData by bookViewModel.monthSummaryData.collectAsState()
     val yearSummaryData by bookViewModel.yearSummaryData.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LogUtils.d("uiState: $uiState")
+    LogUtils.d("transactionData: $transactionData")
     LogUtils.d("monthSummaryData: $monthSummaryData")
     LogUtils.d("yearSummaryData: ${yearSummaryData?.toJson()}")
 
@@ -110,7 +112,7 @@ import kotlinx.coroutines.launch
                 Lifecycle.Event.ON_RESUME -> {
                     // 可见时刷新数据
                     LogUtils.d("可见时刷新数据 BookHomePage: ON_RESUME")
-                    bookViewModel.refreshBooks()
+                    bookViewModel.refresh()
                 }
 
                 else -> Unit
@@ -227,11 +229,11 @@ import kotlinx.coroutines.launch
                     onItemClick = { type ->
                         when (type) {
                             TransactionAmountType.INCOME -> {
-                                navController.navigate("${RoutePath.DashBoar.route}?year=${uiState.year}&month=${uiState.month}&type=${TransactionAmountType.INCOME.ordinal}")
+                                navController.navigate("${RoutePath.DashBoard.route}?year=${uiState.year}&month=${uiState.month}&type=${TransactionAmountType.INCOME.ordinal}")
                             }
 
                             TransactionAmountType.EXPENSE -> {
-                                navController.navigate("${RoutePath.DashBoar.route}?year=${uiState.year}&month=${uiState.month}&type=${TransactionAmountType.EXPENSE.ordinal}")
+                                navController.navigate("${RoutePath.DashBoard.route}?year=${uiState.year}&month=${uiState.month}&type=${TransactionAmountType.EXPENSE.ordinal}")
                             }
 
                             TransactionAmountType.PLAN -> {
@@ -246,7 +248,11 @@ import kotlinx.coroutines.launch
 
             monthSummaryData?.groups?.let {
                 items(monthSummaryData?.groups!!, key = { it.hashCode() }) {
-                    DailyItemWidget(item = it)
+                    DailyItemWidget(item = it, onItemClick = { addQuickEntity ->
+                        navController.navigate("${RoutePath.WatchAndEditQuick.route}?quickId=${addQuickEntity.quick.id}")
+                    }, onDelete = { addQuickEntity ->
+                        bookViewModel.deleteQuickDatabase(addQuickEntity.quick)
+                    })
                 }
             }
             yearSummaryData?.monthList?.let {
@@ -255,7 +261,7 @@ import kotlinx.coroutines.launch
                         // 当前分类组点击
                         UserCache.categoryQuickList = category.transactions
                         navController.navigate(
-                            "${RoutePath.DashBoarDetail.route}?title=${
+                            "${RoutePath.DashBoardDetail.route}?title=${
                                 bookViewModel.getCategoryDetailTitle(
                                     category.categoryType, category.monthDisplay, category.subCategory?.name ?: ""
                                 )

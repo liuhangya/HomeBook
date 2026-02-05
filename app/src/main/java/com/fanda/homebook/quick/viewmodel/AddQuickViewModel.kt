@@ -40,7 +40,7 @@ class AddQuickViewModel(
 
     // 当前选中的一级分类
     @OptIn(ExperimentalCoroutinesApi::class) val category: StateFlow<TransactionEntity?> = _uiState.map { it.quickEntity.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     
+        .flatMapLatest { id ->
             transactionRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
@@ -48,7 +48,7 @@ class AddQuickViewModel(
 
     // 当前选中的二级分类
     @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<TransactionSubEntity?> = _uiState.map { it.quickEntity.subCategoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     
+        .flatMapLatest { id ->
             transactionRepository.getSubItemById(id ?: -1)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
@@ -56,7 +56,7 @@ class AddQuickViewModel(
 
     // 子分类列表
     @OptIn(ExperimentalCoroutinesApi::class) val subCategories: StateFlow<List<TransactionSubEntity>?> = _uiState.map { it.quickEntity.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     
+        .flatMapLatest { id ->
             transactionRepository.getSubItemsById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
@@ -64,7 +64,7 @@ class AddQuickViewModel(
 
     // 当前选中的支付方式
     @OptIn(ExperimentalCoroutinesApi::class) val payWay: StateFlow<PayWayEntity?> = _uiState.map { it.quickEntity.payWayId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     
+        .flatMapLatest { id ->
             payWayRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
@@ -90,6 +90,7 @@ class AddQuickViewModel(
                     quickEntity = it.quickEntity.copy(
                         categoryId = categoryEntity.id,
                         categoryType = categoryEntity.type,
+                        subCategoryId = null
                     )
                 )
             }
@@ -144,16 +145,17 @@ class AddQuickViewModel(
     }
 
     fun updateSyncCloset(sync: Boolean) {
-        _uiState.update { it.copy(syncCloset = sync) }
-        if (_uiState.value.syncStock && sync) {
-            _uiState.update { it.copy(syncStock = false) }
+        _uiState.update { it.copy(quickEntity = it.quickEntity.copy(syncCloset = sync)) }
+        if (_uiState.value.quickEntity.syncStock && sync) {
+            _uiState.update { it.copy(quickEntity = it.quickEntity.copy(syncStock = false)) }
         }
     }
 
     fun updateSyncStock(sync: Boolean) {
-        _uiState.update { it.copy(syncStock = sync) }
-        if (_uiState.value.syncCloset && sync) {
-            _uiState.update { it.copy(syncCloset = false) }
+
+        _uiState.update { it.copy(quickEntity = it.quickEntity.copy(syncStock = sync)) }
+        if (_uiState.value.quickEntity.syncCloset && sync) {
+            _uiState.update { it.copy(quickEntity = it.quickEntity.copy(syncCloset = false)) }
         }
     }
 
@@ -180,7 +182,7 @@ class AddQuickViewModel(
                 false
             }
 
-            entity.payWayId == 0 -> {
+            entity.payWayId == null -> {
                 Toaster.show("请选择支付方式")
                 false
             }

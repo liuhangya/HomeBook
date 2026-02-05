@@ -137,7 +137,7 @@ import kotlinx.coroutines.launch
                 if (quickViewModel.checkParams()) {
                     // 再根据是否选中同步衣橱或囤货，再单独判断参数
                     // 是否同步到衣橱
-                    if (quickViewModel.uiState.value.syncCloset) {
+                    if (quickViewModel.uiState.value.quickEntity.syncCloset) {
                         addClosetViewModel.updateClosetPrice(uiState.quickEntity.price)
                         if (addClosetViewModel.checkParams()) {
                             addClosetViewModel.saveClosetEntityDatabase(context) {}
@@ -146,7 +146,7 @@ import kotlinx.coroutines.launch
                         }
                     }
 
-                    if (quickViewModel.uiState.value.syncStock) {
+                    if (quickViewModel.uiState.value.quickEntity.syncStock) {
                         stockViewModel.updatePrice(uiState.quickEntity.price)
                         if (stockViewModel.checkParams()) {
                             stockViewModel.saveStockEntityDatabase(context) {}
@@ -226,7 +226,7 @@ import kotlinx.coroutines.launch
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     EditQuickClosetScreen(
-                        showSyncCloset = uiState.syncCloset,
+                        showSyncCloset = uiState.quickEntity.syncCloset,
                         bottomComment = addClosetUiState.closetEntity.comment,
                         closetCategory = closetCategory?.name ?: "",
                         closetSubCategory = closetSubCategory?.name ?: "",
@@ -251,7 +251,7 @@ import kotlinx.coroutines.launch
                         })
                     Spacer(modifier = Modifier.height(12.dp))
                     EditQuickStockScreen(
-                        sync = uiState.syncStock,
+                        sync = uiState.quickEntity.syncStock,
                         name = addStockUiState.stockEntity.name,
                         goodsRack = rackEntity?.name ?: "",
                         stockCategory = stockSubCategory?.name ?: "",
@@ -280,7 +280,7 @@ import kotlinx.coroutines.launch
 
         if (quickViewModel.showBottomSheet(ShowBottomSheetType.DATE)) {
             // 日期选择器
-            CustomDatePickerModal(onDateSelected = {
+            CustomDatePickerModal(initialDate = uiState.quickEntity.date , onDateSelected = {
                 quickViewModel.updateDate(it)
             }, onDismiss = {
                 quickViewModel.dismissBottomSheet()

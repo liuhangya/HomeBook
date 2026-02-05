@@ -26,21 +26,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.data.quick.AddQuickEntity
-import com.fanda.homebook.data.quick.QuickEntity
 import com.fanda.homebook.entity.TransactionAmountType
 import com.fanda.homebook.quick.ui.getCategoryIcon
 import com.fanda.homebook.tools.DATE_FORMAT_MD_HM
-import com.fanda.homebook.tools.DATE_FORMAT_YMD
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.tools.roundToString
 
-@Composable fun DailyAmountItemWidget(modifier: Modifier = Modifier, item: AddQuickEntity) {
+@Composable fun DailyAmountItemWidget(modifier: Modifier = Modifier, item: AddQuickEntity, onItemClick: (AddQuickEntity) -> Unit) {
     Box(modifier = modifier) {
         GradientRoundedBoxWithStroke(
             colors = listOf(Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.2f)), modifier = Modifier
@@ -49,7 +46,7 @@ import com.fanda.homebook.tools.roundToString
         ) {
             Row(modifier = Modifier
                 .fillMaxWidth()
-                .clickable { }
+                .clickable { onItemClick(item) }
                 .padding(start = 15.dp)
                 .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
 
@@ -134,8 +131,4 @@ import com.fanda.homebook.tools.roundToString
             }
         }
     }
-}
-
-@Composable @Preview(showBackground = true) fun DailyAmountItemWidgetPreview() {
-    DailyAmountItemWidget(item = AddQuickEntity(QuickEntity(1, 1770183867259)))
 }

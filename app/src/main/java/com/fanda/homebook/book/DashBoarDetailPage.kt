@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,11 +44,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.book.state.QueryWay
+import com.fanda.homebook.book.ui.CustomLongPressTooltip
 import com.fanda.homebook.book.ui.DailyAmountItemWidget
 import com.fanda.homebook.book.viewmodel.DashboardDetailViewModel
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.tools.EventManager
+import com.fanda.homebook.tools.EventType
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.roundToString
@@ -58,11 +63,23 @@ import com.fanda.homebook.tools.roundToString
 
     val uiState by dashboardDetailViewModel.uiState.collectAsState()
 
-    BackHandler {
+    val handleBackNavigation = {
         LogUtils.d("移除分类列表数据")
         UserCache.categoryQuickList = emptyList()
         navController.navigateUp()
     }
+
+    LaunchedEffect(Unit) {
+        EventManager.events.collect {
+            when (it.type) {
+                EventType.REFRESH -> {
+                    LogUtils.d("收到刷新数据事件")
+                    dashboardDetailViewModel.refresh(it.data as Int)
+                }
+            }
+        }
+    }
+
 
     Scaffold(topBar = {
         // 只能用 TopAppBar 才能将背景色嵌入到状态栏
@@ -71,7 +88,7 @@ import com.fanda.homebook.tools.roundToString
                 .size(48.dp)
                 .clip(CircleShape)
                 .clickable {
-                    navController.popBackStack()
+                    handleBackNavigation()
                 }) {
                 Image(
                     painter = painterResource(id = R.mipmap.icon_back), contentDescription = "Back", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
@@ -79,6 +96,11 @@ import com.fanda.homebook.tools.roundToString
             }
         })
     }) { padding ->
+        // 只会拦截手势和按键返回事件
+        BackHandler {
+            handleBackNavigation()
+        }
+
         LazyColumn(modifier = modifier.padding(padding)) {
             item {
                 // 顶部金额布局
@@ -121,12 +143,17 @@ import com.fanda.homebook.tools.roundToString
                 QueryWay.TIME -> uiState.data.sortedByDescending { it.quick.date }
             }
             items(filterData, key = { it.quick.id }) {
-                DailyAmountItemWidget(
-                    item = it, modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 0.dp, bottom = 8.dp)
-                )
+
+                CustomLongPressTooltip(item = it, onItemClick =  { addQuickEntity ->
+//                    navController.navigate("${RoutePath.WatchAndEditQuick.route}?quickId=${addQuickEntity.quick.id}")
+                }, onDelete = { addQuickEntity ->
+//                    dashboardDetailViewModel.deleteQuickDatabase(addQuickEntity.quick)
+                })
             }
         }
     }
+
+
 }
 
 @Composable @Preview(showBackground = true) fun DashBoarDetailPagePreview() {

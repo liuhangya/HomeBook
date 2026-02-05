@@ -243,7 +243,7 @@ import com.hjq.toast.Toaster
 
     if (closetViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = addClosetUiState.closetEntity.date, onDateSelected = {
             closetViewModel.updateClosetDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             closetViewModel.dismissBottomSheet()

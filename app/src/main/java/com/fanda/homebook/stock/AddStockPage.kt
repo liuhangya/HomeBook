@@ -220,7 +220,7 @@ import com.hjq.toast.Toaster
 
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = uiState.stockEntity.buyDate, onDateSelected = {
             stockViewModel.updateBuyDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             stockViewModel.dismissBottomSheet()
@@ -263,7 +263,7 @@ import com.hjq.toast.Toaster
 
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.OPEN_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = uiState.stockEntity.openDate, onDateSelected = {
             stockViewModel.updateOpenDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             stockViewModel.dismissBottomSheet()
@@ -272,7 +272,7 @@ import com.hjq.toast.Toaster
 
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.EXPIRE_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal(initialDate = uiState.stockEntity.expireDate, onDateSelected = {
             stockViewModel.updateExpireDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             stockViewModel.dismissBottomSheet()

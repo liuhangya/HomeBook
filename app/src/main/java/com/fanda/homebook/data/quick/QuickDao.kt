@@ -9,7 +9,6 @@ import androidx.room.RawQuery
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.sqlite.db.SimpleSQLiteQuery
-import com.fanda.homebook.data.stock.AddStockEntity
 import com.fanda.homebook.tools.LogUtils
 import kotlinx.coroutines.flow.Flow
 

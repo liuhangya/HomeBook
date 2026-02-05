@@ -3,7 +3,6 @@ package com.fanda.homebook.book
 import DonutChartMPWithLabels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -54,7 +54,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.book.sheet.YearMonthBottomSheet
-import com.fanda.homebook.book.ui.DailyAmountItemWidget
+import com.fanda.homebook.book.ui.CustomLongPressTooltip
 import com.fanda.homebook.book.ui.DailyBarChart
 import com.fanda.homebook.book.ui.ScrollableBarChartWithIndicator
 import com.fanda.homebook.book.viewmodel.DailyTransactionData
@@ -69,6 +69,8 @@ import com.fanda.homebook.entity.ShowBottomSheetType
 import com.fanda.homebook.entity.TransactionAmountType
 import com.fanda.homebook.quick.ui.getCategoryIcon
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.tools.EventManager
+import com.fanda.homebook.tools.EventType
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.formatYearMonth
 import com.fanda.homebook.tools.roundToString
@@ -88,6 +90,17 @@ import com.fanda.homebook.tools.roundToString
     LogUtils.d("transactionDataByCategory: $transactionDataByCategory")
     LogUtils.d("transactionDataByDaily: $transactionDataByDaily")
     LogUtils.d("transactionDataByMonth: $transactionDataByMonth")
+
+    LaunchedEffect(Unit) {
+        EventManager.events.collect {
+            when (it.type) {
+                EventType.REFRESH -> {
+                    LogUtils.d("收到刷新数据事件")
+                    dashboardViewModel.refresh()
+                }
+            }
+        }
+    }
 
     Scaffold(topBar = {
         TopAppBar(
@@ -188,23 +201,27 @@ import com.fanda.homebook.tools.roundToString
                 if (transactionDataByCategory.isNotEmpty()) {
                     PieChatWidget(data = transactionDataByCategory, title = dashboardViewModel.getPieChatTitle()) {
                         dashboardViewModel.saveCategoryDataList(it.data)
-                        navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getCategoryDetailTitle(it.category.name)}")
+                        navController.navigate("${RoutePath.DashBoardDetail.route}?title=${dashboardViewModel.getCategoryDetailTitle(it.category.name)}")
                     }
                 }
                 DailyBarChatWidget(data = transactionDataByDaily) {
                     if (it.data.isEmpty()) return@DailyBarChatWidget
                     dashboardViewModel.saveCategoryDataList(it.data)
-                    navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.displayDate)}")
+                    navController.navigate("${RoutePath.DashBoardDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.displayDate)}")
                 }
                 MonthBarChatWidget(barData = transactionDataByMonth) {
                     if (it.data.isEmpty()) return@MonthBarChatWidget
                     dashboardViewModel.saveCategoryDataList(it.data)
-                    navController.navigate("${RoutePath.DashBoarDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.monthName)}")
+                    navController.navigate("${RoutePath.DashBoardDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(it.monthName)}")
                 }
                 if (transactionDataByDate.isNotEmpty()) {
-                    MonthRankWidget(data = transactionDataByDate.take(10), title = dashboardViewModel.getRankTitle()) {
-                        navController.navigate("${RoutePath.DashBoarRank.route}?year=${uiState.year}&month=${uiState.month}&type=${uiState.transactionAmountType.ordinal}&title=${dashboardViewModel.getRankTitle()}")
-                    }
+                    MonthRankWidget(data = transactionDataByDate.take(10), title = dashboardViewModel.getRankTitle(), onAllClick = {
+                        navController.navigate("${RoutePath.DashBoardRank.route}?year=${uiState.year}&month=${uiState.month}&type=${uiState.transactionAmountType.ordinal}&title=${dashboardViewModel.getRankTitle()}")
+                    }, onItemClick = {
+//                        navController.navigate("${RoutePath.WatchAndEditQuick.route}?quickId=${it.quick.id}")
+                    }, onDelete = {
+//                        dashboardViewModel.deleteQuickDatabase(it.quick)
+                    })
                 }
             }
         }
@@ -221,7 +238,9 @@ import com.fanda.homebook.tools.roundToString
     }
 }
 
-@Composable fun MonthRankWidget(modifier: Modifier = Modifier, title: String, data: List<AddQuickEntity>, onAllClick: () -> Unit) {
+@Composable fun MonthRankWidget(
+    modifier: Modifier = Modifier, title: String, data: List<AddQuickEntity>, onAllClick: () -> Unit, onItemClick: (AddQuickEntity) -> Unit, onDelete: (AddQuickEntity) -> Unit
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -246,7 +265,7 @@ import com.fanda.homebook.tools.roundToString
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         data.forEach {
-            DailyAmountItemWidget(item = it)
+            CustomLongPressTooltip(item = it, onItemClick = onItemClick, onDelete = onDelete)
         }
     }
 

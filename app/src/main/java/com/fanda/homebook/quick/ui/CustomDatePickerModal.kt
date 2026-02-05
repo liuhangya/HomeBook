@@ -25,14 +25,28 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fanda.homebook.R
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
+import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.addCurrentTimeToDate
+import com.hjq.toast.Toaster
+import java.time.Instant
+import java.time.ZoneOffset
 
 
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun CustomDatePickerModal(
+    initialDate: Long,
     onDateSelected: (Long?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val datePickerState = rememberDatePickerState()
+    // 转换为UTC的LocalDate
+    val utcDate = Instant.ofEpochMilli(initialDate)
+        .atZone(ZoneOffset.UTC)
+        .toLocalDate()
+    // 将UTC日期转换为时间戳，作为初始日期
+    val utcMillis = utcDate
+        .atStartOfDay(ZoneOffset.UTC)
+        .toInstant()
+        .toEpochMilli()
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = utcMillis)
 
     Dialog(
         onDismissRequest = onDismiss, properties = DialogProperties(
@@ -70,14 +84,13 @@ import com.fanda.homebook.tools.addCurrentTimeToDate
                     FilledTonalButton(
                         onClick = {
                             val selectedMillis = datePickerState.selectedDateMillis
-                            // 转换为本地时区的时间戳
-                            val localMidnightMillis = if (selectedMillis != null) {
-                                addCurrentTimeToDate(selectedMillis)
+                            if (selectedMillis == null) {
+                                Toaster.show("请选择日期")
                             } else {
-                                -1L
+                                // 转换为本地时区的时间戳
+                                onDateSelected(addCurrentTimeToDate(selectedMillis))
+                                onDismiss()
                             }
-                            onDateSelected(localMidnightMillis)
-                            onDismiss()
                         }, colors = ButtonDefaults.filledTonalButtonColors().copy(
                             containerColor = Color.Black,
                         )

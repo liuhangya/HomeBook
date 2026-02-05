@@ -48,6 +48,7 @@ import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.transaction.TransactionSubEntity
 import com.fanda.homebook.data.transaction.TransactionType
 import com.fanda.homebook.entity.TransactionCategory
+import com.fanda.homebook.tools.LogUtils
 
 
 @SuppressLint("UnusedBoxWithConstraintsScope") @OptIn(ExperimentalLayoutApi::class) @Composable fun SelectCategoryGrid(
@@ -59,8 +60,6 @@ import com.fanda.homebook.entity.TransactionCategory
             .wrapContentHeight()
             .animateContentSize()
     ) {
-        var selectedCategory by remember { mutableStateOf(initial) }
-
         BoxWithConstraints(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -83,7 +82,6 @@ import com.fanda.homebook.entity.TransactionCategory
                             // 去掉默认的点击效果
                             interactionSource = remember { MutableInteractionSource() }, indication = null
                         ) {
-                            selectedCategory = category
                             onItemClick(category)
                         }) {
                         // 通过 colorFilter 来改变图标颜色
@@ -93,10 +91,10 @@ import com.fanda.homebook.entity.TransactionCategory
                                 .clip(
                                     CircleShape
                                 )
-                                .background(if (selectedCategory?.name == category.name && selectedCategory?.categoryId == category.categoryId) Color.Black else Color.White)
+                                .background(if (initial?.name == category.name && initial.categoryId == category.categoryId) Color.Black else Color.White)
                         ) {
                             Image(
-                                painter = painterResource(id = getCategoryIcon(category.type)), contentDescription = null, colorFilter = if (selectedCategory?.name == category.name && selectedCategory?.categoryId == category.categoryId) ColorFilter.tint(
+                                painter = painterResource(id = getCategoryIcon(category.type)), contentDescription = null, colorFilter = if (initial?.name == category.name && initial.categoryId == category.categoryId) ColorFilter.tint(
                                     Color.White
                                 ) else null, modifier = Modifier.scale(0.8f)
 

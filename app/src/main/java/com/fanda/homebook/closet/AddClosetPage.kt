@@ -215,7 +215,7 @@ import kotlinx.coroutines.launch
 
     if (addClosetViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
         // 日期选择器
-        CustomDatePickerModal(onDateSelected = {
+        CustomDatePickerModal( initialDate = addClosetUiState.closetEntity.date, onDateSelected = {
             addClosetViewModel.updateClosetDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             addClosetViewModel.dismissBottomSheet()
