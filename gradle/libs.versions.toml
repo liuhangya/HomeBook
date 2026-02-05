@@ -11,6 +11,7 @@ composeBom = "2024.04.01"
 appcompat = "1.6.1"
 material = "1.10.0"
 #后面添加的
+mmkvKtx = "2.0.1"
 navigationCompose = "2.7.4"
 coilCompose = "2.4.0"
 colorpicker = "1.1.2"
@@ -22,6 +23,8 @@ ucrop = "2.2.11"
 ucropNative = "2.2.11-native"
 permissions = "0.37.3"
 toaster = "13.8"
+longan = "1.1.1"
+gson = "2.13.2"
 
 
 [libraries]
@@ -46,14 +49,17 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 compose-colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
+mmkv-ktx = { module = "com.github.DylanCaiCoding:MMKV-KTX", version.ref = "mmkvKtx" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 compose-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "permissions" }
 ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
 ucrop-native = { module = "com.github.yalantis:ucrop", version.ref = "ucropNative" }
-chat = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "chart" }
+chart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "chart" }
 toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
+longan = { module = "com.github.DylanCaiCoding.Longan:longan", version.ref = "longan" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

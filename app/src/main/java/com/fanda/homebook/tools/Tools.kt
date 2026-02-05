@@ -16,44 +16,12 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-fun formatYearMonth(date: Long): String {
-    val (year, month) = millisToLocalDate(date)
-    return if (month == 0) {
-        "${year}年全年"
-    } else {
-        "${year}年${month}月"
-    }
-}
 
 fun formatYearMonth(year: Int, month: Int): String = if (month == 0) {
     "${year}年全年"
 } else {
     "${year}年${month}月"
 }
-
-/**
- * 获取指定年月最后一天的时间戳（毫秒）
- * @param year 年份，如 2023
- * @param month 月份，1-12
- * @return 该月最后一天 23:59:59.999 的时间戳（毫秒）
- */
-fun getLastDayTimestamp(year: Int, month: Int): Long {
-    val yearMonth = if (month == 0) {
-        // 如果月份为0，使用12月作为全年最后一个月
-        YearMonth.of(year, 12)
-    } else {
-        // 正常月份
-        YearMonth.of(year, month)
-    }
-
-    val lastDay = yearMonth.atEndOfMonth()
-    val endOfDay = lastDay.atTime(LocalTime.MAX)
-
-    return endOfDay.atZone(ZoneId.systemDefault())
-        .toInstant()
-        .toEpochMilli()
-}
-
 
 // ✅ 校验函数：只允许 "123", "12.34", ".5", "0.1" 等格式
 fun isValidDecimalInput(text: String): Boolean {
@@ -86,7 +54,7 @@ const val DATE_FORMAT_MD_HM = "M月d HH:mm"
 
 fun convertMillisToDate(millis: Long, format: String = "MM月-dd日"): String {
     if (millis <= 0) return ""
-    val formatter = SimpleDateFormat(format,  Locale.getDefault())
+    val formatter = SimpleDateFormat(format, Locale.getDefault())
     return formatter.format(Date(millis))
 }
 
@@ -180,11 +148,6 @@ fun millisToLocalDate(timestampMillis: Long): Pair<Int, Int> {
     val localDate = Instant.ofEpochMilli(timestampMillis).atZone(ZoneId.systemDefault()) // 使用系统默认时区
         .toLocalDate()
     return localDate.year to localDate.monthValue
-}
-
-fun Float.roundTo(decimalPlaces: Int = 1): Float {
-    val factor = 10f.pow(decimalPlaces)
-    return (this * factor).roundToInt() / factor
 }
 
 fun Float.roundToString(decimalPlaces: Int = 2): String {

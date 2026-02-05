@@ -1,6 +1,5 @@
 package com.fanda.homebook.closet
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
@@ -29,9 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,7 +46,6 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
 import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
-import com.fanda.homebook.closet.viewmodel.CategoryClosetViewModel
 import com.fanda.homebook.closet.viewmodel.CategoryDetailClosetViewModel
 import com.fanda.homebook.components.ConfirmDialog
 import com.fanda.homebook.components.TopIconAppBar

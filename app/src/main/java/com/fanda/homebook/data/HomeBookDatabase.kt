@@ -75,10 +75,17 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
         @Volatile private var Instance: HomeBookDatabase? = null
 
         fun getDatabase(context: Context): HomeBookDatabase {
-            return Instance ?: synchronized(this) {
+            /*return Instance ?: synchronized(this) {
                 Room.databaseBuilder(
                     context.applicationContext, HomeBookDatabase::class.java, "HomeBookDatabase"
                 ).fallbackToDestructiveMigration().build() // 允许销毁并重建数据库
+                    .also { Instance = it }
+            }*/
+
+            return Instance ?: synchronized(this) {
+                Room.databaseBuilder(
+                    context.applicationContext, HomeBookDatabase::class.java, "HomeBookDatabase"
+                ).build() // 允许销毁并重建数据库
                     .also { Instance = it }
             }
         }

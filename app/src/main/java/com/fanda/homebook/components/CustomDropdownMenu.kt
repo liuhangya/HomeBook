@@ -1,6 +1,5 @@
 package com.fanda.homebook.components
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -60,7 +59,6 @@ import com.fanda.homebook.R
             x = dpOffset.x.roundToPx(), y = dpOffset.y.roundToPx() // 向下偏移 48dp
         )
     }
-    Log.d("CustomDropdownMenu", "offset: $offset")
     Popup(
         onDismissRequest = onDismissRequest, properties = PopupProperties(
             dismissOnClickOutside = true, dismissOnBackPress = true

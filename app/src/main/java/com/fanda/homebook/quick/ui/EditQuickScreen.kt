@@ -1,6 +1,5 @@
 package com.fanda.homebook.quick.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding

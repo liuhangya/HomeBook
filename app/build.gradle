@@ -14,7 +14,7 @@ android {
         minSdk 26
         targetSdk 34
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -22,10 +22,43 @@ android {
         }
     }
 
+    signingConfigs {
+        debug {
+            storeFile file('../app.keystore') // 相对路径
+            storePassword '123456'
+            keyAlias 'my_app_key'
+            keyPassword '123456'
+        }
+        release {
+            storeFile file('../app.keystore') // 相对路径
+            storePassword '123456'
+            keyAlias 'my_app_key'
+            keyPassword '123456'
+        }
+    }
+
+    android.applicationVariants.all {
+        variant ->
+            variant.outputs.all {
+                if ('release' == variant.buildType.name) {
+                    outputFileName = "HomeBook_" + versionName + "_release.apk"
+                } else {
+                    outputFileName = "HomeBook_" + versionName + "_debug.apk"
+                }
+            }
+    }
+
     buildTypes {
         release {
+            debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
     compileOptions {

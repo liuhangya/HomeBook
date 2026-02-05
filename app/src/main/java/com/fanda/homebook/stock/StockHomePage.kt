@@ -1,7 +1,5 @@
 package com.fanda.homebook.stock
 
-import android.util.Log
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,12 +51,10 @@ import com.fanda.homebook.components.CustomDropdownMenu
 import com.fanda.homebook.components.MenuItem
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.AppViewModelProvider
-import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
 import com.fanda.homebook.data.stock.StockStatusEntity
 import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.entity.StateMenuEntity
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.stock.ui.StockGridWidget
 import com.fanda.homebook.stock.viewmodel.StockHomeViewModel
@@ -112,7 +108,6 @@ import com.fanda.homebook.tools.LogUtils
                                 if (now - lastBackPressed > 200 && !expandUserMenu) {
                                     expandUserMenu = true
                                 }
-                                Log.d("ClosetHomePage", "点击了用户名")
                             }
                             .padding(start = 0.dp, end = 30.dp)) {
                         Row(

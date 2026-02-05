@@ -31,7 +31,6 @@ android {
 }
 
 dependencies {
-
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
     implementation libs.material
@@ -42,13 +41,10 @@ dependencies {
     api(libs.compose.permissions)
     api(libs.ucrop.native)
     api(libs.ucrop)
-    api(libs.chat)
+    api(libs.chart)
     api(libs.coil.compose)
     api(libs.toaster)
-    // 工具类
-    api 'com.github.DylanCaiCoding.Longan:longan:1.1.1'
-    // 缓存
-    api 'com.github.DylanCaiCoding:MMKV-KTX:2.0.1'
-
-    api 'com.google.code.gson:gson:2.13.2'
+    api (libs.longan)
+    api (libs.mmkv.ktx)
+    api (libs.gson)
 }
