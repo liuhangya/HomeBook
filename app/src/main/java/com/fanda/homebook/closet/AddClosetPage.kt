@@ -17,19 +17,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -46,41 +37,38 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
-import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
+import com.fanda.homebook.common.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.closet.ui.ClosetInfoScreen
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
 import com.fanda.homebook.data.AppViewModelProvider
-import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.owner.OwnerEntity
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeEntity
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.quick.sheet.CategoryBottomSheet
-import com.fanda.homebook.quick.sheet.ClosetTypeBottomSheet
-import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
-import com.fanda.homebook.quick.sheet.GridBottomSheet
-import com.fanda.homebook.quick.sheet.ListBottomSheet
-import com.fanda.homebook.quick.sheet.SelectedCategory
+import com.fanda.homebook.common.entity.ShowBottomSheetType
+import com.fanda.homebook.common.sheet.CategoryExpandBottomSheet
+import com.fanda.homebook.common.sheet.ColorTypeBottomSheet
+import com.fanda.homebook.common.sheet.GridBottomSheet
+import com.fanda.homebook.common.sheet.ListBottomSheet
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import com.hjq.toast.Toaster
-import kotlinx.coroutines.launch
 
-
-/*
-* 添加衣橱页面
-* */
+/**
+ * 添加衣橱页面
+ *
+ * 用于添加新的衣橱物品，包含图片选择和各种属性设置
+ */
 @Composable fun AddClosetPage(
     modifier: Modifier = Modifier, navController: NavController, addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
-    // 通过 ViewModel 状态管理进行数据绑定
+    // 从ViewModel收集状态
     val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
     val colorTypes by addClosetViewModel.colorTypes.collectAsState()
     val products by addClosetViewModel.products.collectAsState()
@@ -99,78 +87,77 @@ import kotlinx.coroutines.launch
     LogUtils.d("subCategory: $subCategory")
     LogUtils.d("AddClosetPage: addClosetUiState: $addClosetUiState")
 
-    // 获取焦点管理器
+    // 焦点管理器（用于关闭软键盘）
     val focusManager = LocalFocusManager.current
-
     val context = LocalContext.current
 
-    // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
-    Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
-        TopIconAppBar(
-            title = "单品信息",
-            onBackClick = {
-                navController.navigateUp()
-            },
-            rightText = "保存",
-            onRightActionClick = {
-                focusManager.clearFocus()
-                // 先校验衣橱的参数
-                if (addClosetViewModel.checkParams()) {
-                    // 再根据是否选中同步到账单
-                    if (addClosetUiState.closetEntity.syncBook) {
-                        if (addClosetViewModel.checkBookParams()) {
-                            // 先插入账单数据
-                            addClosetViewModel.saveQuickEntityDatabase()
-                        } else {
-                            return@TopIconAppBar
+    Scaffold(
+        modifier = modifier.statusBarsPadding(), topBar = {
+            TopIconAppBar(
+                title = "单品信息",
+                onBackClick = {
+                    navController.navigateUp()
+                },
+                rightText = "保存",
+                onRightActionClick = {
+                    focusManager.clearFocus()
+                    // 先校验衣橱的必填参数
+                    if (addClosetViewModel.checkParams()) {
+                        // 如果选择了同步到账单，需要校验账单相关参数
+                        if (addClosetUiState.closetEntity.syncBook) {
+                            if (addClosetViewModel.checkBookParams()) {
+                                // 先插入账单数据
+                                addClosetViewModel.saveQuickEntityDatabase()
+                            } else {
+                                // 账单参数校验失败，直接返回
+                                return@TopIconAppBar
+                            }
+                        }
+                        // 保存衣橱数据到数据库
+                        addClosetViewModel.saveClosetEntityDatabase(context) {
+                            Toaster.show("保存成功")
+                            navController.navigateUp()
                         }
                     }
-                    // 保存衣橱数据
-                    addClosetViewModel.saveClosetEntityDatabase(context) {
-                        Toaster.show("保存成功")
-                        navController.navigateUp()
-                    }
-                }
-            },
-            backIconPainter = painterResource(R.mipmap.icon_back),
-        )
-    }) { padding ->
-
-        // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
+                },
+                backIconPainter = painterResource(R.mipmap.icon_back),
+            )
+        }) { padding ->
+        // 全屏点击区域（用于关闭软键盘）
         Box(modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+            .pointerInput(Unit) {
                 detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
             }
-            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
-        ) {
-            // 为了让 padding 内容能滑动，所以用 Column 包起来
+            .background(Color.Transparent)) {
+            // 主要内容区域（可滚动）
             Column(
                 modifier = Modifier
                     .padding(padding)
-                    .imePadding()   // 让输入法能顶起内容，不遮挡内容
-                    .verticalScroll(rememberScrollState())  // 让内容能滑动，内容的 padding 不能加在这里，不然 padding 部分不能滑过去
+                    .imePadding() // 处理输入法遮挡
+                    .verticalScroll(rememberScrollState())
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 20.dp, top = 0.dp, end = 20.dp, bottom = 20.dp)
                 ) {
+                    // 衣橱图片
                     AsyncImage(
-                        contentScale = ContentScale.Crop,
-                        model = addClosetUiState.imageUri,
-                        contentDescription = null,
-                        modifier = Modifier
+                        contentScale = ContentScale.Crop, model = addClosetUiState.imageUri, contentDescription = null, modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1f)
+                            .aspectRatio(1f) // 1:1比例
                             .padding(horizontal = 20.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color.White)
                             .clickable {
+                                // 点击图片可重新选择
                                 addClosetViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
                             })
 
                     Spacer(modifier = Modifier.height(20.dp))
+
+                    // 归属信息
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
                             title = "归属", rightText = owner?.name ?: "", showText = true, modifier = Modifier
@@ -181,7 +168,10 @@ import kotlinx.coroutines.launch
                             addClosetViewModel.updateSheetType(ShowBottomSheetType.OWNER)
                         }
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // 衣橱详细信息表单
                     ClosetInfoScreen(
                         bottomComment = addClosetUiState.closetEntity.comment,
                         closetCategory = category?.name ?: "",
@@ -213,15 +203,18 @@ import kotlinx.coroutines.launch
         }
     }
 
+    // 各种底部弹窗组件（根据状态显示）
+
+    // 购买日期选择器
     if (addClosetViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
-        // 日期选择器
-        CustomDatePickerModal( initialDate = addClosetUiState.closetEntity.date, onDateSelected = {
+        CustomDatePickerModal(initialDate = addClosetUiState.closetEntity.date, onDateSelected = {
             addClosetViewModel.updateClosetDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
             addClosetViewModel.dismissBottomSheet()
         })
     }
 
+    // 品牌选择弹窗
     ListBottomSheet<ProductEntity>(
         initial = product,
         title = "品牌",
@@ -236,6 +229,7 @@ import kotlinx.coroutines.launch
         addClosetViewModel.updateClosetProduct(it)
     }
 
+    // 归属选择弹窗
     ListBottomSheet<OwnerEntity>(
         initial = owner,
         title = "归属",
@@ -246,6 +240,7 @@ import kotlinx.coroutines.launch
         addClosetViewModel.updateClosetOwner(it)
     }
 
+    // 尺码选择弹窗（网格布局）
     GridBottomSheet<SizeEntity>(
         initial = size,
         title = "尺码",
@@ -262,6 +257,7 @@ import kotlinx.coroutines.launch
         addClosetViewModel.updateClosetSize(it)
     }
 
+    // 季节选择弹窗（网格布局）
     GridBottomSheet<SeasonEntity>(
         initial = selectSeasons,
         title = "季节",
@@ -274,7 +270,7 @@ import kotlinx.coroutines.launch
         addClosetViewModel.updateClosetSeason(it)
     }
 
-
+    // 颜色选择弹窗
     ColorTypeBottomSheet(color = colorType, colorList = colorTypes, visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) }, onDismiss = {
         addClosetViewModel.dismissBottomSheet()
     }, onConfirm = {
@@ -284,7 +280,8 @@ import kotlinx.coroutines.launch
         navController.navigate(RoutePath.EditColor.route)
     })
 
-    CategoryBottomSheet(
+    // 分类选择弹窗（可展开）
+    CategoryExpandBottomSheet(
         categories = categories,
         categoryEntity = category,
         subCategoryEntity = subCategory,
@@ -301,18 +298,23 @@ import kotlinx.coroutines.launch
             addClosetViewModel.updateSelectedCategory(category, subCategory)
         })
 
+    // 图片选择弹窗
     SelectPhotoBottomSheet(
         visible = addClosetViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE), onDismiss = {
             addClosetViewModel.dismissBottomSheet()
-        }) {
+        }) { selectedUri ->
         addClosetViewModel.dismissBottomSheet()
-        addClosetViewModel.updateImageUrl(it)
+        addClosetViewModel.updateImageUrl(selectedUri)
     }
 }
 
-
+/**
+ * 预览函数，用于在Android Studio中预览添加衣橱页面
+ */
 @Composable @Preview(showBackground = true) fun AddClosetPagePreview() {
     HomeBookTheme {
-        AddClosetPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
+        AddClosetPage(
+            modifier = Modifier.fillMaxWidth(), navController = rememberNavController()
+        )
     }
 }

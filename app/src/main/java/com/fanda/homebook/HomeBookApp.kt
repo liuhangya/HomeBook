@@ -52,6 +52,7 @@ import com.fanda.homebook.closet.EditSubCategoryPage
 import com.fanda.homebook.closet.WatchAndEditClosetPage
 import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.common.EditColorPage
+import com.fanda.homebook.common.EditPayWayPage
 import com.fanda.homebook.common.EditProductPage
 import com.fanda.homebook.common.EditSizePage
 import com.fanda.homebook.components.CustomBottomBar
@@ -77,8 +78,7 @@ import kotlinx.coroutines.launch
  * 4. 拦截系统返回键实现双击退出和抽屉关闭
  * 5. 协调各功能模块的页面跳转
  */
-@Composable
-fun HomeBookApp() {
+@Composable fun HomeBookApp() {
     // ========== 初始化状态和控制器 ==========
     val context = LocalContext.current
     val navController: NavHostController = rememberNavController() // 应用全局导航控制器
@@ -122,8 +122,7 @@ fun HomeBookApp() {
     // ========== 主应用布局：抽屉 + 内容区域 ==========
     ModalNavigationDrawer(
         gesturesEnabled = drawerState.isOpen, // 抽屉打开时启用手势
-        drawerState = drawerState,
-        drawerContent = {
+        drawerState = drawerState, drawerContent = {
             // 抽屉内容区域，使用透明背景和自定义形状
             ModalDrawerSheet(
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), // 移除系统默认边距
@@ -131,9 +130,7 @@ fun HomeBookApp() {
                 drawerShape = RoundedCornerShape(0.dp) // 直角形状
             ) {
                 ModalDrawerSheet(
-                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                    drawerShape = RoundedCornerShape(0.dp),
-                    drawerContainerColor = Color.Transparent
+                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp), drawerShape = RoundedCornerShape(0.dp), drawerContainerColor = Color.Transparent
                 ) {
                     drawerContent() // 动态渲染抽屉内容
                 }
@@ -151,70 +148,49 @@ fun HomeBookApp() {
             ) {
                 // 导航图配置，管理所有页面的跳转关系
                 NavHost(
-                    navController = navController,
-                    startDestination = RoutePath.BookGraph.route, // 应用启动时的默认页面（账本首页）
+                    navController = navController, startDestination = RoutePath.BookGraph.route, // 应用启动时的默认页面（账本首页）
                     modifier = Modifier.fillMaxSize()
                 ) {
                     // ====== 账本 Tab 嵌套导航图 ======
                     // 使用嵌套导航图将Tab相关页面分组管理
                     navigation(
-                        startDestination = RoutePath.BookHome.route,
-                        route = RoutePath.BookGraph.route // 路由：book
+                        startDestination = RoutePath.BookHome.route, route = RoutePath.BookGraph.route // 路由：book
                     ) {
                         composable(RoutePath.BookHome.route) {
-                            BookHomePage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController,
-                                isDrawerOpen = isDrawerOpen,
-                                onShowDrawer = { content ->
-                                    // 页面设置抽屉内容并打开抽屉
-                                    drawerContent = content
-                                    scope.launch { drawerState.open() }
-                                },
-                                onCloseDrawer = {
-                                    // 页面请求关闭抽屉
-                                    scope.launch { drawerState.close() }
-                                })
+                            BookHomePage(modifier = Modifier.fillMaxSize(), navController = navController, isDrawerOpen = isDrawerOpen, onShowDrawer = { content ->
+                                // 页面设置抽屉内容并打开抽屉
+                                drawerContent = content
+                                scope.launch { drawerState.open() }
+                            }, onCloseDrawer = {
+                                // 页面请求关闭抽屉
+                                scope.launch { drawerState.close() }
+                            })
                         }
                         composable(
                             // 仪表板页面，带参数：年份、月份、类型
                             route = "${RoutePath.DashBoard.route}?year={year}&month={month}&type={type}",
-                            arguments = listOf(
-                                navArgument("year") { type = NavType.IntType },
-                                navArgument("month") { type = NavType.IntType },
-                                navArgument("type") { type = NavType.IntType }
-                            )
-                        ) {
+                            arguments = listOf(navArgument("year") { type = NavType.IntType }, navArgument("month") { type = NavType.IntType }, navArgument("type") { type = NavType.IntType })) {
                             DashBoardPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 排行榜页面，带参数：年份、月份、类型、标题
-                            route = "${RoutePath.DashBoardRank.route}?year={year}&month={month}&type={type}&title={title}",
-                            arguments = listOf(
+                            route = "${RoutePath.DashBoardRank.route}?year={year}&month={month}&type={type}&title={title}", arguments = listOf(
                                 navArgument("year") { type = NavType.IntType },
                                 navArgument("month") { type = NavType.IntType },
                                 navArgument("type") { type = NavType.IntType },
-                                navArgument("title") { type = NavType.StringType }
-                            )
-                        ) {
+                                navArgument("title") { type = NavType.StringType })) {
                             DashBoarRankPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 详细数据页面，带参数：标题
-                            route = "${RoutePath.DashBoardDetail.route}?title={title}",
-                            arguments = listOf(
-                                navArgument("title") { type = NavType.StringType }
-                            )
-                        ) {
+                            route = "${RoutePath.DashBoardDetail.route}?title={title}", arguments = listOf(
+                                navArgument("title") { type = NavType.StringType })) {
                             DashBoarDetailPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                     }
@@ -222,141 +198,104 @@ fun HomeBookApp() {
                     // ====== 看板 Tab 导航图 ======
                     // 注：目前仅占位，实际功能待开发
                     navigation(
-                        startDestination = RoutePath.MoneyHome.route,
-                        route = RoutePath.MoneyGraph.route // 路由：dashboard
+                        startDestination = RoutePath.MoneyHome.route, route = RoutePath.MoneyGraph.route // 路由：dashboard
                     ) {
                         composable(RoutePath.MoneyHome.route) {
                             Text(
-                                "资产首页-没开发呢...",
-                                modifier = Modifier
+                                "资产首页-没开发呢...", modifier = Modifier
                                     .fillMaxSize()
-                                    .statusBarsPadding(),
-                                textAlign = TextAlign.Center
+                                    .statusBarsPadding(), textAlign = TextAlign.Center
                             )
                         }
                     }
 
                     // ====== 衣橱 Tab 导航图 ======
                     navigation(
-                        startDestination = RoutePath.ClosetHome.route,
-                        route = RoutePath.ClosetGraph.route // 路由：closet
+                        startDestination = RoutePath.ClosetHome.route, route = RoutePath.ClosetGraph.route // 路由：closet
                     ) {
                         composable(RoutePath.ClosetHome.route) {
                             ClosetHomePage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 添加衣橱物品页面，带参数：图片路径
-                            route = "${RoutePath.AddCloset.route}?imagePath={imagePath}",
-                            arguments = listOf(
-                                navArgument("imagePath") { type = NavType.StringType }
-                            )
-                        ) {
+                            route = "${RoutePath.AddCloset.route}?imagePath={imagePath}", arguments = listOf(
+                                navArgument("imagePath") { type = NavType.StringType })) {
                             AddClosetPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(RoutePath.EditCategory.route) {
                             EditCategoryPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(RoutePath.EditColor.route) {
                             EditColorPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 添加颜色页面，带参数：颜色ID
-                            "${RoutePath.AddColor.route}?colorId={colorId}",
-                            arguments = listOf(
-                                navArgument("colorId") { type = NavType.IntType }
-                            )
-                        ) {
+                            "${RoutePath.AddColor.route}?colorId={colorId}", arguments = listOf(
+                                navArgument("colorId") { type = NavType.IntType })) {
                             AddColorPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 衣橱分类页面，带参数：分类实体JSON字符串
-                            "${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}",
-                            arguments = listOf(
-                                navArgument("categoryEntity") { type = NavType.StringType }
-                            )
-                        ) {
+                            "${RoutePath.ClosetCategory.route}?categoryEntity={categoryEntity}", arguments = listOf(
+                                navArgument("categoryEntity") { type = NavType.StringType })) {
                             ClosetCategoryPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 衣橱分类详情页面，带参数：分类ID、子分类ID、分类名称、是否移到回收站
-                            "${RoutePath.ClosetDetailCategory.route}?categoryId={categoryId}&subCategoryId={subCategoryId}&categoryName={categoryName}&moveToTrash={moveToTrash}",
-                            arguments = listOf(
+                            "${RoutePath.ClosetDetailCategory.route}?categoryId={categoryId}&subCategoryId={subCategoryId}&categoryName={categoryName}&moveToTrash={moveToTrash}", arguments = listOf(
                                 navArgument("categoryId") { type = NavType.IntType },
                                 navArgument("subCategoryId") { type = NavType.IntType },
                                 navArgument("categoryName") { type = NavType.StringType },
-                                navArgument("moveToTrash") { type = NavType.BoolType }
-                            )
-                        ) {
+                                navArgument("moveToTrash") { type = NavType.BoolType })) {
                             ClosetCategoryDetailPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 查看和编辑衣橱页面，带参数：衣橱ID
-                            "${RoutePath.WatchAndEditCloset.route}?closetId={closetId}",
-                            arguments = listOf(
-                                navArgument("closetId") { type = NavType.IntType }
-                            )
-                        ) {
+                            "${RoutePath.WatchAndEditCloset.route}?closetId={closetId}", arguments = listOf(
+                                navArgument("closetId") { type = NavType.IntType })) {
                             WatchAndEditClosetPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                     }
 
                     // ====== 囤货 Tab 导航图 ======
                     navigation(
-                        startDestination = RoutePath.StockHome.route,
-                        route = RoutePath.StockGraph.route // 路由：stock
+                        startDestination = RoutePath.StockHome.route, route = RoutePath.StockGraph.route // 路由：stock
                     ) {
                         composable(RoutePath.StockHome.route) {
                             StockHomePage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 添加囤货页面，带参数：图片路径
-                            route = "${RoutePath.AddStock.route}?imagePath={imagePath}",
-                            arguments = listOf(
-                                navArgument("imagePath") { type = NavType.StringType }
-                            )
-                        ) {
+                            route = "${RoutePath.AddStock.route}?imagePath={imagePath}", arguments = listOf(
+                                navArgument("imagePath") { type = NavType.StringType })) {
                             AddStockPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                         composable(
                             // 查看和编辑囤货页面，带参数：囤货ID
-                            "${RoutePath.WatchAndEditStock.route}?stockId={stockId}",
-                            arguments = listOf(
-                                navArgument("stockId") { type = NavType.IntType }
-                            )
-                        ) {
+                            "${RoutePath.WatchAndEditStock.route}?stockId={stockId}", arguments = listOf(
+                                navArgument("stockId") { type = NavType.IntType })) {
                             WatchAndEditStockPage(
-                                modifier = Modifier.fillMaxSize(),
-                                navController = navController
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                     }
@@ -366,56 +305,49 @@ fun HomeBookApp() {
 
                     composable(RoutePath.QuickAdd.route) {
                         AddQuickHomePage(
-                            modifier = Modifier.fillMaxSize(),
-                            navController = navController
+                            modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
 
                     composable(
                         // 查看和编辑快捷记录页面，带参数：快捷记录ID
-                        route = "${RoutePath.WatchAndEditQuick.route}?quickId={quickId}",
-                        arguments = listOf(
-                            navArgument("quickId") { type = NavType.IntType }
-                        )
-                    ) {
+                        route = "${RoutePath.WatchAndEditQuick.route}?quickId={quickId}", arguments = listOf(
+                            navArgument("quickId") { type = NavType.IntType })) {
                         WatchAndEditQuickPage(
-                            modifier = Modifier.fillMaxSize(),
-                            navController = navController
+                            modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
 
                     composable(RoutePath.EditProduct.route) {
                         EditProductPage(
-                            modifier = Modifier.fillMaxSize(),
-                            navController = navController
+                            modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
 
                     composable(RoutePath.EditSize.route) {
                         EditSizePage(
-                            modifier = Modifier.fillMaxSize(),
-                            navController = navController
+                            modifier = Modifier.fillMaxSize(), navController = navController
+                        )
+                    }
+
+                    composable(RoutePath.EditPayWay.route) {
+                        EditPayWayPage(
+                            modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
 
                     composable(RoutePath.EditTransactionCategory.route) {
                         EditTransactionCategoryPage(
-                            modifier = Modifier.fillMaxSize(),
-                            navController = navController
+                            modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
 
                     composable(
                         // 编辑子分类页面，带参数：分类ID、分类名称
                         "${RoutePath.EditSubCategory.route}?categoryId={categoryId}&categoryName={categoryName}",
-                        arguments = listOf(
-                            navArgument("categoryId") { type = NavType.IntType },
-                            navArgument("categoryName") { type = NavType.StringType }
-                        )
-                    ) {
+                        arguments = listOf(navArgument("categoryId") { type = NavType.IntType }, navArgument("categoryName") { type = NavType.StringType })) {
                         EditSubCategoryPage(
-                            modifier = Modifier.fillMaxSize(),
-                            navController = navController
+                            modifier = Modifier.fillMaxSize(), navController = navController
                         )
                     }
                 }
@@ -426,16 +358,14 @@ fun HomeBookApp() {
             if (isTabRoute) {
                 CustomBottomBar(
                     modifier = Modifier.navigationBarsPadding(), // 处理手势导航安全区
-                    selectedTab = selectedTab,
-                    onTabClick = { tab ->
+                    selectedTab = selectedTab, onTabClick = { tab ->
                         // Tab点击事件处理
                         navController.navigate(tab.route) {
                             launchSingleTop = true    // 单例模式，避免重复创建
                             restoreState = true       // 恢复页面状态
                             popUpTo(navController.graph.id) { saveState = true } // 清除其他页面，保留状态
                         }
-                    },
-                    onQuickAddClick = {
+                    }, onQuickAddClick = {
                         // 快捷添加按钮点击事件，跳转到全局添加页面
                         navController.navigate(RoutePath.QuickAdd.route)
                     })
@@ -455,10 +385,8 @@ fun HomeBookApp() {
  * @param defaultTab 默认选中的Tab，通常为首页对应的Tab
  * @return Pair<选中的Tab路由, 是否处于Tab根页面>
  */
-@Composable
-private fun rememberSelectedTab(
-    navController: NavController,
-    defaultTab: String = RoutePath.BookGraph.route
+@Composable private fun rememberSelectedTab(
+    navController: NavController, defaultTab: String = RoutePath.BookGraph.route
 ): Pair<String, Boolean> {
     val currentEntry by navController.currentBackStackEntryAsState() // 监听当前路由变化
     val currentRoute = currentEntry?.destination?.route ?: "" // 获取完整路由路径
@@ -480,9 +408,7 @@ private fun rememberSelectedTab(
     return Pair(selectedTab, isTabRoute)
 }
 
-@Composable
-@Preview(showBackground = true)
-private fun HomeBookAppPreview() {
+@Composable @Preview(showBackground = true) private fun HomeBookAppPreview() {
     HomeBookTheme {
         HomeBookApp()
     }

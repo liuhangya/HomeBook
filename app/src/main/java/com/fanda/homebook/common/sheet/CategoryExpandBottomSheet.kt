@@ -1,4 +1,4 @@
-package com.fanda.homebook.quick.sheet
+package com.fanda.homebook.common.sheet
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -38,120 +38,19 @@ import com.fanda.homebook.data.category.CategoryWithSubCategories
 import com.fanda.homebook.data.category.SubCategoryEntity
 import com.hjq.toast.Toaster
 
-data class Category(
-    val id: String, val name: String, val children: List<SubCategory> = emptyList()
-)
-
-data class SubCategory(
-    val id: String, val name: String, var selected: Boolean = false
-)
-
-data class SelectedCategory(
-    val categoryId: String, val categoryName: String, val subCategoryId: String, val subCategoryName: String
-)
-
-@Composable fun ExpandableCategoryItem(
-    category: Category, isExpanded: Boolean, isSelected: Boolean, onToggleExpand: () -> Unit, onSubClick: (SubCategory) -> Unit, isSelectedSub: (SubCategory) -> Boolean, modifier: Modifier = Modifier
-) {
-    val rotation by animateFloatAsState(
-        targetValue = if (isExpanded) 90f else 0f, animationSpec = tween(durationMillis = 200, easing = LinearEasing), label = "expandArrowRotation"
-    )
-
-    Column(modifier = modifier) {
-        // 一级分类项
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggleExpand() }
-            .padding(horizontal = 24.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = category.name,
-                fontSize = 16.sp,
-                color = Color.Black,
-            )
-            Image(
-                painter = painterResource(R.mipmap.icon_right), contentDescription = null, colorFilter = ColorFilter.tint(Color.Black), modifier = Modifier
-                    .padding(start = 8.dp)
-                    .rotate(rotation)
-            )
-            Spacer(Modifier.weight(1f))
-            if (isSelected) {
-                Image(
-                    painter = painterResource(R.mipmap.icon_selected), contentDescription = null, modifier = Modifier.size(16.dp)
-                )
-            }
-        }
-
-        // 二级列表（带动画）
-        AnimatedVisibility(
-            visible = isExpanded && category.children.isNotEmpty(), enter = expandVertically(expandFrom = Alignment.Top), exit = shrinkVertically(shrinkTowards = Alignment.Top)
-        ) {
-            Column {
-                category.children.forEach { sub ->
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSubClick(sub) }
-                        .padding(start = 64.dp, top = 16.dp, bottom = 16.dp, end = 24.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = sub.name,
-                            fontSize = 16.sp,
-                            color = Color.Black,
-                        )
-                        Spacer(Modifier.weight(1f))
-                        if (isSelectedSub(sub)) {
-                            Image(
-                                painter = painterResource(R.mipmap.icon_selected), contentDescription = null, modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable fun ClosetTypeBottomSheet(
-    categories: List<Category>, currentCategory: SelectedCategory?, visible: () -> Boolean, onDismiss: () -> Unit, onConfirm: (SelectedCategory) -> Unit
-) {
-    CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
-        // 记录每一个一级分类是否展开二级分类
-        var expandedMap by remember {
-            mutableStateOf(categories.associate { it.id to (it.id == currentCategory?.categoryId) }.toMutableMap())
-        }
-
-        // 记录当前选中的分类，包括一二级
-        var selectedCategory by remember { mutableStateOf(currentCategory) }
-
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            SheetTitleWidget(title = "分类") {
-                selectedCategory?.let {
-                    onConfirm(it)
-                    onDismiss()
-                }
-            }
-            LazyColumn(contentPadding = PaddingValues(bottom = 10.dp)) {
-                items(categories, key = { it.id }) { category ->
-                    ExpandableCategoryItem(category = category, isExpanded = expandedMap[category.id] == true, isSelected = selectedCategory?.categoryId == category.id, onToggleExpand = {
-                        expandedMap = expandedMap.toMutableMap().apply {
-                            // 如果存在则取反，不存在则设为true展开
-                            put(category.id, !getOrDefault(category.id, false))
-                        }
-                    }, onSubClick = { sub ->
-                        selectedCategory = SelectedCategory(
-                            categoryId = category.id, categoryName = category.name, subCategoryId = sub.id, subCategoryName = sub.name
-                        )
-                    }, isSelectedSub = { sub -> sub.id == selectedCategory?.subCategoryId })
-                }
-            }
-        }
-    }
-}
-
-// 使用真实数据的组件
-
-@Composable fun CategoryBottomSheet(
+/**
+ * 分类可展开底部弹窗组件
+ * 用于显示两级分类（一级分类和二级子分类）的选择界面
+ *
+ * @param categories 分类数据列表（包含一级分类及其子分类）
+ * @param categoryEntity 当前选中的一级分类实体（可为空）
+ * @param subCategoryEntity 当前选中的二级子分类实体（可为空）
+ * @param visible 弹窗是否可见的函数
+ * @param onDismiss 弹窗关闭回调函数
+ * @param onSettingClick 设置按钮点击回调（用于跳转到分类编辑页面，可选）
+ * @param onConfirm 确认选择回调函数，返回选中的一级和二级分类
+ */
+@Composable fun CategoryExpandBottomSheet(
     categories: List<CategoryWithSubCategories>,
     categoryEntity: CategoryEntity?,
     subCategoryEntity: SubCategoryEntity?,
@@ -161,40 +60,49 @@ data class SelectedCategory(
     onConfirm: (CategoryEntity?, SubCategoryEntity?) -> Unit
 ) {
     CustomBottomSheet(visible = visible(), onDismiss = onDismiss) {
-        // 记录每一个一级分类是否展开二级分类
+        // 记录每一个一级分类是否展开其二级分类
+        // 默认展开当前选中子分类所在的一级分类
         var expandedMap by remember {
             mutableStateOf(categories.associate { it.category.id to (it.category.id == subCategoryEntity?.categoryId) }.toMutableMap())
         }
 
-        // 记录当前选中的分类，包括一二级
+        // 记录当前选中的分类（包括一级和二级）
         var selectedCategory by remember { mutableStateOf(categoryEntity) }
         var selectedSubCategory by remember { mutableStateOf(subCategoryEntity) }
 
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            SheetTitleWidget(title = "分类", onSettingClick = onSettingClick) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // 弹窗标题栏
+            SheetTitleWidget(
+                title = "分类", onSettingClick = onSettingClick
+            ) {
+                // 确认按钮点击逻辑
                 if (selectedCategory != null && selectedSubCategory == null && categories.find { it.category.id == selectedCategory?.id && it.subCategories.isNotEmpty() } != null) {
+                    // 一级分类有子分类但未选择子分类时提示
                     Toaster.show("请选择子分类")
-                }else {
+                } else {
+                    // 确认选择
                     selectedCategory?.let {
                         onConfirm(selectedCategory, selectedSubCategory)
                         onDismiss()
                     }
                 }
             }
+
+            // 分类列表
             LazyColumn(contentPadding = PaddingValues(bottom = 10.dp)) {
                 items(categories, key = { it.category.id }) { category ->
-                    ExpandableCategoryItem2(category = category, isExpanded = expandedMap[category.category.id] == true, isSelected = selectedCategory?.id == category.category.id, onToggleExpand = {
+                    ExpandableCategoryItem(category = category, isExpanded = expandedMap[category.category.id] == true, isSelected = selectedCategory?.id == category.category.id, onToggleExpand = {
+                        // 切换一级分类时，更新选中状态
                         if (it.id != selectedCategory?.id) {
                             selectedCategory = category.category
                             selectedSubCategory = null
                         }
+                        // 切换展开/收起状态
                         expandedMap = expandedMap.toMutableMap().apply {
-                            // 如果存在则取反，不存在则设为true展开
                             put(category.category.id, !getOrDefault(category.category.id, false))
                         }
                     }, onSubClick = { sub ->
+                        // 点击二级子分类
                         selectedSubCategory = sub
                     }, isSelectedSub = { sub -> sub.id == selectedSubCategory?.id })
                 }
@@ -203,8 +111,19 @@ data class SelectedCategory(
     }
 }
 
-
-@Composable fun ExpandableCategoryItem2(
+/**
+ * 可展开的分类项组件
+ * 显示单个一级分类及其可展开的二级子分类列表
+ *
+ * @param category 分类数据（包含一级分类和其子分类）
+ * @param isExpanded 当前是否展开子分类列表
+ * @param isSelected 当前是否选中该一级分类
+ * @param onToggleExpand 一级分类点击回调（切换展开状态）
+ * @param onSubClick 二级子分类点击回调
+ * @param isSelectedSub 判断二级子分类是否被选中的函数
+ * @param modifier Compose修饰符
+ */
+@Composable fun ExpandableCategoryItem(
     category: CategoryWithSubCategories,
     isExpanded: Boolean,
     isSelected: Boolean,
@@ -213,6 +132,7 @@ data class SelectedCategory(
     isSelectedSub: (SubCategoryEntity) -> Boolean,
     modifier: Modifier = Modifier
 ) {
+    // 箭头旋转动画（展开时旋转90度）
     val rotation by animateFloatAsState(
         targetValue = if (isExpanded) 90f else 0f, animationSpec = tween(durationMillis = 200, easing = LinearEasing), label = "expandArrowRotation"
     )
@@ -223,20 +143,29 @@ data class SelectedCategory(
             .fillMaxWidth()
             .clickable { onToggleExpand(category.category) }
             .padding(horizontal = 24.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            // 分类名称
             Text(
                 text = category.category.name,
                 fontSize = 16.sp,
                 color = Color.Black,
             )
+
+            // 如果该分类有子分类，显示可展开箭头
             if (category.subCategories.isNotEmpty()) {
                 Image(
-                    painter = painterResource(R.mipmap.icon_right), contentDescription = null, colorFilter = ColorFilter.tint(Color.Black), modifier = Modifier
+                    painter = painterResource(R.mipmap.icon_right),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(Color.Black),
+                    modifier = Modifier
                         .padding(start = 8.dp)
-                        .rotate(rotation)
+                        .rotate(rotation)  // 根据展开状态旋转箭头
                 )
             }
 
+            // 占位空间
             Spacer(Modifier.weight(1f))
+
+            // 选中状态指示器
             if (isSelected) {
                 Image(
                     painter = painterResource(R.mipmap.icon_selected), contentDescription = null, modifier = Modifier.size(16.dp)
@@ -244,7 +173,7 @@ data class SelectedCategory(
             }
         }
 
-        // 二级列表（带动画）
+        // 二级子分类列表（带动画展开/收起效果）
         AnimatedVisibility(
             visible = isExpanded && category.subCategories.isNotEmpty(), enter = expandVertically(expandFrom = Alignment.Top), exit = shrinkVertically(shrinkTowards = Alignment.Top)
         ) {
@@ -255,12 +184,17 @@ data class SelectedCategory(
                         .clickable { onSubClick(sub) }
                         .padding(start = 64.dp, top = 16.dp, bottom = 16.dp, end = 24.dp),
                         verticalAlignment = Alignment.CenterVertically) {
+                        // 子分类名称
                         Text(
                             text = sub.name,
                             fontSize = 16.sp,
                             color = Color.Black,
                         )
+
+                        // 占位空间
                         Spacer(Modifier.weight(1f))
+
+                        // 选中状态指示器
                         if (isSelectedSub(sub)) {
                             Image(
                                 painter = painterResource(R.mipmap.icon_selected), contentDescription = null, modifier = Modifier.size(16.dp)

@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,8 +46,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -66,9 +65,9 @@ import com.fanda.homebook.components.NumberEditDialog
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.book.BookEntity
-import com.fanda.homebook.entity.AmountItemEntity
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.entity.TransactionAmountType
+import com.fanda.homebook.book.entity.AmountItemEntity
+import com.fanda.homebook.common.entity.ShowBottomSheetType
+import com.fanda.homebook.common.entity.TransactionAmountType
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.UserCache
@@ -86,7 +85,7 @@ import kotlinx.coroutines.launch
     onCloseDrawer: () -> Unit,
     bookViewModel: BookViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
-
+    // 收集状态流
     val uiState by bookViewModel.uiState.collectAsState()
     val curSelectedBook by bookViewModel.curSelectedBook.collectAsState()
     val books by bookViewModel.books.collectAsState()
@@ -105,106 +104,93 @@ import kotlinx.coroutines.launch
 
     val scope = rememberCoroutineScope()
 
-    // 监听生命周期变化
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> {
-                    // 可见时刷新数据
-                    LogUtils.d("可见时刷新数据 BookHomePage: ON_RESUME")
-                    bookViewModel.refresh()
-                }
-
-                else -> Unit
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+    // 监听生命周期变化，当页面恢复时刷新数据
+    LaunchedEffect(Unit) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            bookViewModel.refresh()
         }
     }
 
+    // 监听侧边栏状态，关闭时取消编辑模式
     LaunchedEffect(isDrawerOpen) {
         if (!isDrawerOpen) {
-            // 侧边栏关闭时，取消编辑
             bookViewModel.updateEditBookStatus(false)
         }
     }
 
-    Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
-        TopAppBar(
-            title = {
-                Box(
-                    modifier = modifier
-                        .height(64.dp)
-                        .padding(start = 8.dp, end = 12.dp)
-                        .fillMaxWidth()
-                        .background(color = Color.Transparent)
-                ) {
-
+    Scaffold(
+        modifier = modifier.statusBarsPadding(), topBar = {
+            TopAppBar(
+                title = {
                     Box(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .height(64.dp)      // 这里要固定高度，不然 pop 显示位置异常
-                        .align(Alignment.CenterEnd)
-                            .clickable(
-                                // 去掉默认的点击效果
-                                interactionSource = remember { MutableInteractionSource() }, indication = null
+                        modifier = modifier
+                            .height(64.dp)
+                            .padding(start = 8.dp, end = 12.dp)
+                            .fillMaxWidth()
+                            .background(color = Color.Transparent)
+                    ) {
+                        // 右侧：分类选择器
+                        Box(
+                            modifier = Modifier
+                                .wrapContentWidth()
+                                .height(64.dp)      // 固定高度，避免pop显示位置异常
+                            .align(Alignment.CenterEnd)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() }, indication = null
+                                ) {
+                                    bookViewModel.updateSheetType(ShowBottomSheetType.CATEGORY)
+                                }
+                                .padding(start = 0.dp, end = 20.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
                             ) {
-                                bookViewModel.updateSheetType(ShowBottomSheetType.CATEGORY)
+                                Text(
+                                    text = subCategory?.name ?: "全部类型", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                                )
+                                Image(
+                                    modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null
+                                )
                             }
-                            .padding(start = 0.dp, end = 20.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxHeight()
-                        ) {
-                            Text(
-                                text = subCategory?.name ?: "全部类型", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
-                            )
-                            Image(
-                                modifier = Modifier.padding(start = 6.dp), painter = painterResource(id = R.mipmap.icon_arrow_down_black), contentDescription = null
-                            )
                         }
 
+                        // 左侧：账本选择器
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(end = 10.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() }, indication = null
+                                ) {
+                                    onShowDrawer {
+                                        BookDrawerWidget(data = books, isEditBook = uiState.isEditBook, onEditClick = {
+                                            bookViewModel.updateEditBookEntity(it)
+                                            bookViewModel.updateSheetType(ShowBottomSheetType.EDIT)
+                                        }, onDeleteClick = {
+                                            bookViewModel.updateSheetType(ShowBottomSheetType.DELETE)
+                                        }, onToggleEdit = {
+                                            bookViewModel.updateEditBookStatus(!uiState.isEditBook)
+                                        }, onAddClick = {
+                                            bookViewModel.updateSheetType(ShowBottomSheetType.ADD)
+                                        }, onItemClick = {
+                                            bookViewModel.updateSelectBook(it.id)
+                                            scope.launch {
+                                                delay(200)
+                                                onCloseDrawer()
+                                            }
+                                        })
+                                    }
+                                }, text = curSelectedBook?.name ?: "未选择账本", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                        )
                     }
-
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(end = 10.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() }, indication = null
-                            ) {
-                                onShowDrawer {
-                                    BookDrawerWidget(data = books, isEditBook = uiState.isEditBook, onEditClick = {
-                                        bookViewModel.updateEditBookEntity(it)
-                                        bookViewModel.updateSheetType(ShowBottomSheetType.EDIT)
-                                    }, onDeleteClick = {
-                                        bookViewModel.updateSheetType(ShowBottomSheetType.DELETE)
-                                    }, onToggleEdit = {
-                                        bookViewModel.updateEditBookStatus(!uiState.isEditBook)
-                                    }, onAddClick = {
-                                        bookViewModel.updateSheetType(ShowBottomSheetType.ADD)
-                                    }, onItemClick = {
-                                        bookViewModel.updateSelectBook(it.id)
-                                        scope.launch {
-                                            delay(200)
-                                            onCloseDrawer()
-                                        }
-                                    })
-                                }
-                            }, text = curSelectedBook?.name ?: "未选择账本", fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
-                    )
-                }
-
-            },
-            colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
-        )
-    }) { padding ->
+                },
+                colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = Color.Transparent),
+            )
+        }) { padding ->
+        // 主内容区域
         LazyColumn(
             modifier = modifier.padding(padding), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp)
         ) {
+            // 头部：年月金额统计
             item {
                 var totalIncome: Double
                 var totalExpense: Double
@@ -213,10 +199,11 @@ import kotlinx.coroutines.launch
                     totalIncome = yearSummaryData?.totalIncome ?: 0.0
                     totalExpense = yearSummaryData?.totalExpense ?: 0.0
                 } else {
+                    // 月度数据
                     totalIncome = monthSummaryData?.monthTotalIncome ?: 0.0
                     totalExpense = monthSummaryData?.monthTotalExpense ?: 0.0
-
                 }
+
                 YearMonthAmountWidget(
                     totalIncome = totalIncome.toFloat(),
                     isFullYear = uiState.month <= 0,
@@ -245,20 +232,22 @@ import kotlinx.coroutines.launch
                     })
             }
 
-
+            // 月度明细列表（如果是月度视图）
             monthSummaryData?.groups?.let {
-                items(monthSummaryData?.groups!!, key = { it.hashCode() }) {
-                    DailyItemWidget(item = it, onItemClick = { addQuickEntity ->
+                items(monthSummaryData?.groups!!, key = { it.hashCode() }) { dateGroup ->
+                    DailyItemWidget(item = dateGroup, onItemClick = { addQuickEntity ->
                         navController.navigate("${RoutePath.WatchAndEditQuick.route}?quickId=${addQuickEntity.quick.id}")
                     }, onDelete = { addQuickEntity ->
                         bookViewModel.deleteQuickDatabase(addQuickEntity.quick)
                     })
                 }
             }
+
+            // 年度明细列表（如果是年度视图）
             yearSummaryData?.monthList?.let {
-                items(yearSummaryData?.monthList!!, key = { it.hashCode() }) {
-                    MonthItemWidget(item = it, onItemClick = { category ->
-                        // 当前分类组点击
+                items(yearSummaryData?.monthList!!, key = { it.hashCode() }) { monthData ->
+                    MonthItemWidget(item = monthData, onItemClick = { category ->
+                        // 分类组点击：进入分类详情页
                         UserCache.categoryQuickList = category.transactions
                         navController.navigate(
                             "${RoutePath.DashBoardDetail.route}?title=${
@@ -268,14 +257,13 @@ import kotlinx.coroutines.launch
                             }"
                         )
                     }, onMonthClick = { monthData ->
-//                        UserCache.categoryQuickList = monthData.transactions
-//                        navController.navigate("${RoutePath.DashBoarDetail.route}?title=${monthData.monthDisplay}账单")
+                        // 月份点击：可以扩展功能
                     })
                 }
             }
-
         }
 
+        // 弹窗和底部弹窗
         if (uiState.sheetType == ShowBottomSheetType.MONTH_PLAN) {
             NumberEditDialog(title = "设置本月预算", value = UserCache.planAmount.roundToString(), showSuffix = false, onDismissRequest = {
                 bookViewModel.dismissBottomSheet()
@@ -285,6 +273,7 @@ import kotlinx.coroutines.launch
                 UserCache.planAmount = it.toFloat()
             })
         }
+
         if (uiState.sheetType == ShowBottomSheetType.EDIT) {
             EditDialog(title = "编辑账本", value = uiState.curEditBookEntity?.name ?: "", showSuffix = false, onDismissRequest = {
                 bookViewModel.dismissBottomSheet()
@@ -294,6 +283,7 @@ import kotlinx.coroutines.launch
                 LogUtils.d("编辑账本：$it")
             })
         }
+
         if (uiState.sheetType == ShowBottomSheetType.ADD) {
             EditDialog(title = "添加账本", value = "", showSuffix = false, onDismissRequest = {
                 bookViewModel.dismissBottomSheet()
@@ -303,6 +293,7 @@ import kotlinx.coroutines.launch
                 LogUtils.d("添加账本：$it")
             })
         }
+
         if (uiState.sheetType == ShowBottomSheetType.DELETE) {
             ConfirmDialog(title = "删除该账本", onDismissRequest = {
                 bookViewModel.dismissBottomSheet()
@@ -311,6 +302,8 @@ import kotlinx.coroutines.launch
                 bookViewModel.dismissBottomSheet()
             })
         }
+
+        // 交易类型选择底部弹窗
         TransactionTypeBottomSheet(initial = subCategory, title = "选择类型", data = categories, visible = bookViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY), onDismiss = {
             bookViewModel.dismissBottomSheet()
         }, onConfirm = {
@@ -321,6 +314,7 @@ import kotlinx.coroutines.launch
             navController.navigate(RoutePath.EditTransactionCategory.route)
         })
 
+        // 年月选择底部弹窗
         YearMonthBottomSheet(
             year = uiState.year, month = uiState.month, visible = bookViewModel.showBottomSheet(ShowBottomSheetType.YEAR_MONTH), onDismiss = {
                 bookViewModel.dismissBottomSheet()
@@ -329,11 +323,21 @@ import kotlinx.coroutines.launch
             bookViewModel.updateQueryDate(year, month)
             LogUtils.d("选中的年月${year}-${month}")
         }
-
     }
 }
 
-
+/**
+ * 年月金额统计组件
+ *
+ * @param modifier 修饰符
+ * @param isFullYear 是否为全年视图
+ * @param totalIncome 总收入
+ * @param totalExpense 总支出
+ * @param totalPlan 总预算
+ * @param uiState 页面UI状态
+ * @param onYearMonthClick 年月选择点击回调
+ * @param onItemClick 金额项点击回调
+ */
 @Composable fun YearMonthAmountWidget(
     modifier: Modifier = Modifier,
     isFullYear: Boolean = false,
@@ -344,14 +348,15 @@ import kotlinx.coroutines.launch
     onYearMonthClick: () -> Unit,
     onItemClick: (type: TransactionAmountType) -> Unit
 ) {
+    // 渐变圆角边框容器
     GradientRoundedBoxWithStroke {
         Column {
+            // 年月选择行
             Row(modifier = modifier
                 .clip(RoundedCornerShape(25.dp))
-                .clickable {
-                    onYearMonthClick()
-                }
-                .padding(start = 20.dp, top = 14.dp, bottom = 12.dp, end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                .clickable { onYearMonthClick() }
+                .padding(start = 20.dp, top = 14.dp, bottom = 12.dp, end = 20.dp),
+                verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = formatYearMonth(uiState.year, uiState.month), fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black
                 )
@@ -359,18 +364,36 @@ import kotlinx.coroutines.launch
                     painter = painterResource(id = R.mipmap.icon_down), contentDescription = null, modifier = Modifier.padding(start = 4.dp)
                 )
             }
+
+            // 金额统计行
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val expenseEntity = AmountItemEntity(if (isFullYear) "本年支出" else "本月支出", totalExpense, TransactionAmountType.EXPENSE)
-                val incomeEntity = AmountItemEntity(if (isFullYear) "本年收入" else "本月收入", totalIncome, TransactionAmountType.INCOME)
-                TopAmountItemWidget(item = expenseEntity, modifier = Modifier.weight(1f)) {
+                // 支出项
+                val expenseEntity = AmountItemEntity(
+                    if (isFullYear) "本年支出" else "本月支出", totalExpense, TransactionAmountType.EXPENSE
+                )
+                val incomeEntity = AmountItemEntity(
+                    if (isFullYear) "本年收入" else "本月收入", totalIncome, TransactionAmountType.INCOME
+                )
+
+                TopAmountItemWidget(
+                    item = expenseEntity, modifier = Modifier.weight(1f)
+                ) {
                     onItemClick(it.type)
                 }
-                TopAmountItemWidget(item = incomeEntity, modifier = Modifier.weight(1f)) {
+
+                // 收入项
+                TopAmountItemWidget(
+                    item = incomeEntity, modifier = Modifier.weight(1f)
+                ) {
                     onItemClick(it.type)
                 }
-                AnimatedVisibility(visible = !isFullYear, modifier = Modifier.weight(1f)) {
+
+                // 预算项（仅在月度视图中显示）
+                AnimatedVisibility(
+                    visible = !isFullYear, modifier = Modifier.weight(1f)
+                ) {
                     val planEntity = AmountItemEntity("添加预算", totalPlan, TransactionAmountType.PLAN)
                     TopAmountItemWidget(item = planEntity) {
                         onItemClick(it.type)
@@ -381,7 +404,18 @@ import kotlinx.coroutines.launch
     }
 }
 
-
+/**
+ * 账本侧边栏组件
+ *
+ * @param data 账本列表数据
+ * @param isEditBook 是否为编辑模式
+ * @param modifier 修饰符
+ * @param onItemClick 账本项点击回调
+ * @param onEditClick 编辑点击回调
+ * @param onDeleteClick 删除点击回调
+ * @param onToggleEdit 切换编辑模式回调
+ * @param onAddClick 添加账本回调
+ */
 @Composable fun BookDrawerWidget(
     data: List<BookEntity>,
     isEditBook: Boolean,
@@ -395,7 +429,7 @@ import kotlinx.coroutines.launch
     Column(
         horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier
             .fillMaxHeight()
-            .fillMaxWidth(0.7f)
+            .fillMaxWidth(0.7f)  // 占屏幕70%宽度
             .background(
                 brush = Brush.verticalGradient(
                     listOf(
@@ -404,6 +438,7 @@ import kotlinx.coroutines.launch
                 )
             )
     ) {
+        // 标题栏
         Row(
             modifier = Modifier
                 .statusBarsPadding()
@@ -423,6 +458,8 @@ import kotlinx.coroutines.launch
                     }, text = if (isEditBook) "保存" else "编辑", fontWeight = FontWeight.Normal, fontSize = 16.sp, color = colorResource(id = R.color.color_333333)
             )
         }
+
+        // 账本列表
         LazyColumn(
             modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp)
         ) {
@@ -432,6 +469,8 @@ import kotlinx.coroutines.launch
                 )
             }
         }
+
+        // 添加账本按钮
         Box(modifier = Modifier.padding(20.dp)) {
             SelectableRoundedButton(
                 modifier = Modifier.width(200.dp),
@@ -447,6 +486,16 @@ import kotlinx.coroutines.launch
     }
 }
 
+/**
+ * 单个账本项组件
+ *
+ * @param isEditBook 是否为编辑模式
+ * @param modifier 修饰符
+ * @param book 账本实体
+ * @param onItemClick 项点击回调
+ * @param onEditClick 编辑点击回调
+ * @param onDeleteClick 删除点击回调
+ */
 @Composable fun BookItem(
     isEditBook: Boolean, modifier: Modifier = Modifier, book: BookEntity, onItemClick: (BookEntity) -> Unit, onEditClick: (BookEntity) -> Unit, onDeleteClick: (BookEntity) -> Unit
 ) {
@@ -464,8 +513,13 @@ import kotlinx.coroutines.launch
             )
 
             Spacer(modifier = Modifier.weight(1f))
-            AnimatedVisibility(visible = isEditBook, enter = fadeIn(), exit = fadeOut()) {
+
+            // 编辑模式下显示编辑和删除按钮
+            AnimatedVisibility(
+                visible = isEditBook, enter = fadeIn(), exit = fadeOut()
+            ) {
                 Row {
+                    // 编辑按钮
                     Image(
                         painter = painterResource(id = R.mipmap.icon_edit), contentDescription = null, modifier = Modifier
                             .padding(7.dp)
@@ -475,6 +529,7 @@ import kotlinx.coroutines.launch
                                 onEditClick(book)
                             })
 
+                    // 删除按钮
                     Image(
                         painter = painterResource(id = R.mipmap.icon_delete_red),
                         contentDescription = null,
@@ -485,22 +540,24 @@ import kotlinx.coroutines.launch
                             ) {
                                 onDeleteClick(book)
                             })
-
                 }
             }
-
         }
     }
 }
 
-
+/**
+ * 顶部金额项组件
+ *
+ * @param modifier 修饰符
+ * @param item 金额项实体
+ * @param onItemClick 点击回调
+ */
 @Composable fun TopAmountItemWidget(
     modifier: Modifier = Modifier, item: AmountItemEntity, onItemClick: (AmountItemEntity) -> Unit
 ) {
     Column(
-        modifier = modifier.clickable {
-            onItemClick(item)
-        }, horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier.clickable { onItemClick(item) }, horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             modifier = Modifier.padding(top = 12.dp), text = item.amount.roundToString(), fontWeight = FontWeight.Medium, fontSize = 22.sp, color = Color.Black
@@ -527,11 +584,11 @@ import kotlinx.coroutines.launch
     )
 }
 
-
 @Composable @Preview(showBackground = true) fun BookHomePagePreview() {
     BookHomePage(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Gray)
-            .statusBarsPadding(), navController = rememberNavController(), onShowDrawer = {}, onCloseDrawer = {}, isDrawerOpen = true)
+            .statusBarsPadding(), navController = rememberNavController(), onShowDrawer = {}, onCloseDrawer = {}, isDrawerOpen = true
+    )
 }

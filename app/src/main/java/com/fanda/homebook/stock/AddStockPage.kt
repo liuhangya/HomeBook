@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -30,16 +29,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
-import com.fanda.homebook.book.sheet.MonthBottomSheet
-import com.fanda.homebook.book.sheet.YearMonthBottomSheet
-import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
+import com.fanda.homebook.common.sheet.MonthBottomSheet
+import com.fanda.homebook.common.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
@@ -48,9 +45,8 @@ import com.fanda.homebook.data.period.PeriodEntity
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.quick.sheet.GridBottomSheet
-import com.fanda.homebook.quick.sheet.ListBottomSheet
+import com.fanda.homebook.common.entity.ShowBottomSheetType
+import com.fanda.homebook.common.sheet.ListBottomSheet
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.stock.ui.StockInfoScreen
@@ -61,11 +57,17 @@ import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import com.hjq.toast.Toaster
 
-
-/*
-* 添加囤货页面
-* */
-@Composable fun AddStockPage(modifier: Modifier = Modifier, navController: NavController, stockViewModel: AddStockViewModel = viewModel(factory = AppViewModelProvider.factory)) {
+/**
+ * 添加囤货页面
+ * 用于添加新的库存物品，包括基本信息、图片、价格、日期等
+ *
+ * @param modifier Compose修饰符，用于调整布局样式
+ * @param navController 导航控制器，用于页面跳转
+ * @param stockViewModel 添加库存的ViewModel，提供业务逻辑和数据绑定
+ */
+@Composable fun AddStockPage(
+    modifier: Modifier = Modifier, navController: NavController, stockViewModel: AddStockViewModel = viewModel(factory = AppViewModelProvider.factory)
+) {
     // 通过 ViewModel 状态管理进行数据绑定
     val uiState by stockViewModel.uiState.collectAsState()
     val rackEntity by stockViewModel.rackEntity.collectAsState()
@@ -78,81 +80,83 @@ import com.hjq.toast.Toaster
     LogUtils.d("uiState: $uiState")
     LogUtils.d("period: $period")
 
-    // 获取焦点管理器
+    // 获取焦点管理器，用于控制软键盘显示
     val focusManager = LocalFocusManager.current
-
     val context = LocalContext.current
 
-    // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
-    Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
-        TopIconAppBar(
-            title = "单品信息",
-            onBackClick = {
-                navController.navigateUp()
-            },
-            rightText = "保存",
-            onRightActionClick = {
-                focusManager.clearFocus()
+    // 使用Scaffold作为页面骨架，包含顶部栏和内容区域
+    // 通过statusBarsPadding处理状态栏间距
+    Scaffold(
+        modifier = modifier.statusBarsPadding(), topBar = {
+            TopIconAppBar(
+                title = "单品信息",
+                onBackClick = {
+                    navController.navigateUp()  // 返回上一页
+                },
+                rightText = "保存",
+                onRightActionClick = {
+                    focusManager.clearFocus()  // 保存前关闭软键盘
 
-                // 先校验囤货的参数
-                if (stockViewModel.checkParams()) {
-                    // 再根据是否选中同步到账单
-                    if (uiState.stockEntity.syncBook) {
-                        if (stockViewModel.checkBookParams()) {
-                            // 先插入账单数据
-                            stockViewModel.saveQuickEntityDatabase()
-                        } else {
-                            return@TopIconAppBar
+                    // 先校验囤货的基本参数
+                    if (stockViewModel.checkParams()) {
+                        // 根据是否选中同步到账单进行不同处理
+                        if (uiState.stockEntity.syncBook) {
+                            if (stockViewModel.checkBookParams()) {
+                                // 参数验证通过，插入账单数据
+                                stockViewModel.saveQuickEntityDatabase()
+                            } else {
+                                return@TopIconAppBar  // 账单参数校验失败，不执行保存
+                            }
+                        }
+                        // 插入囤货数据到数据库
+                        stockViewModel.saveStockEntityDatabase(context) {
+                            Toaster.show("保存成功")
+                            navController.navigateUp()  // 保存成功后返回上一页
                         }
                     }
-                    // 插入囤货数据
-                    stockViewModel.saveStockEntityDatabase(context) {
-                        Toaster.show("保存成功")
-                        navController.navigateUp()
-                    }
-
-                }
-            },
-            backIconPainter = painterResource(R.mipmap.icon_back),
-        )
-    }) { padding ->
+                },
+                backIconPainter = painterResource(R.mipmap.icon_back),
+            )
+        }) { padding ->
 
         // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
+        // 用于点击空白处关闭软键盘
         Box(modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+            .pointerInput(Unit) {
+                // 给最外层添加手势检测，用于取消输入框的焦点，从而关闭软键盘
                 detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
             }
-            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+            .background(Color.Transparent)  // 必须有背景或clickable才能响应事件
         ) {
-            // 为了让 padding 内容能滑动，所以用 Column 包起来
+            // 为了让padding内容能滑动，所以用Column包起来
             Column(
                 modifier = Modifier
                     .padding(padding)
                     .imePadding()   // 让输入法能顶起内容，不遮挡内容
-                    .verticalScroll(rememberScrollState())  // 让内容能滑动，内容的 padding 不能加在这里，不然 padding 部分不能滑过去
+                    .verticalScroll(rememberScrollState())  // 让内容能滑动
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 20.dp, top = 0.dp, end = 20.dp, bottom = 20.dp)
                 ) {
+                    // 物品图片展示区域
                     AsyncImage(
-                        contentScale = ContentScale.Crop,
-                        model = uiState.imageUri,
-                        contentDescription = null,
-                        modifier = Modifier
+                        contentScale = ContentScale.Crop, model = uiState.imageUri, contentDescription = null, modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1f)
+                            .aspectRatio(1f)  // 保持1:1宽高比
                             .padding(horizontal = 20.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color.White)
                             .clickable {
+                                // 点击图片打开图片选择弹窗
                                 stockViewModel.updateSheetType(ShowBottomSheetType.SELECT_IMAGE)
-                            }
-                    )
+                            })
 
                     Spacer(modifier = Modifier.height(20.dp))
+
+                    // 物品名称输入区域
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
                             title = "名称",
@@ -167,7 +171,10 @@ import com.hjq.toast.Toaster
                                 stockViewModel.updateStockName(it)
                             })
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // 货架选择区域
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
                             title = "货架", rightText = rackEntity?.name ?: "", showText = true, modifier = Modifier
@@ -178,7 +185,10 @@ import com.hjq.toast.Toaster
                             stockViewModel.updateSheetType(ShowBottomSheetType.RACK)
                         }
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // 库存详细信息区域（复用组件）
                     StockInfoScreen(
                         bottomComment = uiState.stockEntity.comment,
                         subCategory = subCategory?.name ?: "",
@@ -186,7 +196,7 @@ import com.hjq.toast.Toaster
                         usagePeriod = period?.name ?: "",
                         shelfMonth = uiState.stockEntity.shelfMonth,
                         date = convertMillisToDate(uiState.stockEntity.buyDate, DATE_FORMAT_YMD),
-                        openDate =  convertMillisToDate(uiState.stockEntity.openDate, DATE_FORMAT_YMD),
+                        openDate = convertMillisToDate(uiState.stockEntity.openDate, DATE_FORMAT_YMD),
                         expireDate = convertMillisToDate(uiState.stockEntity.expireDate, DATE_FORMAT_YMD),
                         syncBook = uiState.stockEntity.syncBook,
                         price = uiState.stockEntity.price,
@@ -208,6 +218,11 @@ import com.hjq.toast.Toaster
         }
     }
 
+    // ============================================
+    // 底部弹窗区域（根据不同类型显示不同的弹窗）
+    // ============================================
+
+    // 货架选择弹窗
     ListBottomSheet<RackEntity>(
         initial = rackEntity,
         title = "货架",
@@ -218,8 +233,8 @@ import com.hjq.toast.Toaster
         stockViewModel.updateRack(it)
     }
 
+    // 购入日期选择弹窗
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.BUY_DATE)) {
-        // 日期选择器
         CustomDatePickerModal(initialDate = uiState.stockEntity.buyDate, onDateSelected = {
             stockViewModel.updateBuyDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
@@ -227,6 +242,7 @@ import com.hjq.toast.Toaster
         })
     }
 
+    // 品牌选择弹窗
     ListBottomSheet<ProductEntity>(
         initial = product,
         title = "品牌",
@@ -235,12 +251,14 @@ import com.hjq.toast.Toaster
         displayText = { it.name },
         onDismiss = { stockViewModel.dismissBottomSheet() },
         onSettingClick = {
+            // 点击设置按钮跳转到品牌编辑页面
             stockViewModel.dismissBottomSheet()
             navController.navigate(RoutePath.EditProduct.route)
         }) {
         stockViewModel.updateProduct(it)
     }
 
+    // 类别选择弹窗
     ListBottomSheet<RackSubCategoryEntity>(
         initial = subCategory,
         title = "类别",
@@ -251,6 +269,7 @@ import com.hjq.toast.Toaster
         stockViewModel.updateCategory(it)
     }
 
+    // 使用时段选择弹窗
     ListBottomSheet<PeriodEntity>(
         initial = period,
         title = "使用时段",
@@ -261,8 +280,8 @@ import com.hjq.toast.Toaster
         stockViewModel.updatePeriod(it)
     }
 
+    // 开封日期选择弹窗
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.OPEN_DATE)) {
-        // 日期选择器
         CustomDatePickerModal(initialDate = uiState.stockEntity.openDate, onDateSelected = {
             stockViewModel.updateOpenDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
@@ -270,8 +289,8 @@ import com.hjq.toast.Toaster
         })
     }
 
+    // 过期日期选择弹窗
     if (stockViewModel.showBottomSheet(ShowBottomSheetType.EXPIRE_DATE)) {
-        // 日期选择器
         CustomDatePickerModal(initialDate = uiState.stockEntity.expireDate, onDateSelected = {
             stockViewModel.updateExpireDate(it ?: System.currentTimeMillis())
         }, onDismiss = {
@@ -279,28 +298,35 @@ import com.hjq.toast.Toaster
         })
     }
 
-    MonthBottomSheet( month = uiState.stockEntity.shelfMonth, visible =  stockViewModel.showBottomSheet(ShowBottomSheetType.SHELF_MONTH), onDismiss = {
-        stockViewModel.dismissBottomSheet()
-    }) {  month ->
+    // 保鲜期（月数）选择弹窗
+    MonthBottomSheet(
+        month = uiState.stockEntity.shelfMonth, visible = stockViewModel.showBottomSheet(ShowBottomSheetType.SHELF_MONTH), onDismiss = {
+            stockViewModel.dismissBottomSheet()
+        }) { month ->
         stockViewModel.dismissBottomSheet()
         stockViewModel.updateShelfMonth(month)
         LogUtils.d("选中的月: $month")
     }
 
+    // 图片选择弹窗
     SelectPhotoBottomSheet(
-        visible = stockViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE),
-        onDismiss = {
+        visible = stockViewModel.showBottomSheet(ShowBottomSheetType.SELECT_IMAGE), onDismiss = {
             stockViewModel.dismissBottomSheet()
         }) {
         stockViewModel.dismissBottomSheet()
         stockViewModel.updateImageUrl(it)
     }
-
 }
 
-
+/**
+ * 预览函数 - 用于Android Studio的Compose预览
+ *
+ * @see AddStockPage 查看完整参数说明
+ */
 @Composable @Preview(showBackground = true) fun AddStockPagePreview() {
     HomeBookTheme {
-        AddStockPage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
+        AddStockPage(
+            modifier = Modifier.fillMaxWidth(), navController = rememberNavController()
+        )
     }
 }

@@ -37,7 +37,6 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
-    api(libs.compose.colorpicker)
     api(libs.compose.permissions)
     api(libs.ucrop.native)
     api(libs.ucrop)

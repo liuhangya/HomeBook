@@ -1,17 +1,24 @@
 package com.fanda.homebook.closet.state
 
-import com.fanda.homebook.data.category.CategoryEntity
-import com.fanda.homebook.data.closet.AddClosetEntity
-import com.fanda.homebook.data.closet.ClosetEntity
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.quick.sheet.Category
+import com.fanda.homebook.common.entity.ShowBottomSheetType
 
-
+/**
+ * 衣橱分类详情界面状态类
+ *
+ * 用于管理衣橱分类详情页面的界面状态
+ *
+ * @property categoryId 一级分类ID，默认为-1表示未设置
+ * @property subCategoryId 二级分类ID，默认为-1表示未设置
+ * @property categoryName 分类名称
+ * @property isEditState 是否处于编辑状态，默认为false
+ * @property moveToTrash 是否移动到回收站状态，默认为false
+ * @property sheetType 当前显示的底部弹窗类型，默认为NONE（不显示）
+ */
 data class CategoryDetailClosetUiState(
-    val categoryId: Int = -1,
-    val subCategoryId: Int = -1,
-    val categoryName: String = "",
-    val isEditState: Boolean = false,
-    val moveToTrash: Boolean = false,
-    val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE,
+    val categoryId: Int = -1,                                   // 一级分类ID
+    val subCategoryId: Int = -1,                                // 二级分类ID
+    val categoryName: String = "",                              // 分类名称
+    val isEditState: Boolean = false,                           // 编辑状态
+    val moveToTrash: Boolean = false,                           // 移动到回收站状态
+    val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE, // 弹窗类型
 )

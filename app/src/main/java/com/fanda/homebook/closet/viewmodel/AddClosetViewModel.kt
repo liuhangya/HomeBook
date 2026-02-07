@@ -29,9 +29,8 @@ import com.fanda.homebook.data.season.SeasonRepository
 import com.fanda.homebook.data.size.SizeEntity
 import com.fanda.homebook.data.size.SizeRepository
 import com.fanda.homebook.data.transaction.TransactionRepository
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.entity.TransactionAmountType
-import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
+import com.fanda.homebook.common.entity.ShowBottomSheetType
+import com.fanda.homebook.common.entity.TransactionAmountType
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
 import com.fanda.homebook.tools.UserCache
@@ -49,78 +48,84 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * 添加衣橱视图模型
+ *
+ * 负责管理添加衣橱物品的业务逻辑和状态
+ */
 class AddClosetViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val colorTypeRepository: ColorTypeRepository,
-    private val closetRepository: ClosetRepository,
-    private val seasonRepository: SeasonRepository,
-    private val productRepository: ProductRepository,
-    private val sizeRepository: SizeRepository,
-    private val ownerRepository: OwnerRepository,
-    private val categoryRepository: CategoryRepository,
-    private val quickRepository: QuickRepository,
-    private val transactionRepository: TransactionRepository
+    savedStateHandle: SavedStateHandle,                          // 保存状态句柄
+    private val colorTypeRepository: ColorTypeRepository,        // 颜色仓库
+    private val closetRepository: ClosetRepository,              // 衣橱仓库
+    private val seasonRepository: SeasonRepository,              // 季节仓库
+    private val productRepository: ProductRepository,            // 产品仓库
+    private val sizeRepository: SizeRepository,                  // 尺寸仓库
+    private val ownerRepository: OwnerRepository,                // 归属仓库
+    private val categoryRepository: CategoryRepository,          // 分类仓库
+    private val quickRepository: QuickRepository,                // 快捷记录仓库
+    private val transactionRepository: TransactionRepository     // 交易仓库
 ) : ViewModel() {
 
+    // 从保存状态中获取图片路径
     private val imageUri: String = savedStateHandle["imagePath"] ?: ""
 
-    // 私有可变对象，用于保存UI状态
+    // 私有可变状态流
     private val _addClosetUiState = MutableStateFlow(AddClosetUiState())
 
-    // 公开只读对象，用于读取UI状态
+    // 公开只读状态流
     val addClosetUiState = _addClosetUiState.asStateFlow()
 
     // 当前选中的颜色
-    @OptIn(ExperimentalCoroutinesApi::class) val colorType: StateFlow<ColorTypeEntity?> = _addClosetUiState.map { it.closetEntity.colorTypeId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（id）变化，就取消之前的 getItemById 流，启动新的
+    @OptIn(ExperimentalCoroutinesApi::class) val colorType: StateFlow<ColorTypeEntity?> = _addClosetUiState.map { it.closetEntity.colorTypeId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->               // 当上游变化时，取消之前的流，启动新的
             colorTypeRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的季节列表
-    @OptIn(ExperimentalCoroutinesApi::class) val selectSeasons: StateFlow<List<SeasonEntity>?> = _addClosetUiState.map { it.seasonIds }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { ids ->     // 每当上游变化，就取消之前的 getItemById 流，启动新的
+    @OptIn(ExperimentalCoroutinesApi::class) val selectSeasons: StateFlow<List<SeasonEntity>?> = _addClosetUiState.map { it.seasonIds }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { ids ->              // 当上游变化时，取消之前的流，启动新的
             seasonRepository.getSeasonsByIdsFlow(ids)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的产品
-    @OptIn(ExperimentalCoroutinesApi::class) val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+    @OptIn(ExperimentalCoroutinesApi::class) val product: StateFlow<ProductEntity?> = _addClosetUiState.map { it.closetEntity.productId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->               // 当上游变化时，取消之前的流，启动新的
             productRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的尺码
-    @OptIn(ExperimentalCoroutinesApi::class) val size: StateFlow<SizeEntity?> = _addClosetUiState.map { it.closetEntity.sizeId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+    @OptIn(ExperimentalCoroutinesApi::class) val size: StateFlow<SizeEntity?> = _addClosetUiState.map { it.closetEntity.sizeId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->               // 当上游变化时，取消之前的流，启动新的
             sizeRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的归属
-    @OptIn(ExperimentalCoroutinesApi::class) val owner: StateFlow<OwnerEntity?> = _addClosetUiState.map { it.closetEntity.ownerId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+    @OptIn(ExperimentalCoroutinesApi::class) val owner: StateFlow<OwnerEntity?> = _addClosetUiState.map { it.closetEntity.ownerId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->               // 当上游变化时，取消之前的流，启动新的
             ownerRepository.getItemById(id)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的一级分类
-    @OptIn(ExperimentalCoroutinesApi::class) val category: StateFlow<CategoryEntity?> = _addClosetUiState.map { it.closetEntity.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+    @OptIn(ExperimentalCoroutinesApi::class) val category: StateFlow<CategoryEntity?> = _addClosetUiState.map { it.closetEntity.categoryId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->               // 当上游变化时，取消之前的流，启动新的
             categoryRepository.getItemById(id ?: 0)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
         )
 
     // 当前选中的二级分类
-    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<SubCategoryEntity?> = _addClosetUiState.map { it.closetEntity.subCategoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<SubCategoryEntity?> = _addClosetUiState.map { it.closetEntity.subCategoryId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->               // 当上游变化时，取消之前的流，启动新的
             categoryRepository.getSubItemById(id ?: -1)
         }.stateIn(
             scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
@@ -136,7 +141,7 @@ class AddClosetViewModel(
         scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
     )
 
-    // 分类列表
+    // 分类列表（包含子分类）
     val categories: StateFlow<List<CategoryWithSubCategories>> = categoryRepository.getAllItemsWithSub().stateIn(
         scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
     )
@@ -155,6 +160,7 @@ class AddClosetViewModel(
         private set
 
     init {
+        // 初始化：加载图片和基础数据
         viewModelScope.launch {
             _addClosetUiState.update { it.copy(imageUri = imageUri.toUri()) }
             seasons = seasonRepository.getSeasons()
@@ -162,12 +168,23 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 获取季节描述字符串
+     *
+     * @param seasons 季节列表
+     * @return 格式化后的季节字符串（如"春夏秋冬"）
+     */
     fun getSeasonDes(seasons: List<SeasonEntity>?) = if (seasons.isNullOrEmpty()) {
         ""
     } else {
         seasons.sortedBy { it.id }.joinToString { it.name.replace("季", "") }
     }
 
+    /**
+     * 更新衣橱颜色
+     *
+     * @param colorType 颜色实体
+     */
     fun updateClosetColor(colorType: ColorTypeEntity?) {
         colorType?.let {
             _addClosetUiState.update {
@@ -178,12 +195,24 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新衣橱季节
+     *
+     * @param seasons 季节列表
+     */
     fun updateClosetSeason(seasons: List<SeasonEntity>?) {
         seasons?.let {
-            _addClosetUiState.update { state -> state.copy(seasonIds = seasons.map { it.id }) }
+            _addClosetUiState.update { state ->
+                state.copy(seasonIds = seasons.map { it.id })
+            }
         }
     }
 
+    /**
+     * 更新衣橱产品
+     *
+     * @param productEntity 产品实体
+     */
     fun updateClosetProduct(productEntity: ProductEntity?) {
         productEntity?.let {
             _addClosetUiState.update {
@@ -194,6 +223,11 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新衣橱尺码
+     *
+     * @param sizeEntity 尺码实体
+     */
     fun updateClosetSize(sizeEntity: SizeEntity?) {
         sizeEntity?.let {
             _addClosetUiState.update {
@@ -204,6 +238,11 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新衣橱归属
+     *
+     * @param ownerEntity 归属实体
+     */
     fun updateClosetOwner(ownerEntity: OwnerEntity?) {
         ownerEntity?.let {
             _addClosetUiState.update {
@@ -214,6 +253,11 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新衣橱购买日期
+     *
+     * @param date 购买日期（时间戳）
+     */
     fun updateClosetDate(date: Long) {
         _addClosetUiState.update {
             it.copy(
@@ -222,6 +266,11 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新衣橱备注
+     *
+     * @param comment 备注内容
+     */
     fun updateClosetComment(comment: String) {
         _addClosetUiState.update {
             it.copy(
@@ -230,6 +279,11 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新同步到账单状态
+     *
+     * @param syncBook 是否同步到账单
+     */
     fun updateClosetSyncBook(syncBook: Boolean) {
         _addClosetUiState.update {
             it.copy(
@@ -238,6 +292,11 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新衣橱价格
+     *
+     * @param price 价格字符串
+     */
     fun updateClosetPrice(price: String) {
         _addClosetUiState.update {
             it.copy(
@@ -246,16 +305,35 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新底部弹窗类型
+     *
+     * @param type 弹窗类型
+     */
     fun updateSheetType(type: ShowBottomSheetType) {
         _addClosetUiState.update { it.copy(sheetType = type) }
     }
 
+    /**
+     * 检查是否显示指定类型的底部弹窗
+     *
+     * @param type 弹窗类型
+     * @return 是否显示
+     */
     fun showBottomSheet(type: ShowBottomSheetType) = _addClosetUiState.value.sheetType == type
 
+    /**
+     * 关闭底部弹窗
+     */
     fun dismissBottomSheet() {
         _addClosetUiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
     }
 
+    /**
+     * 检查必填参数
+     *
+     * @return 参数是否有效
+     */
     fun checkParams(): Boolean {
         val entity = addClosetUiState.value.closetEntity
         if (entity.ownerId == 0) {
@@ -265,6 +343,11 @@ class AddClosetViewModel(
         return true
     }
 
+    /**
+     * 检查账单相关参数
+     *
+     * @return 参数是否有效
+     */
     fun checkBookParams(): Boolean {
         val entity = addClosetUiState.value.closetEntity
         if (entity.price.isEmpty() || entity.price.toFloat() <= 0) {
@@ -278,12 +361,25 @@ class AddClosetViewModel(
         return true
     }
 
+    /**
+     * 保存衣橱实体到数据库
+     *
+     * @param context 上下文
+     * @param onResult 保存结果回调
+     */
     fun saveClosetEntityDatabase(context: Context, onResult: (Boolean) -> Unit) {
         val entity = addClosetUiState.value.closetEntity
         if (checkParams()) {
             viewModelScope.launch {
+                // 保存图片到本地文件
                 val imageFile = saveUriToFilesDir(context, addClosetUiState.value.imageUri!!)
-                val closetId = closetRepository.insert(entity.copy(imageLocalPath = imageFile?.absolutePath ?: "", createDate = System.currentTimeMillis()))
+                // 插入衣橱记录
+                val closetId = closetRepository.insert(
+                    entity.copy(
+                        imageLocalPath = imageFile?.absolutePath ?: "", createDate = System.currentTimeMillis()
+                    )
+                )
+                // 插入季节关联关系
                 val closetSeasonRelationList = if (addClosetUiState.value.seasonIds.isNotEmpty()) {
                     addClosetUiState.value.seasonIds.map { seasonId ->
                         ClosetSeasonRelation(closetId.toInt(), seasonId)
@@ -297,23 +393,35 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 保存快捷记录到数据库（用于账单同步）
+     */
     fun saveQuickEntityDatabase() {
         viewModelScope.launch {
             val entity = addClosetUiState.value.closetEntity
+            // 获取"服饰"子分类
             val subCategory = transactionRepository.getSubItemByName("服饰", 1)
+            // 创建快捷记录实体
             val quickEntity = QuickEntity(
                 date = entity.date,
                 price = entity.price,
-                categoryId = 1,
+                categoryId = 1,  // 支出类别ID
                 bookId = UserCache.bookId,
-                categoryType = TransactionAmountType.EXPENSE.ordinal,
+                categoryType = TransactionAmountType.EXPENSE.ordinal,  // 支出类型
                 subCategoryId = subCategory?.id,
             )
             LogUtils.d("saveQuickEntityDatabase", quickEntity)
+            // 插入快捷记录
             quickRepository.insert(quickEntity)
         }
     }
 
+    /**
+     * 更新选中的分类
+     *
+     * @param categoryEntity 一级分类实体
+     * @param subCategoryEntity 二级分类实体
+     */
     fun updateSelectedCategory(
         categoryEntity: CategoryEntity?, subCategoryEntity: SubCategoryEntity?
     ) {
@@ -334,8 +442,12 @@ class AddClosetViewModel(
         }
     }
 
+    /**
+     * 更新图片Uri
+     *
+     * @param imageUri 图片Uri
+     */
     fun updateImageUrl(imageUri: Uri) {
         _addClosetUiState.update { it.copy(imageUri = imageUri) }
     }
-
 }

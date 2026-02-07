@@ -37,56 +37,97 @@ import com.fanda.homebook.data.transaction.TransactionDao
 import com.fanda.homebook.data.transaction.TransactionEntity
 import com.fanda.homebook.data.transaction.TransactionSubEntity
 
+/**
+ * HomeBook应用数据库
+ * 使用Room持久化框架管理应用数据
+ *
+ * @param entities 包含所有数据实体类
+ * @param version 数据库版本号，升级时递增
+ * @param exportSchema 是否导出数据库模式信息
+ */
 @Database(
-    entities = [ColorTypeEntity::class, ClosetEntity::class, SeasonEntity::class, ProductEntity::class, SizeEntity::class, OwnerEntity::class, CategoryEntity::class, SubCategoryEntity::class, RackEntity::class, RackSubCategoryEntity::class, PeriodEntity::class, StockEntity::class, ClosetSeasonRelation::class, TransactionEntity::class, TransactionSubEntity::class, PayWayEntity::class, QuickEntity::class, BookEntity::class],
-    version = 17,
-    exportSchema = false
-) abstract class HomeBookDatabase() : RoomDatabase() {
+    entities = [ColorTypeEntity::class,         // 颜色类型实体
+        ClosetEntity::class,           // 衣橱实体
+        SeasonEntity::class,           // 季节实体
+        ProductEntity::class,          // 产品实体
+        SizeEntity::class,             // 尺码实体
+        OwnerEntity::class,            // 所有者实体
+        CategoryEntity::class,         // 分类实体
+        SubCategoryEntity::class,      // 子分类实体
+        RackEntity::class,             // 货架实体
+        RackSubCategoryEntity::class,  // 货架子分类实体
+        PeriodEntity::class,           // 期间实体
+        StockEntity::class,            // 库存实体
+        ClosetSeasonRelation::class,   // 衣橱-季节关联实体
+        TransactionEntity::class,      // 交易实体
+        TransactionSubEntity::class,   // 交易子项实体
+        PayWayEntity::class,           // 支付方式实体
+        QuickEntity::class,            // 快捷操作实体
+        BookEntity::class              // 账本实体
+    ], version = 17,                     // 当前数据库版本号
+    exportSchema = false              // 不导出数据库模式信息
+) abstract class HomeBookDatabase : RoomDatabase() {
 
+    // 颜色类型数据访问对象
     abstract fun colorTypeDao(): ColorTypeDao
 
+    // 衣橱数据访问对象
     abstract fun closetDao(): ClosetDao
 
+    // 季节数据访问对象
     abstract fun seasonDao(): SeasonDao
 
+    // 产品数据访问对象
     abstract fun productDao(): ProductDao
 
+    // 尺码数据访问对象
     abstract fun sizeDao(): SizeDao
 
+    // 所有者数据访问对象
     abstract fun ownerDao(): OwnerDao
 
+    // 分类数据访问对象
     abstract fun categoryDao(): CategoryDao
 
+    // 货架数据访问对象
     abstract fun rackDao(): RackDao
 
+    // 期间数据访问对象
     abstract fun periodDao(): PeriodDao
 
+    // 库存数据访问对象
     abstract fun stockDao(): StockDao
 
+    // 交易数据访问对象
     abstract fun transactionDao(): TransactionDao
 
+    // 支付方式数据访问对象
     abstract fun payWayDao(): PayWayDao
 
+    // 快捷操作数据访问对象
     abstract fun quickDao(): QuickDao
 
+    // 账本数据访问对象
     abstract fun bookDao(): BookDao
 
     companion object {
+        /**
+         * 数据库实例，使用volatile确保多线程可见性
+         */
         @Volatile private var Instance: HomeBookDatabase? = null
 
+        /**
+         * 获取数据库实例（单例模式）
+         *
+         * @param context 应用上下文
+         * @return HomeBookDatabase实例
+         */
         fun getDatabase(context: Context): HomeBookDatabase {
-            /*return Instance ?: synchronized(this) {
-                Room.databaseBuilder(
-                    context.applicationContext, HomeBookDatabase::class.java, "HomeBookDatabase"
-                ).fallbackToDestructiveMigration().build() // 允许销毁并重建数据库
-                    .also { Instance = it }
-            }*/
-
             return Instance ?: synchronized(this) {
+                // 构建数据库实例
                 Room.databaseBuilder(
-                    context.applicationContext, HomeBookDatabase::class.java, "HomeBookDatabase"
-                ).build() // 允许销毁并重建数据库
-                    .also { Instance = it }
+                    context.applicationContext, HomeBookDatabase::class.java, "HomeBookDatabase"  // 数据库文件名
+                ).build().also { Instance = it }  // 设置单例实例
             }
         }
     }

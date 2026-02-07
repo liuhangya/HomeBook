@@ -21,7 +21,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EditTransactionCategoryViewModel(private val transactionRepository: TransactionRepository) : ViewModel() {
+/**
+ * 编辑交易分类ViewModel
+ * 管理交易分类编辑页面的数据状态和业务逻辑
+ *
+ * @param transactionRepository 交易分类数据仓库
+ */
+class EditTransactionCategoryViewModel(
+    private val transactionRepository: TransactionRepository
+) : ViewModel() {
 
     // 私有可变对象，用于保存UI状态
     private val _uiState = MutableStateFlow(EditTransactionCategoryUiState())
@@ -29,81 +37,117 @@ class EditTransactionCategoryViewModel(private val transactionRepository: Transa
     // 公开只读对象，用于读取UI状态
     val uiState = _uiState.asStateFlow()
 
-    // 当前选中的一级分类
-    @OptIn(ExperimentalCoroutinesApi::class) val category: StateFlow<TransactionEntity?> = _uiState.map { it.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
+    // 当前选中的一级分类（主分类）
+    @OptIn(ExperimentalCoroutinesApi::class) val category: StateFlow<TransactionEntity?> = _uiState.map { it.categoryId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->     // 每当上游（categoryId）变化，就取消之前的流，启动新的
             transactionRepository.getItemById(id)
         }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
         )
 
-    // 当前选中的二级分类
-    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<TransactionSubEntity?> = _uiState.map { it.subCategoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            transactionRepository.getSubItemById(id ?: -1)
+    // 当前选中的二级分类（子分类）
+    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<TransactionSubEntity?> = _uiState.map { it.subCategoryId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->     // 每当上游（subCategoryId）变化，就取消之前的流，启动新的
+            transactionRepository.getSubItemById(id ?: -1)  // 如果为null则传-1
         }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
         )
 
-    // 分类列表
+    // 一级分类列表（主分类列表）
     val categories: StateFlow<List<TransactionEntity>> = transactionRepository.getItems().stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
     )
 
-    // 子分类列表
-    @OptIn(ExperimentalCoroutinesApi::class) val subCategories: StateFlow<List<TransactionSubEntity>?> = _uiState.map { it.categoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            transactionRepository.getSubItemsById(id)
+    // 二级分类列表（子分类列表，根据选中的主分类动态变化）
+    @OptIn(ExperimentalCoroutinesApi::class) val subCategories: StateFlow<List<TransactionSubEntity>?> = _uiState.map { it.categoryId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->     // 每当上游（categoryId）变化，就取消之前的流，启动新的
+            transactionRepository.getSubItemsById(id)  // 根据主分类ID获取子分类
         }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+            scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
         )
 
-    fun updateCategory(
-        categoryEntity: TransactionEntity?
-    ) {
+    /**
+     * 更新选中的主分类
+     *
+     * @param categoryEntity 主分类实体
+     */
+    fun updateCategory(categoryEntity: TransactionEntity?) {
         categoryEntity?.let {
             _uiState.update {
-                it.copy(categoryId = categoryEntity.id, subCategoryId = null)
+                it.copy(
+                    categoryId = categoryEntity.id,  // 更新主分类ID
+                    subCategoryId = null             // 清空子分类ID
+                )
             }
         }
     }
 
+    /**
+     * 切换添加分类对话框的显示状态
+     *
+     * @param visible 是否显示
+     */
     fun toggleAddDialog(visible: Boolean) {
         _uiState.update {
             it.copy(addDialog = visible)
         }
     }
 
+    /**
+     * 切换删除或编辑底部弹窗的显示状态
+     *
+     * @param visible 是否显示
+     */
     fun toggleDeleteOrEditBottomSheet(visible: Boolean) {
         _uiState.update {
             it.copy(deleteOrEditDialog = visible)
         }
     }
 
+    /**
+     * 切换编辑分类对话框的显示状态
+     *
+     * @param visible 是否显示
+     */
     fun toggleEditDialog(visible: Boolean) {
         _uiState.update {
             it.copy(editDialog = visible)
         }
     }
 
-    fun updateSubCategory(
-        subCategoryEntity: TransactionSubEntity?
-    ) {
-        // 如果没有子分类，则将子分类ID设置为null
+    /**
+     * 更新选中的子分类
+     *
+     * @param subCategoryEntity 子分类实体
+     */
+    fun updateSubCategory(subCategoryEntity: TransactionSubEntity?) {
         _uiState.update {
             it.copy(subCategoryId = subCategoryEntity?.id)
         }
     }
 
+    /**
+     * 插入新的子分类（自动计算排序顺序）
+     *
+     * @param name 分类名称
+     */
     fun insertWithAutoOrder(name: String) {
         viewModelScope.launch {
-            val subCategory = TransactionSubEntity(name = name, categoryId = _uiState.value.categoryId, type = TransactionType.CUSTOM.type)
+            // 创建新的子分类实体
+            val subCategory = TransactionSubEntity(
+                name = name, categoryId = _uiState.value.categoryId,  // 使用当前选中的主分类ID
+                type = TransactionType.CUSTOM.type       // 设置为自定义类型
+            )
+
+            // 验证名称是否为空
             if (subCategory.name.isNotEmpty()) {
+                // 检查名称是否已存在
                 if (transactionRepository.getSubItemByName(name, _uiState.value.categoryId) != null) {
                     Toaster.show("名称已存在")
                 } else {
+                    // 插入新的子分类
                     Toaster.show("添加成功")
-                    toggleAddDialog(false)
+                    toggleAddDialog(false)  // 关闭添加对话框
                     transactionRepository.insertSubItemWithAutoOrder(subCategory)
                 }
             } else {
@@ -112,20 +156,31 @@ class EditTransactionCategoryViewModel(private val transactionRepository: Transa
         }
     }
 
+    /**
+     * 更新子分类实体到数据库
+     *
+     * @param name 新的分类名称
+     */
     fun updateEntityDatabase(name: String) {
         viewModelScope.launch {
+            // 检查当前是否有选中的子分类
             if (subCategory.value != null) {
-                transactionRepository.updateSubItem(subCategory.value!!.copy(name = name))
+                // 创建更新后的子分类实体
+                val updatedEntity = subCategory.value!!.copy(name = name)
+                transactionRepository.updateSubItem(updatedEntity)
             }
         }
     }
 
+    /**
+     * 从数据库删除子分类实体
+     */
     fun deleteEntityDatabase() {
         viewModelScope.launch {
+            // 检查当前是否有选中的子分类
             if (subCategory.value != null) {
                 transactionRepository.deleteSubItem(subCategory.value!!)
             }
         }
     }
-
 }

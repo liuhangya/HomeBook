@@ -18,8 +18,8 @@ import com.fanda.homebook.data.quick.TransactionGroupedData
 import com.fanda.homebook.data.transaction.TransactionRepository
 import com.fanda.homebook.data.transaction.TransactionSubEntity
 import com.fanda.homebook.data.transaction.TransactionWithSubCategories
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.entity.TransactionAmountType
+import com.fanda.homebook.common.entity.ShowBottomSheetType
+import com.fanda.homebook.common.entity.TransactionAmountType
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
 import com.fanda.homebook.tools.UserCache
@@ -50,31 +50,30 @@ class BookViewModel(
     val uiState = _uiState.asStateFlow()
 
     init {
+        // 初始化时设置当前年月
         val (year, month) = millisToLocalDate(System.currentTimeMillis())
         _uiState.update { it.copy(year = year, month = month) }
     }
 
     // 当前选中账本
-    @OptIn(ExperimentalCoroutinesApi::class) val curSelectedBook: StateFlow<BookEntity?> = _uiState.map { it.curSelectBookId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            UserCache.bookId = id
+    @OptIn(ExperimentalCoroutinesApi::class) val curSelectedBook: StateFlow<BookEntity?> = _uiState.map { it.curSelectBookId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->     // 每当上游（curSelectBookId）变化，就取消之前的流，启动新的
+            UserCache.bookId = id  // 更新用户缓存中的账本ID
             bookRepository.getItemById(id)
         }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
         )
 
     // 当前选中的二级分类
-    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<TransactionSubEntity?> = _uiState.map { it.subCategoryId }.distinctUntilChanged()              // 避免重复 ID 触发
-        .flatMapLatest { id ->     // 每当上游（colorTypeId）变化，就取消之前的 getItemById 流，启动新的
-            transactionRepository.getSubItemById(id ?: -1)
+    @OptIn(ExperimentalCoroutinesApi::class) val subCategory: StateFlow<TransactionSubEntity?> = _uiState.map { it.subCategoryId }.distinctUntilChanged()              // 避免重复ID触发
+        .flatMapLatest { id ->     // 每当上游（subCategoryId）变化，就取消之前的流，启动新的
+            transactionRepository.getSubItemById(id ?: -1)  // 如果为null则传-1
         }.stateIn(
-            scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), null
+            scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
         )
 
     // 核心查询参数组合
-    @OptIn(ExperimentalCoroutinesApi::class)
-
-    private val queryParams = combine(
+    @OptIn(ExperimentalCoroutinesApi::class) private val queryParams = combine(
         _uiState.map { it.curSelectBookId },
         _uiState.map { it.subCategoryId },
         _uiState.map { it.year },
@@ -84,56 +83,69 @@ class BookViewModel(
         QueryParams(bookId, subCategoryId, year, month, refresh)
     }.distinctUntilChanged()
 
+    // 交易数据流（根据查询参数动态更新）
     @OptIn(ExperimentalCoroutinesApi::class) val transactionData: StateFlow<List<AddQuickEntity>> = queryParams.flatMapLatest { params ->
-        LogUtils.d("queryParams transactionData: $params")
-        quickRepository.getQuickListByCategory(params.bookId, uiState.value.categoryId, params.subCategoryId)
-    }.stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
-    )
+            LogUtils.d("queryParams transactionData: $params")
+            quickRepository.getQuickListByCategory(
+                params.bookId, uiState.value.categoryId, params.subCategoryId
+            )
+        }.stateIn(
+            scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+        )
 
-    // 按日期分类的 StateFlow
-    val monthSummaryData: StateFlow<TransactionGroupedData?> = combine(_uiState.map { it.year }, _uiState.map { it.month }, transactionData) { year, month, list ->
+    // 按日期分类的月度汇总数据流
+    val monthSummaryData: StateFlow<TransactionGroupedData?> = combine(
+        _uiState.map { it.year }, _uiState.map { it.month }, transactionData
+    ) { year, month, list ->
         Triple(year, month, list)
     }.map { params ->
-        // 如果是全年，返回空列表，全年的数据单独处理
+        // 如果是全年（month <= 0），返回null，全年的数据单独处理
         if (params.second <= 0) {
             null
         } else {
-            // 1. 按选中的年月过滤
+            // 1. 按选中的年月过滤交易数据
             val filteredTransactions = filterTransactions(params.third, params.first, params.second)
-            // 按日期分组并格式化
+            // 2. 按日期分组并格式化
             groupTransactionsByDate(filteredTransactions)
         }
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
     )
 
-    // 全年按日期分类的 StateFlow
-    val yearSummaryData: StateFlow<YearSummaryData?> = combine(_uiState.map { it.year }, _uiState.map { it.month }, transactionData) { year, month, list ->
+    // 全年按日期分类的年度汇总数据流
+    val yearSummaryData: StateFlow<YearSummaryData?> = combine(
+        _uiState.map { it.year }, _uiState.map { it.month }, transactionData
+    ) { year, month, list ->
         Triple(year, month, list)
     }.map { params ->
-        // 如果不是全年，返回空列表
+        // 如果不是全年（month > 0），返回null
         if (params.second > 0) {
             null
         } else {
-            // 1. 按选中的年月过滤
+            // 1. 按选中的年份过滤交易数据
             val filteredTransactions = filterTransactions(params.third, params.first, params.second)
+            // 2. 分组并计算统计数据
             groupAndCalculateStatistics(filteredTransactions)
         }
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
     )
 
-    // 账本列表
+    // 账本列表数据流
     val books: StateFlow<List<BookEntity>> = bookRepository.getItems().stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
     )
 
-    // 分类
+    // 分类数据流（包含主分类和子分类）
     val categories: StateFlow<List<TransactionWithSubCategories>> = transactionRepository.getAllItemsWithSub().stateIn(
-        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
     )
 
+    /**
+     * 更新账本实体到数据库
+     *
+     * @param bookEntity 要更新的账本实体
+     */
     fun updateBookEntityDatabase(bookEntity: BookEntity?) {
         bookEntity?.let {
             viewModelScope.launch {
@@ -142,12 +154,22 @@ class BookViewModel(
         }
     }
 
+    /**
+     * 插入新账本到数据库
+     *
+     * @param name 账本名称
+     */
     fun insertBookEntityDatabase(name: String) {
         viewModelScope.launch {
             bookRepository.insert(BookEntity(name = name))
         }
     }
 
+    /**
+     * 从数据库删除账本
+     *
+     * @param bookEntity 要删除的账本实体
+     */
     fun deleteBookEntityDatabase(bookEntity: BookEntity?) {
         bookEntity?.let {
             viewModelScope.launch {
@@ -156,56 +178,109 @@ class BookViewModel(
         }
     }
 
-
+    /**
+     * 更新当前编辑的账本实体
+     *
+     * @param bookEntity 编辑中的账本实体
+     */
     fun updateEditBookEntity(bookEntity: BookEntity?) {
         _uiState.value = _uiState.value.copy(curEditBookEntity = bookEntity)
     }
 
+    /**
+     * 更新编辑账本状态
+     *
+     * @param isEdit 是否为编辑模式
+     */
     fun updateEditBookStatus(isEdit: Boolean) {
         _uiState.update { it.copy(isEditBook = isEdit) }
     }
 
+    /**
+     * 更新查询日期
+     *
+     * @param year 年份
+     * @param month 月份（0表示全年）
+     */
     fun updateQueryDate(year: Int, month: Int) {
         _uiState.update { it.copy(year = year, month = month) }
     }
 
-    fun updateQueryCategory(
-        subCategoryEntity: TransactionSubEntity?
-    ) {
-        // 如果没有子分类，则将子分类ID设置为null
+    /**
+     * 更新查询分类
+     *
+     * @param subCategoryEntity 子分类实体
+     */
+    fun updateQueryCategory(subCategoryEntity: TransactionSubEntity?) {
         _uiState.update {
-            it.copy(categoryId = subCategoryEntity?.categoryId, subCategoryId = subCategoryEntity?.id)
+            it.copy(
+                categoryId = subCategoryEntity?.categoryId,  // 更新主分类ID
+                subCategoryId = subCategoryEntity?.id        // 更新子分类ID
+            )
         }
     }
 
+    /**
+     * 更新底部弹窗类型
+     *
+     * @param type 弹窗类型
+     */
     fun updateSheetType(type: ShowBottomSheetType) {
         _uiState.update { it.copy(sheetType = type) }
     }
 
+    /**
+     * 更新选中的账本
+     *
+     * @param bookId 账本ID
+     */
     fun updateSelectBook(bookId: Int) {
         _uiState.update { it.copy(curSelectBookId = bookId) }
     }
 
+    /**
+     * 检查是否显示指定类型的底部弹窗
+     *
+     * @param type 弹窗类型
+     * @return 如果当前显示的弹窗类型匹配则返回true
+     */
     fun showBottomSheet(type: ShowBottomSheetType) = _uiState.value.sheetType == type
 
+    /**
+     * 关闭底部弹窗
+     */
     fun dismissBottomSheet() {
         _uiState.update { it.copy(sheetType = ShowBottomSheetType.NONE) }
     }
 
+    /**
+     * 触发数据刷新
+     */
     fun refresh() {
+        LogUtils.i("刷新账单首页面数据")
         _uiState.update {
-            it.copy(refresh = !it.refresh)
+            it.copy(refresh = !it.refresh)  // 切换刷新标志
         }
     }
 
+    /**
+     * 删除快速记账记录
+     *
+     * @param quick 要删除的快速记账实体
+     */
     fun deleteQuickDatabase(quick: QuickEntity) {
         viewModelScope.launch {
             quickRepository.delete(quick)
         }
-        refresh()
+        refresh()  // 删除后刷新数据
     }
 
-    // 按日期分组并格式化的核心方法
+    /**
+     * 按日期分组并格式化的核心方法
+     *
+     * @param transactions 交易数据列表
+     * @return 按日期分组的数据
+     */
     private fun groupTransactionsByDate(
         transactions: List<AddQuickEntity>
     ): TransactionGroupedData {
@@ -228,13 +303,20 @@ class BookViewModel(
         // 2. 创建日期分组并格式化显示
         val dateGroups = groupedByDay.map { (dateMillis, dayTransactions) ->
             createDateGroup(dateMillis, dayTransactions)
-        }.sortedByDescending { it.date } // 按日期倒序排列
+        }.sortedByDescending { it.date } // 按日期倒序排列（最新的在前）
 
         return TransactionGroupedData(
             year = currentYear, month = currentMonth, groups = dateGroups
         )
     }
 
+    /**
+     * 创建日期分组对象
+     *
+     * @param dateMillis 日期时间戳
+     * @param transactions 该日期的交易列表
+     * @return 日期分组对象
+     */
     private fun createDateGroup(
         dateMillis: Long, transactions: List<AddQuickEntity>
     ): TransactionDateGroup {
@@ -267,10 +349,16 @@ class BookViewModel(
         // 排序顺序：越近的日期排序值越大
         val sortOrder = Int.MAX_VALUE - diffInDays
 
-        return TransactionDateGroup(
-            date = dateMillis, displayDate = displayDate, sortOrder = sortOrder, transactions = transactions.sortedByDescending { it.quick.date })
+        return TransactionDateGroup(date = dateMillis, displayDate = displayDate, sortOrder = sortOrder, transactions = transactions.sortedByDescending { it.quick.date }  // 按时间倒序排列
+        )
     }
 
+    /**
+     * 获取星期几的中文表示
+     *
+     * @param calendar 日历对象
+     * @return 星期几的中文字符串
+     */
     private fun getDayOfWeekChinese(calendar: Calendar): String {
         return when (calendar.get(Calendar.DAY_OF_WEEK)) {
             Calendar.SUNDAY -> "周日"
@@ -286,7 +374,12 @@ class BookViewModel(
 
     // 处理年统计数据 ===================================================================================================
 
-    // 分组和统计逻辑
+    /**
+     * 分组和统计逻辑（用于年度数据）
+     *
+     * @param transactions 交易数据列表
+     * @return 年度统计数据
+     */
     private fun groupAndCalculateStatistics(
         transactions: List<AddQuickEntity>
     ): YearSummaryData {
@@ -300,14 +393,14 @@ class BookViewModel(
                 timeInMillis = entity.quick.date
             }
             MonthKey(
-                year = calendar.get(Calendar.YEAR), month = calendar.get(Calendar.MONTH) + 1
+                year = calendar.get(Calendar.YEAR), month = calendar.get(Calendar.MONTH) + 1  // Calendar月份从0开始，加1转为1-12
             )
         }
 
         // 转换并排序月份
         val monthDataList = groupedByMonth.map { (monthKey, monthTransactions) ->
             createMonthData(monthKey, monthTransactions)
-        }.sortedByDescending { "${it.year}${String.format("%02d", it.month)}" }
+        }.sortedByDescending { "${it.year}${String.format("%02d", it.month)}" }  // 按年月倒序排列
 
         // 计算全年总计
         val totalIncome = monthDataList.sumOf { it.totalIncome }
@@ -318,6 +411,13 @@ class BookViewModel(
         )
     }
 
+    /**
+     * 创建月份数据对象
+     *
+     * @param monthKey 月份键（年份+月份）
+     * @param transactions 该月的交易列表
+     * @return 月份数据对象
+     */
     private fun createMonthData(
         monthKey: MonthKey, transactions: List<AddQuickEntity>
     ): MonthData {
@@ -351,8 +451,10 @@ class BookViewModel(
                 }, transactions = categoryTransactions, monthDisplay = "${monthKey.month}月"
             )
         }.sortedWith(compareByDescending<CategoryData> {
+            // 先按分类类型排序（收入在前，支出在后）
             it.categoryType == TransactionAmountType.INCOME.ordinal
         }.thenByDescending {
+            // 再按总金额降序排序
             it.totalAmount
         })
 
@@ -368,6 +470,14 @@ class BookViewModel(
         )
     }
 
+    /**
+     * 获取分类详情标题
+     *
+     * @param type 交易类型（收入/支出）
+     * @param monthDisplay 月份显示文本
+     * @param category 分类名称
+     * @return 格式化后的标题
+     */
     fun getCategoryDetailTitle(type: Int, monthDisplay: String, category: String): String {
         return if (type == TransactionAmountType.EXPENSE.ordinal) {
             "${monthDisplay}${category}支出"
@@ -375,5 +485,4 @@ class BookViewModel(
             "${monthDisplay}${category}收入"
         }
     }
-
 }

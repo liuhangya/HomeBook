@@ -33,6 +33,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.fanda.homebook.R
 import com.fanda.homebook.closet.viewmodel.AddClosetViewModel
+import com.fanda.homebook.common.sheet.CategoryExpandBottomSheet
+import com.fanda.homebook.common.sheet.ColorTypeBottomSheet
+import com.fanda.homebook.common.sheet.GridBottomSheet
+import com.fanda.homebook.common.sheet.ListBottomSheet
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.TopIconAppBar
@@ -44,11 +48,7 @@ import com.fanda.homebook.data.rack.RackEntity
 import com.fanda.homebook.data.rack.RackSubCategoryEntity
 import com.fanda.homebook.data.season.SeasonEntity
 import com.fanda.homebook.data.size.SizeEntity
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.quick.sheet.CategoryBottomSheet
-import com.fanda.homebook.quick.sheet.ColorTypeBottomSheet
-import com.fanda.homebook.quick.sheet.GridBottomSheet
-import com.fanda.homebook.quick.sheet.ListBottomSheet
+import com.fanda.homebook.common.entity.ShowBottomSheetType
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.quick.ui.EditAmountField
 import com.fanda.homebook.quick.ui.EditQuickClosetScreen
@@ -66,10 +66,16 @@ import com.hjq.toast.Toaster
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
-/*
-* 记一笔页面
-* */
+/**
+ * 记一笔页面（快速记账页面）
+ * 包含金额输入、分类选择、支付方式、衣橱同步、囤货同步等功能
+ *
+ * @param modifier 修饰符
+ * @param navController 导航控制器
+ * @param quickViewModel 快速记账ViewModel
+ * @param addClosetViewModel 衣橱ViewModel
+ * @param stockViewModel 囤货ViewModel
+ */
 @Composable fun AddQuickHomePage(
     modifier: Modifier = Modifier,
     navController: NavController,
@@ -77,7 +83,7 @@ import kotlinx.coroutines.launch
     addClosetViewModel: AddClosetViewModel = viewModel(factory = AppViewModelProvider.factory),
     stockViewModel: AddStockViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
-
+    // 收集快速记账相关状态
     val uiState by quickViewModel.uiState.collectAsState()
     val categories by quickViewModel.categories.collectAsState()
     val subCategories by quickViewModel.subCategories.collectAsState()
@@ -86,7 +92,7 @@ import kotlinx.coroutines.launch
     val payWay by quickViewModel.payWay.collectAsState()
     val payWays by quickViewModel.payWays.collectAsState()
 
-    // 衣橱数据
+    // 收集衣橱相关状态
     val addClosetUiState by addClosetViewModel.addClosetUiState.collectAsState()
     val colorTypes by addClosetViewModel.colorTypes.collectAsState()
     val products by addClosetViewModel.products.collectAsState()
@@ -101,7 +107,7 @@ import kotlinx.coroutines.launch
     val closetCategory by addClosetViewModel.category.collectAsState()
     val closetSubCategory by addClosetViewModel.subCategory.collectAsState()
 
-    // 囤货数据
+    // 收集囤货相关状态
     val addStockUiState by stockViewModel.uiState.collectAsState()
     val rackEntity by stockViewModel.rackEntity.collectAsState()
     val stockProduct by stockViewModel.product.collectAsState()
@@ -113,92 +119,108 @@ import kotlinx.coroutines.launch
     LogUtils.d("addClosetUiState: $addClosetUiState")
     LogUtils.d("addStockUiState: $addStockUiState")
 
-
-    // 获取焦点管理器
+    // 获取焦点管理器（用于关闭输入法）
     val focusManager = LocalFocusManager.current
-
     val context = LocalContext.current
-
     val scrollState = rememberScrollState()
-
     val coroutineScope = rememberCoroutineScope()
 
-    // 通过 statusBarsPadding 单独加padding，让弹窗背景占满全屏
-    Scaffold(modifier = modifier.statusBarsPadding(), topBar = {
-        TopIconAppBar(
-            title = "记一笔",
-            onBackClick = {
-                navController.navigateUp()
-            },
-            rightText = "保存",
-            onRightActionClick = {
-                focusManager.clearFocus()
-                // 先校验记一笔的参数
-                if (quickViewModel.checkParams()) {
-                    // 再根据是否选中同步衣橱或囤货，再单独判断参数
-                    // 是否同步到衣橱
-                    if (quickViewModel.uiState.value.quickEntity.syncCloset) {
-                        addClosetViewModel.updateClosetPrice(uiState.quickEntity.price)
-                        if (addClosetViewModel.checkParams()) {
+    Scaffold(
+        modifier = modifier.statusBarsPadding(), topBar = {
+            TopIconAppBar(
+                title = "记一笔",
+                onBackClick = {
+                    navController.navigateUp()  // 返回上一页
+                },
+                rightText = "保存",
+                onRightActionClick = {
+                    focusManager.clearFocus()  // 保存前先关闭键盘
+
+                    // 先校验记一笔的基本参数
+                    if (quickViewModel.checkParams()) {
+                        // 根据是否选中同步衣橱，校验衣橱参数
+                        if (quickViewModel.uiState.value.quickEntity.syncCloset) {
+                            addClosetViewModel.updateClosetPrice(uiState.quickEntity.price)
+                            if (!addClosetViewModel.checkParams()) {
+                                return@TopIconAppBar  // 衣橱参数校验失败
+                            }
+                        }
+
+                        // 根据是否选中同步囤货，校验囤货参数
+                        if (quickViewModel.uiState.value.quickEntity.syncStock) {
+                            stockViewModel.updatePrice(uiState.quickEntity.price)
+                            if (!stockViewModel.checkParams()) {
+                                return@TopIconAppBar  // 囤货参数校验失败
+                            }
+                        }
+
+                        // 所有校验通过，开始保存
+                        // 先保存衣橱数据（如果需要）
+                        if (quickViewModel.uiState.value.quickEntity.syncCloset) {
                             addClosetViewModel.saveClosetEntityDatabase(context) {}
-                        } else {
-                            return@TopIconAppBar
                         }
-                    }
 
-                    if (quickViewModel.uiState.value.quickEntity.syncStock) {
-                        stockViewModel.updatePrice(uiState.quickEntity.price)
-                        if (stockViewModel.checkParams()) {
+                        // 再保存囤货数据（如果需要）
+                        if (quickViewModel.uiState.value.quickEntity.syncStock) {
                             stockViewModel.saveStockEntityDatabase(context) {}
-                        } else {
-                            return@TopIconAppBar
+                        }
+
+                        // 最后保存记账数据
+                        quickViewModel.saveQuickEntityDatabase {
+                            Toaster.show("保存成功")
+                            navController.navigateUp()  // 保存成功后返回
                         }
                     }
-
-                    quickViewModel.saveQuickEntityDatabase {
-                        Toaster.show("保存成功")
-                        navController.navigateUp()
-                    }
-                }
-            },
-            backIconPainter = painterResource(R.mipmap.icon_back),
-        )
-    }) { padding ->
-
-        // 创建一个覆盖整个屏幕的可点击区域（放在最外层）
+                },
+                backIconPainter = painterResource(R.mipmap.icon_back),
+            )
+        }) { padding ->
+        // 创建一个覆盖整个屏幕的可点击区域，用于点击空白处关闭输入法
         Box(modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {// 给最外层添加事件，用于取消输入框的焦点，从而关闭输入法
+            .pointerInput(Unit) {
                 detectTapGestures(onTap = { focusManager.clearFocus() }, onDoubleTap = { focusManager.clearFocus() }, onLongPress = { focusManager.clearFocus() })
             }
-            .background(Color.Transparent) // 必须有背景或 clickable 才能响应事件
+            .background(Color.Transparent)  // 透明背景，仅用于接收点击事件
         ) {
-            // 为了让 padding 内容能滑动，所以用 Column 包起来
+            // 主内容区域（可滚动）
             Column(
                 modifier = Modifier
                     .padding(padding)
-                    .imePadding()   // 让输入法能顶起内容，不遮挡内容
-                    .verticalScroll(scrollState)  // 让内容能滑动，内容的 padding 不能加在这里，不然 padding 部分不能滑过去
+                    .imePadding()  // 让输入法能顶起内容
+                    .verticalScroll(scrollState)  // 垂直滚动
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
+                    // 顶部类型选择器（分类和日期）
                     TopTypeSelector(data = categories, transactionType = category, date = convertMillisToDate(uiState.quickEntity.date, DATE_FORMAT_MD), onDateClick = {
                         quickViewModel.updateSheetType(ShowBottomSheetType.DATE)
                     }, onTypeChange = {
                         quickViewModel.updateCategory(it)
                     })
+
                     Spacer(modifier = Modifier.height(20.dp))
+
+                    // 金额输入框
                     EditAmountField(price = uiState.quickEntity.price) {
                         quickViewModel.updatePrice(it)
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
-                    SelectCategoryGrid(initial = subCategory, items = subCategories) {
+
+                    // 分类选择网格
+                    SelectCategoryGrid(
+                        initial = subCategory, items = subCategories
+                    ) {
                         quickViewModel.updateSubCategory(it)
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // 备注输入框
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
                             title = "备注",
@@ -213,7 +235,10 @@ import kotlinx.coroutines.launch
                                 quickViewModel.updateQuickComment(it)
                             })
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // 付款方式选择
                     GradientRoundedBoxWithStroke {
                         ItemOptionMenu(
                             title = "付款方式", rightText = payWay?.name ?: "", showText = true, modifier = Modifier
@@ -224,7 +249,10 @@ import kotlinx.coroutines.launch
                             quickViewModel.updateSheetType(ShowBottomSheetType.PAY_WAY)
                         }
                     }
+
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // 衣橱同步设置
                     EditQuickClosetScreen(
                         showSyncCloset = uiState.quickEntity.syncCloset,
                         bottomComment = addClosetUiState.closetEntity.comment,
@@ -235,10 +263,10 @@ import kotlinx.coroutines.launch
                         season = addClosetViewModel.getSeasonDes(selectSeasons),
                         owner = owner?.name ?: "",
                         size = size?.name ?: "",
-                        onCheckedChange = {
-                            quickViewModel.updateSyncCloset(it)
+                        onCheckedChange = { sync ->
+                            quickViewModel.updateSyncCloset(sync)
+                            // 开关切换后自动滚动到底部
                             coroutineScope.launch {
-                                // 延迟 50ms，等待滚动完成
                                 delay(50)
                                 scrollState.animateScrollTo(scrollState.maxValue)
                             }
@@ -246,10 +274,13 @@ import kotlinx.coroutines.launch
                         onBottomCommentChange = {
                             addClosetViewModel.updateClosetComment(it)
                         },
-                        onClick = {
-                            addClosetViewModel.updateSheetType(it)
+                        onClick = { sheetType ->
+                            addClosetViewModel.updateSheetType(sheetType)
                         })
+
                     Spacer(modifier = Modifier.height(12.dp))
+
+                    // 囤货同步设置
                     EditQuickStockScreen(
                         sync = uiState.quickEntity.syncStock,
                         name = addStockUiState.stockEntity.name,
@@ -258,8 +289,9 @@ import kotlinx.coroutines.launch
                         period = period?.name ?: "",
                         stockProduct = stockProduct?.name ?: "",
                         bottomStockComment = addStockUiState.stockEntity.comment,
-                        onCheckedChange = {
-                            quickViewModel.updateSyncStock(it)
+                        onCheckedChange = { sync ->
+                            quickViewModel.updateSyncStock(sync)
+                            // 开关切换后自动滚动到底部
                             coroutineScope.launch {
                                 delay(50)
                                 scrollState.animateScrollTo(scrollState.maxValue)
@@ -271,39 +303,44 @@ import kotlinx.coroutines.launch
                         onNameChange = {
                             stockViewModel.updateStockName(it)
                         },
-                        onClick = {
-                            stockViewModel.updateSheetType(it)
+                        onClick = { sheetType ->
+                            stockViewModel.updateSheetType(sheetType)
                         })
                 }
             }
         }
-
-        if (quickViewModel.showBottomSheet(ShowBottomSheetType.DATE)) {
-            // 日期选择器
-            CustomDatePickerModal(initialDate = uiState.quickEntity.date , onDateSelected = {
-                quickViewModel.updateDate(it)
-            }, onDismiss = {
-                quickViewModel.dismissBottomSheet()
-            })
-        }
-
     }
 
+    // 日期选择器弹窗
+    if (quickViewModel.showBottomSheet(ShowBottomSheetType.DATE)) {
+        CustomDatePickerModal(initialDate = uiState.quickEntity.date, onDateSelected = { selectedDate ->
+            quickViewModel.updateDate(selectedDate)
+        }, onDismiss = {
+            quickViewModel.dismissBottomSheet()
+        })
+    }
+
+    // 付款方式选择弹窗
     ListBottomSheet(initial = payWay, title = "付款方式", dataSource = payWays, visible = { uiState.sheetType == ShowBottomSheetType.PAY_WAY }, displayText = { it.name }, onSettingClick = {
         quickViewModel.dismissBottomSheet()
-        navController.navigate(RoutePath.EditPayWay.route)
-    }, onDismiss = { quickViewModel.dismissBottomSheet() }) {
-        quickViewModel.updatePayWay(it)
+        navController.navigate(RoutePath.EditPayWay.route)  // 跳转到支付方式管理
+    }, onDismiss = { quickViewModel.dismissBottomSheet() }) { selectedPayWay ->
+        quickViewModel.updatePayWay(selectedPayWay)
     }
 
-    ColorTypeBottomSheet(color = colorType, colorList = colorTypes, visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) }, onDismiss = {
-        addClosetViewModel.dismissBottomSheet()
-    }, onConfirm = {
-        addClosetViewModel.updateClosetColor(it)
-    }, onSettingClick = {
-        addClosetViewModel.dismissBottomSheet()
-        navController.navigate(RoutePath.EditColor.route)
-    })
+    // 衣橱相关弹窗
+    ColorTypeBottomSheet(
+        color = colorType,
+        colorList = colorTypes,
+        visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.COLOR) },
+        onDismiss = { addClosetViewModel.dismissBottomSheet() },
+        onConfirm = { selectedColor ->
+            addClosetViewModel.updateClosetColor(selectedColor)
+        },
+        onSettingClick = {
+            addClosetViewModel.dismissBottomSheet()
+            navController.navigate(RoutePath.EditColor.route)  // 跳转到颜色管理
+        })
 
     ListBottomSheet<ProductEntity>(
         initial = product,
@@ -314,9 +351,9 @@ import kotlinx.coroutines.launch
         onDismiss = { addClosetViewModel.dismissBottomSheet() },
         onSettingClick = {
             addClosetViewModel.dismissBottomSheet()
-            navController.navigate(RoutePath.EditProduct.route)
-        }) {
-        addClosetViewModel.updateClosetProduct(it)
+            navController.navigate(RoutePath.EditProduct.route)  // 跳转到品牌管理
+        }) { selectedProduct ->
+        addClosetViewModel.updateClosetProduct(selectedProduct)
     }
 
     ListBottomSheet<OwnerEntity>(
@@ -325,8 +362,8 @@ import kotlinx.coroutines.launch
         dataSource = addClosetViewModel.owners,
         visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.OWNER) },
         displayText = { it.name },
-        onDismiss = { addClosetViewModel.dismissBottomSheet() }) {
-        addClosetViewModel.updateClosetOwner(it)
+        onDismiss = { addClosetViewModel.dismissBottomSheet() }) { selectedOwner ->
+        addClosetViewModel.updateClosetOwner(selectedOwner)
     }
 
     GridBottomSheet<SizeEntity>(
@@ -340,9 +377,9 @@ import kotlinx.coroutines.launch
         onDismiss = { addClosetViewModel.dismissBottomSheet() },
         onSettingClick = {
             addClosetViewModel.dismissBottomSheet()
-            navController.navigate(RoutePath.EditSize.route)
-        }) {
-        addClosetViewModel.updateClosetSize(it)
+            navController.navigate(RoutePath.EditSize.route)  // 跳转到尺码管理
+        }) { selectedSize ->
+        addClosetViewModel.updateClosetSize(selectedSize)
     }
 
     GridBottomSheet<SeasonEntity>(
@@ -353,36 +390,34 @@ import kotlinx.coroutines.launch
         displayText = { it.name },
         dpSize = DpSize(66.dp, 36.dp),
         column = GridCells.Fixed(4),
-        onDismiss = { addClosetViewModel.dismissBottomSheet() }) {
-        addClosetViewModel.updateClosetSeason(it)
+        onDismiss = { addClosetViewModel.dismissBottomSheet() }) { selectedSeasons ->
+        addClosetViewModel.updateClosetSeason(selectedSeasons)
     }
 
-    CategoryBottomSheet(
+    CategoryExpandBottomSheet(
         categories = closetCategories,
         categoryEntity = closetCategory,
         subCategoryEntity = closetSubCategory,
         visible = { addClosetViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY) },
-        onDismiss = {
-            addClosetViewModel.dismissBottomSheet()
-        },
+        onDismiss = { addClosetViewModel.dismissBottomSheet() },
         onSettingClick = {
             addClosetViewModel.dismissBottomSheet()
-            navController.navigate(RoutePath.EditCategory.route)
+            navController.navigate(RoutePath.EditCategory.route)  // 跳转到分类管理
         },
-        onConfirm = { category, subCategory ->
-            LogUtils.i("选中的分类： $category, $subCategory")
-            addClosetViewModel.updateSelectedCategory(category, subCategory)
+        onConfirm = { selectedCategory, selectedSubCategory ->
+            LogUtils.i("选中的分类： $selectedCategory, $selectedSubCategory")
+            addClosetViewModel.updateSelectedCategory(selectedCategory, selectedSubCategory)
         })
 
-    // 囤货相关布局
+    // 囤货相关弹窗
     ListBottomSheet<RackEntity>(
         initial = rackEntity,
         title = "货架",
         dataSource = stockViewModel.racks,
         visible = { stockViewModel.showBottomSheet(ShowBottomSheetType.RACK) },
         displayText = { it.name },
-        onDismiss = { stockViewModel.dismissBottomSheet() }) {
-        stockViewModel.updateRack(it)
+        onDismiss = { stockViewModel.dismissBottomSheet() }) { selectedRack ->
+        stockViewModel.updateRack(selectedRack)
     }
 
     ListBottomSheet<ProductEntity>(
@@ -394,9 +429,9 @@ import kotlinx.coroutines.launch
         onDismiss = { stockViewModel.dismissBottomSheet() },
         onSettingClick = {
             stockViewModel.dismissBottomSheet()
-            navController.navigate(RoutePath.EditProduct.route)
-        }) {
-        stockViewModel.updateProduct(it)
+            navController.navigate(RoutePath.EditProduct.route)  // 跳转到品牌管理
+        }) { selectedProduct ->
+        stockViewModel.updateProduct(selectedProduct)
     }
 
     ListBottomSheet<RackSubCategoryEntity>(
@@ -405,8 +440,8 @@ import kotlinx.coroutines.launch
         dataSource = rackSubCategoryList,
         visible = { stockViewModel.showBottomSheet(ShowBottomSheetType.STOCK_CATEGORY) },
         displayText = { it.name },
-        onDismiss = { stockViewModel.dismissBottomSheet() }) {
-        stockViewModel.updateCategory(it)
+        onDismiss = { stockViewModel.dismissBottomSheet() }) { selectedCategory ->
+        stockViewModel.updateCategory(selectedCategory)
     }
 
     ListBottomSheet<PeriodEntity>(
@@ -415,16 +450,15 @@ import kotlinx.coroutines.launch
         dataSource = stockViewModel.periods,
         visible = { stockViewModel.showBottomSheet(ShowBottomSheetType.USAGE_PERIOD) },
         displayText = { it.name },
-        onDismiss = { stockViewModel.dismissBottomSheet() }) {
-        stockViewModel.updatePeriod(it)
+        onDismiss = { stockViewModel.dismissBottomSheet() }) { selectedPeriod ->
+        stockViewModel.updatePeriod(selectedPeriod)
     }
-
-
 }
-
 
 @Composable @Preview(showBackground = true) fun AddQuickHomePagePreview() {
     HomeBookTheme {
-        AddQuickHomePage(modifier = Modifier.fillMaxWidth(), navController = rememberNavController())
+        AddQuickHomePage(
+            modifier = Modifier.fillMaxWidth(), navController = rememberNavController()
+        )
     }
 }

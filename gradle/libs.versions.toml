@@ -14,7 +14,6 @@ material = "1.10.0"
 mmkvKtx = "2.0.1"
 navigationCompose = "2.7.4"
 coilCompose = "2.4.0"
-colorpicker = "1.1.2"
 room = "2.6.1"
 jetbrainsKotlinJvm = "1.9.20"
 jetbrainsKotlinKsp = "1.9.20-1.0.14"
@@ -48,7 +47,6 @@ material = { group = "com.google.android.material", name = "material", version.r
 #后面添加的
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-compose-colorpicker = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker" }
 mmkv-ktx = { module = "com.github.DylanCaiCoding:MMKV-KTX", version.ref = "mmkvKtx" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }

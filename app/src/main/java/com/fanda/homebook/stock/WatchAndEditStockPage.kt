@@ -11,7 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +24,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -65,16 +63,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.fanda.homebook.R
-import com.fanda.homebook.book.sheet.MonthBottomSheet
-import com.fanda.homebook.closet.sheet.SelectPhotoBottomSheet
+import com.fanda.homebook.common.sheet.MonthBottomSheet
+import com.fanda.homebook.common.sheet.SelectPhotoBottomSheet
 import com.fanda.homebook.components.CustomDropdownMenu
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
 import com.fanda.homebook.components.ItemOptionMenu
 import com.fanda.homebook.components.MenuCenterItem
-import com.fanda.homebook.components.MenuItem
 import com.fanda.homebook.data.AppViewModelProvider
 import com.fanda.homebook.data.LocalDataSource.stockMenuList
 import com.fanda.homebook.data.period.PeriodEntity
@@ -86,8 +82,8 @@ import com.fanda.homebook.data.stock.StockMenuEntity
 import com.fanda.homebook.data.stock.StockUseStatus
 import com.fanda.homebook.data.stock.getStockDes
 import com.fanda.homebook.data.stock.visibleExpireTime
-import com.fanda.homebook.entity.ShowBottomSheetType
-import com.fanda.homebook.quick.sheet.ListBottomSheet
+import com.fanda.homebook.common.entity.ShowBottomSheetType
+import com.fanda.homebook.common.sheet.ListBottomSheet
 import com.fanda.homebook.quick.ui.CustomDatePickerModal
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.stock.sheet.StockCommentBottomSheet
@@ -99,7 +95,6 @@ import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
 import com.hjq.toast.Toaster
-import kotlin.collections.forEach
 
 @OptIn(ExperimentalMaterial3Api::class) @Composable fun WatchAndEditStockPage(
     modifier: Modifier = Modifier, navController: NavController, stockViewModel: WatchAndEditStockViewModel = viewModel(factory = AppViewModelProvider.factory)
