@@ -43,14 +43,18 @@ import java.time.ZoneOffset
     onDateSelected: (Long?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    // 转换为UTC的LocalDate（去除时间部分，只保留日期）
-    val utcDate = Instant.ofEpochMilli(initialDate).atZone(ZoneOffset.UTC).toLocalDate()
+    // 转换为UTC的LocalDate
+    val utcDate = Instant.ofEpochMilli(if (initialDate <=0L) System.currentTimeMillis() else initialDate)
+        .atZone(ZoneOffset.UTC)
+        .toLocalDate()
+    // 将UTC日期转换为时间戳，作为初始日期
+    val utcMillis = utcDate
+        .atStartOfDay(ZoneOffset.UTC)
+        .toInstant()
+        .toEpochMilli()
 
-    // 将UTC日期转换为时间戳（当天0点），作为DatePicker的初始日期
-    val utcMillis = utcDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-
-    // 创建DatePicker状态，设置初始选中日期
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = utcMillis)
+
 
     Dialog(
         onDismissRequest = onDismiss, properties = DialogProperties(
@@ -67,9 +71,9 @@ import java.time.ZoneOffset
             strokeColor = Color.White,                // 边框颜色
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)                       // 外边距
+                .padding(12.dp)                       // 外边距
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column {
                 // Material3 DatePicker组件
                 DatePicker(
                     state = datePickerState, colors = DatePickerDefaults.colors().copy(
@@ -85,7 +89,7 @@ import java.time.ZoneOffset
 
                 // 底部按钮行
                 Row(
-                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End  // 按钮靠右对齐
+                    modifier = Modifier.fillMaxWidth().padding(end = 16.dp, bottom = 16.dp), horizontalArrangement = Arrangement.End  // 按钮靠右对齐
                 ) {
                     // 取消按钮
                     Button(

@@ -183,7 +183,7 @@ import com.fanda.homebook.tools.LogUtils
             closetViewModel.dismissBottomSheet()
         }) { selectedUri ->
         closetViewModel.dismissBottomSheet()
-        navController.navigate("${RoutePath.AddCloset.route}?imagePath=${selectedUri}")
+        navController.navigate("${RoutePath.AddCloset.route}?imagePath=${selectedUri}&categoryId=${uiState.categoryId}")
     }
 
     // 分类选择弹窗（用于移动操作）

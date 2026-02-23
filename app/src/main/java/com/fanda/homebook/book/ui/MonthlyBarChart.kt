@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
+import com.dylanc.longan.getCompatColor
+import com.dylanc.longan.topActivity
+import com.fanda.homebook.R
 import com.fanda.homebook.book.viewmodel.MonthTransactionData
 import com.fanda.homebook.tools.LogUtils
 import com.github.mikephil.charting.charts.BarChart
@@ -74,10 +77,10 @@ private fun configureBarChart(
         position = XAxis.XAxisPosition.BOTTOM       // X轴在底部显示
         setDrawGridLines(false)                     // 不绘制网格线
         setDrawAxisLine(true)                       // 绘制轴线
-        axisLineColor = Color.Black.toArgb()        // 轴线颜色
+        axisLineColor = topActivity.getCompatColor(R.color.color_84878C)           // 轴线颜色
         axisLineWidth = 1f                          // 轴线宽度
         textSize = 14f                              // 轴标签文字大小
-        textColor = Color.Black.toArgb()            // 轴标签文字颜色
+        textColor = topActivity.getCompatColor(R.color.color_84878C)              // 轴标签文字颜色
         granularity = 1f                            // 最小刻度间隔
         labelCount = visibleCount                   // 显示的标签数量
         setCenterAxisLabels(false)                  // 不居中显示轴标签

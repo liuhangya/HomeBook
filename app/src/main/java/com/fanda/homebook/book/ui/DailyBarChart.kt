@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
+import com.dylanc.longan.getCompatColor
+import com.dylanc.longan.topActivity
+import com.fanda.homebook.R
 import com.fanda.homebook.book.viewmodel.DailyTransactionData
 import com.fanda.homebook.tools.LogUtils
 import com.github.mikephil.charting.charts.BarChart
@@ -85,10 +88,10 @@ private fun configureDailyChart(
         position = XAxis.XAxisPosition.BOTTOM   // X轴在底部显示
         setDrawGridLines(false)                 // 不绘制网格线
         setDrawAxisLine(true)                   // 绘制轴线
-        axisLineColor = Color.Black.toArgb()    // 轴线颜色
+        axisLineColor = topActivity.getCompatColor(R.color.color_84878C)       // 轴线颜色
         axisLineWidth = 1f                      // 轴线宽度
         textSize = 11f                          // 轴标签文字大小
-        textColor = Color.DarkGray.toArgb()     // 轴标签文字颜色
+        textColor = topActivity.getCompatColor(R.color.color_84878C)        // 轴标签文字颜色
         granularity = 1f                        // 最小刻度间隔
         labelCount = visibleDays                // 显示的标签数量
         setCenterAxisLabels(false)              // 不居中显示轴标签
@@ -110,10 +113,10 @@ private fun configureDailyChart(
         gridColor = Color.LightGray.copy(alpha = 0.3f).toArgb()  // 网格线颜色（浅灰色半透明）
         gridLineWidth = 0.5f                         // 网格线宽度
         setDrawAxisLine(true)                        // 绘制轴线
-        axisLineColor = Color.Black.toArgb()         // 轴线颜色
+        axisLineColor = topActivity.getCompatColor(R.color.color_84878C)         // 轴线颜色
         axisLineWidth = 1f                           // 轴线宽度
         textSize = 11f                               // 轴标签文字大小
-        textColor = Color.DarkGray.toArgb()          // 轴标签文字颜色
+        textColor = topActivity.getCompatColor(R.color.color_84878C)         // 轴标签文字颜色
         axisMinimum = 0f                             // Y轴最小值从0开始
         valueFormatter = yValueFormatter             // Y轴数值格式化器（带¥符号）
     }

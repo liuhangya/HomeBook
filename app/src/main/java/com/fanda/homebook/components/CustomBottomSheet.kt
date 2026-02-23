@@ -102,7 +102,7 @@ import kotlinx.coroutines.delay
                     // 禁用默认点击效果
                     interactionSource = remember { MutableInteractionSource() }, indication = null
                 ) { onDismiss() }
-                    .background(Color.Black.copy(alpha = scrimAlpha)) // 动态透明度
+
             )
 
             // 底部弹窗内容区域

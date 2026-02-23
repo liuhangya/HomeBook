@@ -6,7 +6,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.viewinterop.AndroidView
+import com.dylanc.longan.getCompatColor
+import com.dylanc.longan.getString
+import com.dylanc.longan.topActivity
 import com.fanda.homebook.tools.LogUtils
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
@@ -15,7 +19,7 @@ import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import kotlin.math.abs
-
+import com.fanda.homebook.R
 /**
  * 圆环图组件（使用MPAndroidChart库）
  * 显示分类数据的百分比分布，带有外部标签
@@ -88,7 +92,7 @@ private fun PieChart.updateChartData(data: List<Pair<String, Float>>, total: Dou
         colors = ColorTemplate.MATERIAL_COLORS.toList()  // 使用Material Design颜色
         sliceSpace = 2f                                  // 切片之间的间距
         valueTextSize = 11f                              // 数值文字大小
-        valueTextColor = Color.Black.toArgb()            // 数值文字颜色
+        valueTextColor = topActivity.getCompatColor(R.color.color_84878C)            // 数值文字颜色
 
         setDrawEntryLabels(false)                        // 不绘制条目标签
         setEntryLabelColor(Color.Transparent.toArgb())   // 条目标签颜色透明
@@ -101,7 +105,7 @@ private fun PieChart.updateChartData(data: List<Pair<String, Float>>, total: Dou
         valueLinePart1OffsetPercentage = 80f             // 值线第一部分偏移百分比
         valueLinePart1Length = 0.4f                      // 值线第一部分长度
         valueLinePart2Length = 0.3f                      // 值线第二部分长度
-        valueLineColor = Color.Black.toArgb()            // 值线颜色
+        valueLineColor = topActivity.getCompatColor(R.color.color_84878C)            // 值线颜色
         valueLineWidth = 1f                              // 值线宽度
         isValueLineVariableLength = true                 // 值线可变长度
     }
@@ -124,7 +128,7 @@ private fun PieChart.updateChartData(data: List<Pair<String, Float>>, total: Dou
     // 设置图表数据
     this.data = PieData(dataSet).apply {
         setValueTextSize(11f)                            // 数值文字大小
-        setValueTextColor(Color.Black.toArgb())          // 数值文字颜色
+        setValueTextColor(topActivity.getCompatColor(R.color.color_84878C))          // 数值文字颜色
         setValueFormatter(dataSet.valueFormatter)        // 数值格式化器
     }
 

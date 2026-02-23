@@ -141,6 +141,7 @@ import kotlinx.coroutines.launch
                         // 根据是否选中同步衣橱，校验衣橱参数
                         if (quickViewModel.uiState.value.quickEntity.syncCloset) {
                             addClosetViewModel.updateClosetPrice(uiState.quickEntity.price)
+                            addClosetViewModel.updateClosetDate(uiState.quickEntity.date)
                             if (!addClosetViewModel.checkParams()) {
                                 return@TopIconAppBar  // 衣橱参数校验失败
                             }
@@ -149,6 +150,7 @@ import kotlinx.coroutines.launch
                         // 根据是否选中同步囤货，校验囤货参数
                         if (quickViewModel.uiState.value.quickEntity.syncStock) {
                             stockViewModel.updatePrice(uiState.quickEntity.price)
+                            stockViewModel.updateBuyDate(uiState.quickEntity.date)
                             if (!stockViewModel.checkParams()) {
                                 return@TopIconAppBar  // 囤货参数校验失败
                             }

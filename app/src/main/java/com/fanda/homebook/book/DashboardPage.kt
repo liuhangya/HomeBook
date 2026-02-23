@@ -75,8 +75,12 @@ import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.formatYearMonth
 import com.fanda.homebook.tools.roundToString
 
-@OptIn(ExperimentalMaterial3Api::class) @Composable fun DashBoardPage(
-    modifier: Modifier = Modifier, navController: NavController, dashboardViewModel: DashboardViewModel = viewModel(factory = AppViewModelProvider.factory)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DashBoardPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    dashboardViewModel: DashboardViewModel = viewModel(factory = AppViewModelProvider.factory)
 ) {
     // 收集状态流
     val uiState by dashboardViewModel.uiState.collectAsState()
@@ -118,7 +122,10 @@ import com.fanda.homebook.tools.roundToString
                                 navController.popBackStack()  // 返回上一页
                             }) {
                         Image(
-                            painter = painterResource(id = R.mipmap.icon_back), contentDescription = "Back", contentScale = ContentScale.Fit, modifier = Modifier.size(24.dp)
+                            painter = painterResource(id = R.mipmap.icon_back),
+                            contentDescription = "Back",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
@@ -137,16 +144,23 @@ import com.fanda.homebook.tools.roundToString
                                 .align(Alignment.CenterStart)
                                 .clip(RoundedCornerShape(25.dp))
                                 .clickable(
-                                    interactionSource = remember { MutableInteractionSource() }, indication = null
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
                                 ) {
                                     dashboardViewModel.updateSheetType(ShowBottomSheetType.YEAR_MONTH)
                                 }
-                                .padding(start = 4.dp, top = 14.dp, bottom = 12.dp, end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                                .padding(start = 4.dp, top = 14.dp, bottom = 12.dp, end = 20.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = formatYearMonth(uiState.year, uiState.month), fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                                text = formatYearMonth(uiState.year, uiState.month),
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp,
+                                color = Color.Black
                             )
                             Image(
-                                painter = painterResource(id = R.mipmap.icon_down), contentDescription = null, modifier = Modifier.padding(start = 4.dp)
+                                painter = painterResource(id = R.mipmap.icon_down),
+                                contentDescription = null,
+                                modifier = Modifier.padding(start = 4.dp)
                             )
                         }
 
@@ -158,18 +172,30 @@ import com.fanda.homebook.tools.roundToString
                         ) {
                             // 支出按钮
                             SelectableRoundedButton(
-                                fontSize = 12.sp, text = "支出", selected = uiState.transactionAmountType == TransactionAmountType.EXPENSE, onClick = {
-                                    dashboardViewModel.updateTransactionAmountType(TransactionAmountType.EXPENSE)
+                                fontSize = 12.sp,
+                                text = "支出",
+                                selected = uiState.transactionAmountType == TransactionAmountType.EXPENSE,
+                                onClick = {
+                                    dashboardViewModel.updateTransactionAmountType(
+                                        TransactionAmountType.EXPENSE
+                                    )
                                 })
                             // 收入按钮
                             SelectableRoundedButton(
-                                modifier = Modifier.padding(start = 8.dp), fontSize = 12.sp, text = "入账", selected = uiState.transactionAmountType == TransactionAmountType.INCOME, onClick = {
-                                    dashboardViewModel.updateTransactionAmountType(TransactionAmountType.INCOME)
+                                modifier = Modifier.padding(start = 8.dp),
+                                fontSize = 12.sp,
+                                text = "入账",
+                                selected = uiState.transactionAmountType == TransactionAmountType.INCOME,
+                                onClick = {
+                                    dashboardViewModel.updateTransactionAmountType(
+                                        TransactionAmountType.INCOME
+                                    )
                                 })
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors().copy(containerColor = colorResource(R.color.color_CDD6E4)),
+                colors = TopAppBarDefaults.topAppBarColors()
+                    .copy(containerColor = colorResource(R.color.color_CDD6E4)),
             )
         }) { padding ->
         // 主内容区域
@@ -189,7 +215,10 @@ import com.fanda.homebook.tools.roundToString
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = dashboardViewModel.getTotalAmountTitle(), fontWeight = FontWeight.Medium, fontSize = 18.sp, color = Color.Black
+                    text = dashboardViewModel.getTotalAmountTitle(),
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp,
+                    color = Color.Black
                 )
                 Text(
                     text = dashboardViewModel.getTotalAmountText(),
@@ -211,11 +240,16 @@ import com.fanda.homebook.tools.roundToString
                 // 饼图：分类构成
                 if (transactionDataByCategory.isNotEmpty()) {
                     PieChatWidget(
-                        data = transactionDataByCategory, title = dashboardViewModel.getPieChatTitle()
+                        data = transactionDataByCategory,
+                        title = dashboardViewModel.getPieChatTitle()
                     ) { categoryData ->
                         dashboardViewModel.saveCategoryDataList(categoryData.data)
                         navController.navigate(
-                            "${RoutePath.DashBoardDetail.route}?title=${dashboardViewModel.getCategoryDetailTitle(categoryData.category.name)}"
+                            "${RoutePath.DashBoardDetail.route}?title=${
+                                dashboardViewModel.getCategoryDetailTitle(
+                                    categoryData.category.name
+                                )
+                            }"
                         )
                     }
                 }
@@ -227,7 +261,11 @@ import com.fanda.homebook.tools.roundToString
                     if (dailyData.data.isEmpty()) return@DailyBarChatWidget
                     dashboardViewModel.saveCategoryDataList(dailyData.data)
                     navController.navigate(
-                        "${RoutePath.DashBoardDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(dailyData.displayDate)}"
+                        "${RoutePath.DashBoardDetail.route}?title=${
+                            dashboardViewModel.getDayCategoryDetailTitle(
+                                dailyData.displayDate
+                            )
+                        }"
                     )
                 }
 
@@ -238,7 +276,11 @@ import com.fanda.homebook.tools.roundToString
                     if (monthData.data.isEmpty()) return@MonthBarChatWidget
                     dashboardViewModel.saveCategoryDataList(monthData.data)
                     navController.navigate(
-                        "${RoutePath.DashBoardDetail.route}?title=${dashboardViewModel.getDayCategoryDetailTitle(monthData.monthName)}"
+                        "${RoutePath.DashBoardDetail.route}?title=${
+                            dashboardViewModel.getDayCategoryDetailTitle(
+                                monthData.monthName
+                            )
+                        }"
                     )
                 }
 
@@ -265,7 +307,10 @@ import com.fanda.homebook.tools.roundToString
 
     // 年月选择底部弹窗
     YearMonthBottomSheet(
-        year = uiState.year, month = uiState.month, visible = dashboardViewModel.showBottomSheet(ShowBottomSheetType.YEAR_MONTH), onDismiss = {
+        year = uiState.year,
+        month = uiState.month,
+        visible = dashboardViewModel.showBottomSheet(ShowBottomSheetType.YEAR_MONTH),
+        onDismiss = {
             dashboardViewModel.dismissBottomSheet()
         }) { year, month ->
         dashboardViewModel.dismissBottomSheet()
@@ -284,8 +329,14 @@ import com.fanda.homebook.tools.roundToString
  * @param onItemClick 单条记录点击回调
  * @param onDelete 删除记录回调
  */
-@Composable fun MonthRankWidget(
-    modifier: Modifier = Modifier, title: String, data: List<AddQuickEntity>, onAllClick: () -> Unit, onItemClick: (AddQuickEntity) -> Unit, onDelete: (AddQuickEntity) -> Unit
+@Composable
+fun MonthRankWidget(
+    modifier: Modifier = Modifier,
+    title: String,
+    data: List<AddQuickEntity>,
+    onAllClick: () -> Unit,
+    onItemClick: (AddQuickEntity) -> Unit,
+    onDelete: (AddQuickEntity) -> Unit
 ) {
     // 标题行
     Row(
@@ -294,11 +345,20 @@ import com.fanda.homebook.tools.roundToString
             .padding(top = 24.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = title, fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier
+            text = title,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            color = Color.Black,
+            modifier = modifier
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "全部", fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontSize = 12.sp, color = colorResource(R.color.color_84878C), modifier = modifier
+            text = "全部",
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            fontSize = 12.sp,
+            color = colorResource(R.color.color_84878C),
+            modifier = modifier
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() }, indication = null
                 ) {
@@ -324,25 +384,35 @@ import com.fanda.homebook.tools.roundToString
  * @param barData 月度交易数据
  * @param onBarClick 柱子点击回调
  */
-@Composable fun MonthBarChatWidget(
-    modifier: Modifier = Modifier, barData: List<MonthTransactionData>, onBarClick: ((MonthTransactionData) -> Unit)
+@Composable
+fun MonthBarChatWidget(
+    modifier: Modifier = Modifier,
+    barData: List<MonthTransactionData>,
+    onBarClick: ((MonthTransactionData) -> Unit)
 ) {
     Text(
-        text = "月度对比", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
+        text = "月度对比",
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        color = Color.Black,
+        modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
 
-    Box(
+    GradientRoundedBoxWithStroke(
+        colors = listOf(Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.2f)),
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .background(Color.White, RoundedCornerShape(12.dp))
     ) {
-        ScrollableBarChartWithIndicator(
-            barData = barData, modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp, top = 5.dp, bottom = 12.dp)
-                .height(250.dp), onBarClick = onBarClick
-        )
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            ScrollableBarChartWithIndicator(
+                barData = barData, modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, top = 5.dp, bottom = 12.dp)
+                    .height(250.dp), onBarClick = onBarClick
+            )
+        }
     }
 }
 
@@ -353,25 +423,35 @@ import com.fanda.homebook.tools.roundToString
  * @param data 每日交易数据
  * @param onBarClick 柱子点击回调
  */
-@Composable fun DailyBarChatWidget(
-    modifier: Modifier = Modifier, data: List<DailyTransactionData>, onBarClick: ((DailyTransactionData) -> Unit)
+@Composable
+fun DailyBarChatWidget(
+    modifier: Modifier = Modifier,
+    data: List<DailyTransactionData>,
+    onBarClick: ((DailyTransactionData) -> Unit)
 ) {
     Text(
-        text = "每日对比", fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
+        text = "每日对比",
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        color = Color.Black,
+        modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
-    Box(
+    GradientRoundedBoxWithStroke(
+        colors = listOf(Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.2f)),
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .background(Color.White, RoundedCornerShape(12.dp))
     ) {
-        DailyBarChart(
-            data = data, modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 6.dp, end = 12.dp, top = 15.dp, bottom = 12.dp)
-                .height(250.dp), visibleDays = 7,  // 显示7天的数据
-            onBarClick = onBarClick
-        )
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            DailyBarChart(
+                data = data, modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 6.dp, end = 12.dp, top = 15.dp, bottom = 12.dp)
+                    .height(250.dp), visibleDays = 7,  // 显示7天的数据
+                onBarClick = onBarClick
+            )
+        }
     }
 }
 
@@ -383,30 +463,50 @@ import com.fanda.homebook.tools.roundToString
  * @param modifier 修饰符
  * @param onItemClick 分类项点击回调
  */
-@Composable fun PieChatWidget(
-    data: List<DashboardSubCategoryGroupData>, title: String, modifier: Modifier = Modifier, onItemClick: (DashboardSubCategoryGroupData) -> Unit
+@Composable
+fun PieChatWidget(
+    data: List<DashboardSubCategoryGroupData>,
+    title: String,
+    modifier: Modifier = Modifier,
+    onItemClick: (DashboardSubCategoryGroupData) -> Unit
 ) {
     Text(
-        text = title, fontWeight = FontWeight.Medium, fontSize = 16.sp, color = Color.Black, modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
+        text = title,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        color = Color.Black,
+        modifier = modifier.padding(top = 24.dp, bottom = 12.dp)
     )
 
     // 圆环图容器
-    Box(
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .wrapContentHeight()
+//            .background(Color.White, RoundedCornerShape(12.dp))
+//    ) {
+    GradientRoundedBoxWithStroke(
+        colors = listOf(Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.2f)),
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .background(Color.White, RoundedCornerShape(12.dp))
     ) {
-        // 准备圆环图数据：分类名称和占比
-        val chatData = data.map { Pair(it.category.name, it.ratio) }
 
-        // 显示圆环图
-        DonutChartMPWithLabels(
-            data = chatData, modifier = Modifier
-                .size(300.dp)
-                .padding(50.dp)
-                .align(Alignment.Center)
-        )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // 准备圆环图数据：分类名称和占比
+            val chatData = data.map { Pair(it.category.name, it.ratio) }
+
+            // 显示圆环图
+            DonutChartMPWithLabels(
+                data = chatData, modifier = Modifier
+                    .size(300.dp)
+                    .padding(50.dp)
+                    .align(Alignment.Center)
+
+
+            )
+        }
+
     }
 
     // 分类详情列表
@@ -418,17 +518,19 @@ import com.fanda.homebook.tools.roundToString
     ) {
         data.forEach { categoryData ->
             GradientRoundedBoxWithStroke(
-                colors = listOf(Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.2f)), modifier = Modifier
+                colors = listOf(Color.White.copy(alpha = 0.4f), Color.White.copy(alpha = 0.2f)),
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp)
             ) {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onItemClick(categoryData)
-                    }
-                    .padding(start = 15.dp)
-                    .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onItemClick(categoryData)
+                        }
+                        .padding(start = 15.dp)
+                        .fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
                     // 分类图标
                     Box(
                         contentAlignment = Alignment.Center, modifier = Modifier
@@ -437,7 +539,9 @@ import com.fanda.homebook.tools.roundToString
                             .background(Color.White)
                     ) {
                         Image(
-                            painter = painterResource(id = getCategoryIcon(categoryData.category.type)), contentDescription = null, modifier = Modifier.scale(0.8f)
+                            painter = painterResource(id = getCategoryIcon(categoryData.category.type)),
+                            contentDescription = null,
+                            modifier = Modifier.scale(0.8f)
                         )
                     }
 
@@ -449,13 +553,21 @@ import com.fanda.homebook.tools.roundToString
                                 .weight(1f), verticalArrangement = Arrangement.Center
                         ) {
                             Row(
-                                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(bottom = 8.dp)
                             ) {
                                 Text(
-                                    text = categoryData.category.name, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color.Black
+                                    text = categoryData.category.name,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp,
+                                    color = Color.Black
                                 )
                                 Text(
-                                    text = "${data.size}笔", fontWeight = FontWeight.Medium, fontSize = 10.sp, color = colorResource(R.color.color_84878C), modifier = Modifier.padding(start = 8.dp)
+                                    text = "${categoryData.data.size}笔",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 10.sp,
+                                    color = colorResource(R.color.color_84878C),
+                                    modifier = Modifier.padding(start = 8.dp)
                                 )
                             }
 
@@ -490,10 +602,14 @@ import com.fanda.homebook.tools.roundToString
     }
 }
 
-@Composable @Preview(showBackground = true) fun DashBoardPagePreview() {
+@Composable
+@Preview(showBackground = true)
+fun DashBoardPagePreview() {
     DashBoardPage(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding(), navController = rememberNavController(), dashboardViewModel = viewModel(factory = AppViewModelProvider.factory)
+            .statusBarsPadding(),
+        navController = rememberNavController(),
+        dashboardViewModel = viewModel(factory = AppViewModelProvider.factory)
     )
 }
