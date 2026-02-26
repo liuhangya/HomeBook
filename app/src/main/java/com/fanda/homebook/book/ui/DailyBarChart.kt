@@ -80,7 +80,7 @@ private fun configureDailyChart(
         barWidth = 0.5f                      // 柱子宽度
         setValueTextSize(10f)                // 数值文字大小
         setValueFormatter(formatter)         // 数值格式化器
-        setValueTextColor(Color.Black.toArgb())  // 数值文字颜色
+        setValueTextColor(topActivity.getCompatColor(R.color.color_84878C))  // 数值文字颜色
     }
 
     // === X 轴配置 ===

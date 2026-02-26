@@ -59,6 +59,7 @@ import com.fanda.homebook.quick.viewmodel.AddQuickViewModel
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.stock.viewmodel.AddStockViewModel
 import com.fanda.homebook.tools.DATE_FORMAT_MD
+import com.fanda.homebook.tools.EventManager
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.convertMillisToDate
 import com.fanda.homebook.ui.theme.HomeBookTheme
@@ -169,6 +170,7 @@ import kotlinx.coroutines.launch
 
                         // 最后保存记账数据
                         quickViewModel.saveQuickEntityDatabase {
+                            EventManager.sendStickyRefreshEventDelay(0)
                             Toaster.show("保存成功")
                             navController.navigateUp()  // 保存成功后返回
                         }

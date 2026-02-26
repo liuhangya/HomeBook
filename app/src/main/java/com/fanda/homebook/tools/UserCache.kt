@@ -54,16 +54,6 @@ object UserCache : MMKVOwner(mmapID = "UserCache") {
      */
     var bookId by mmkvInt(default = 1)
 
-    /**
-     * 预算金额
-     *
-     * 用户设置的预算金额，用于记账和消费提醒
-     * 默认值：0.0f（表示未设置预算）
-     *
-     * 数据类型：Float，支持小数（如 1000.50）
-     * 货币单位：根据应用设置决定（元、美元等）
-     */
-    var planAmount by mmkvFloat(default = 0.0f)
 
     /**
      * 快捷添加分类列表

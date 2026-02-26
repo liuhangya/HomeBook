@@ -102,7 +102,7 @@ import com.hjq.toast.Toaster
                     focusManager.clearFocus() // 清除焦点，关闭输入法
                     quickViewModel.updateQuickEntityDatabase {
                         // 保存成功后发送刷新事件并提示
-                        EventManager.sendRefreshEventDelay(uiState.quickEntity.id)
+                        EventManager.sendStickyRefreshEventDelay(uiState.quickEntity.id)
                         Toaster.show("保存成功")
                         navController.navigateUp() // 返回上一页
                     }

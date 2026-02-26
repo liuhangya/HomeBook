@@ -20,6 +20,8 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
 import com.fanda.homebook.data.transaction.TransactionWithSubCategories
 import com.fanda.homebook.common.entity.ShowBottomSheetType
 import com.fanda.homebook.common.entity.TransactionAmountType
+import com.fanda.homebook.data.plan.PlanEntity
+import com.fanda.homebook.data.plan.PlanRepository
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
 import com.fanda.homebook.tools.UserCache
@@ -40,7 +42,7 @@ import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 class BookViewModel(
-    private val bookRepository: BookRepository, private val transactionRepository: TransactionRepository, private val quickRepository: QuickRepository
+    private val bookRepository: BookRepository, private val transactionRepository: TransactionRepository, private val quickRepository: QuickRepository, private val planRepository: PlanRepository
 ) : ViewModel() {
 
     // 私有可变对象，用于保存UI状态
@@ -83,15 +85,25 @@ class BookViewModel(
         QueryParams(bookId, subCategoryId, year, month, refresh)
     }.distinctUntilChanged()
 
+    // 预算（根据查询参数动态更新）
+    @OptIn(ExperimentalCoroutinesApi::class) val planEntity: StateFlow<PlanEntity?> = queryParams.flatMapLatest { params ->
+        LogUtils.d("queryParams planEntity: $params")
+        planRepository.getPlanByYearAndMonth(
+            params.year, params.month, params.bookId ?: -1
+        )
+    }.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = null
+    )
+
     // 交易数据流（根据查询参数动态更新）
     @OptIn(ExperimentalCoroutinesApi::class) val transactionData: StateFlow<List<AddQuickEntity>> = queryParams.flatMapLatest { params ->
-            LogUtils.d("queryParams transactionData: $params")
-            quickRepository.getQuickListByCategory(
-                params.bookId, uiState.value.categoryId, params.subCategoryId
-            )
-        }.stateIn(
-            scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+        LogUtils.d("queryParams transactionData: $params")
+        quickRepository.getQuickListByCategory(
+            params.bookId, uiState.value.categoryId, params.subCategoryId
         )
+    }.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+    )
 
     // 按日期分类的月度汇总数据流
     val monthSummaryData: StateFlow<TransactionGroupedData?> = combine(
@@ -235,7 +247,31 @@ class BookViewModel(
      * @param bookId 账本ID
      */
     fun updateSelectBook(bookId: Int) {
+        if (bookId == _uiState.value.curSelectBookId) {
+            return
+        }
+        // 切换账本时，重置查询参数
+        val (year, month) = millisToLocalDate(System.currentTimeMillis())
+        updateQueryDate(year, month)
+        updateQueryCategory(null)
         _uiState.update { it.copy(curSelectBookId = bookId) }
+    }
+
+    fun updatePlanAmount(amount: Float) {
+        val entity = planEntity.value
+        if (entity != null){
+            // 进行更新操作
+            val newEntity = entity.copy(amount = amount)
+            viewModelScope.launch {
+                planRepository.update(newEntity)
+            }
+        }else{
+            // 进行插入操作
+            val newEntity = PlanEntity(bookId = uiState.value.curSelectBookId, amount = amount, year = uiState.value.year, month = uiState.value.month)
+            viewModelScope.launch {
+                planRepository.insert(newEntity)
+            }
+        }
     }
 
     /**
@@ -349,9 +385,17 @@ class BookViewModel(
         // 排序顺序：越近的日期排序值越大
         val sortOrder = Int.MAX_VALUE - diffInDays
 
-        return TransactionDateGroup(date = dateMillis, displayDate = displayDate, sortOrder = sortOrder, transactions = transactions.sortedByDescending { it.quick.date }  // 按时间倒序排列
+        return TransactionDateGroup(
+            date = dateMillis, displayDate = displayDate, sortOrder = sortOrder, transactions = transactions.sortedWith(compareByDescending<AddQuickEntity> {
+                // 先按分类类型排序（收入在前，支出在后）
+                it.quick.categoryType == TransactionAmountType.INCOME.ordinal
+            }.thenByDescending {
+                // 再按总金额降序排序
+                it.quick.price.toDouble()
+            })
         )
     }
+
 
     /**
      * 获取星期几的中文表示

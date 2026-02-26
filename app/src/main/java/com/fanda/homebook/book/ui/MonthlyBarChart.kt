@@ -60,7 +60,7 @@ private fun configureBarChart(
         colors = barData.map { it.color.toArgb() }  // 设置每个柱子的颜色
         setDrawValues(true)                         // 显示柱子上的数值
         valueTextSize = 12f                         // 数值文字大小
-        valueTextColor = Color.Black.toArgb()       // 数值文字颜色
+        valueTextColor = topActivity.getCompatColor(R.color.color_84878C)       // 数值文字颜色
         valueFormatter = formatter                  // 数值格式化器
     }
 
@@ -69,7 +69,7 @@ private fun configureBarChart(
         barWidth = 0.7f                             // 柱子宽度
         setValueTextSize(12f)                       // 数值文字大小
         setValueFormatter(formatter)                // 数值格式化器
-        setValueTextColor(Color.Black.toArgb())     // 数值文字颜色
+        setValueTextColor(topActivity.getCompatColor(R.color.color_84878C))     // 数值文字颜色
     }
 
     // X 轴配置

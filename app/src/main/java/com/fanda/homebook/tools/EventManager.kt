@@ -5,8 +5,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * 事件类型常量定义
@@ -18,10 +22,17 @@ object EventType {
      * 通常用于通知UI更新或重新加载数据
      */
     const val REFRESH = 0
-    // 可以继续添加其他事件类型，例如：
-    // const val LOGIN_SUCCESS = 1
-    // const val DATA_CHANGED = 2
-    // const val NETWORK_STATE_CHANGED = 3
+
+    /**
+     * 粘性事件起始值
+     * 所有粘性事件类型都应 >= STICKY_EVENT_START
+     * 这样可以清晰区分普通事件和粘性事件
+     */
+    const val STICKY_EVENT_START = 1000
+
+    // 可以继续添加其他粘性事件类型，例如：
+     const val REFRESH_STICKY_EVENT = STICKY_EVENT_START + 1
+    // const val SETTINGS_CHANGED = STICKY_EVENT_START + 2
 }
 
 /**
@@ -47,10 +58,11 @@ data class EventEntity(
  * 2. 缓冲机制：防止事件丢失，可配置缓冲策略
  * 3. 支持延迟发送：避免事件发送过于频繁
  * 4. 支持多个订阅者：每个订阅者都会收到事件
+ * 5. 支持粘性事件：新订阅者可以收到最后一次发送的粘性事件
  */
 object EventManager {
     /**
-     * 内部可变共享流，作为事件总线的核心
+     * 内部可变共享流，作为普通事件总线的核心
      *
      * 配置参数说明：
      * - replay = 0：新订阅者不会收到历史事件，只接收订阅后发送的事件
@@ -67,7 +79,7 @@ object EventManager {
 
     /**
      * 对外暴露的只读共享流
-     * 组件通过监听此流来接收事件
+     * 组件通过监听此流来接收普通事件
      *
      * 使用示例：
      * lifecycleScope.launch {
@@ -81,7 +93,79 @@ object EventManager {
     val events = _events.asSharedFlow()
 
     /**
-     * 发送事件（挂起函数）
+     * 粘性事件存储
+     * 使用 MutableStateFlow 来保存最后一次发送的粘性事件
+     * key: 事件类型
+     * value: 对应的事件实体
+     *
+     * 使用 Mutex 保证线程安全
+     */
+    private val stickyEventsMutex = Mutex()
+    private val _stickyEvents = mutableMapOf<Int, EventEntity>()
+
+    /**
+     * 粘性事件流映射
+     * 为每个粘性事件类型创建一个单独的 StateFlow
+     * 这样新订阅者可以立即获取到最新的值
+     */
+    private val stickyEventFlows = mutableMapOf<Int, MutableStateFlow<EventEntity?>>()
+
+    /**
+     * 获取指定类型的粘性事件流
+     * 如果该类型的流不存在，则创建一个新的
+     *
+     * @param type 事件类型
+     * @return 该类型的粘性事件流
+     */
+    private fun getStickyEventFlow(type: Int): MutableStateFlow<EventEntity?> {
+        return stickyEventFlows.getOrPut(type) {
+            // 从存储中恢复已有的事件
+            val existingEvent = _stickyEvents[type]
+            MutableStateFlow(existingEvent)
+        }
+    }
+
+    /**
+     * 获取指定类型的粘性事件（一次性）
+     * 获取后会清除该粘性事件，确保只接收一次
+     *
+     * @param type 事件类型
+     * @return 粘性事件实体，如果没有则返回null
+     */
+    suspend fun getStickyEvent(type: Int): EventEntity? {
+        return stickyEventsMutex.withLock {
+            val event = _stickyEvents.remove(type)
+            // 更新对应的StateFlow
+            stickyEventFlows[type]?.tryEmit(null)
+            event
+        }
+    }
+
+    /**
+     * 获取指定类型的粘性事件流（可观察）
+     * 订阅后会立即收到最后一次发送的该类型事件（如果有）
+     * 之后每次有新事件都会收到
+     *
+     * @param type 事件类型
+     * @return 该类型的粘性事件流
+     */
+    fun observeStickyEvent(type: Int): kotlinx.coroutines.flow.StateFlow<EventEntity?> {
+        return getStickyEventFlow(type).asStateFlow()
+    }
+
+    /**
+     * 获取指定类型的粘性事件数据（带类型转换）
+     * 获取后会清除该粘性事件
+     *
+     * @param type 事件类型
+     * @return 转换后的数据，如果没有事件或类型不匹配则返回null
+     */
+    suspend inline fun <reified T> getStickyEventData(type: Int): T? {
+        return getStickyEvent(type)?.data as? T
+    }
+
+    /**
+     * 发送普通事件（挂起函数）
      * 适用于协程作用域内调用，会等待事件成功发送
      *
      * @param event 要发送的事件实体
@@ -89,7 +173,55 @@ object EventManager {
      * 使用场景：在 ViewModel 或 Repository 的协程中调用
      */
     suspend fun sendEvent(event: EventEntity) {
+        // 如果是粘性事件类型，同时作为粘性事件发送
+        if (event.type >= EventType.STICKY_EVENT_START) {
+            sendStickyEvent(event)
+        } else {
+            _events.emit(event)
+        }
+    }
+
+    /**
+     * 发送粘性事件
+     * 粘性事件会被保存，新订阅者可以立即收到最后发送的事件
+     *
+     * @param event 要发送的粘性事件实体
+     */
+    suspend fun sendStickyEvent(event: EventEntity) {
+        require(event.type >= EventType.STICKY_EVENT_START) {
+            "Sticky event type must be >= ${EventType.STICKY_EVENT_START}"
+        }
+
+        stickyEventsMutex.withLock {
+            // 保存粘性事件
+            _stickyEvents[event.type] = event
+            // 更新对应的StateFlow
+            getStickyEventFlow(event.type).emit(event)
+        }
+        // 同时也发送到普通事件流，便于统一监听
         _events.emit(event)
+    }
+
+    /**
+     * 移除指定类型的粘性事件
+     *
+     * @param type 事件类型
+     */
+    suspend fun removeStickyEvent(type: Int) {
+        stickyEventsMutex.withLock {
+            _stickyEvents.remove(type)
+            stickyEventFlows[type]?.tryEmit(null)
+        }
+    }
+
+    /**
+     * 清除所有粘性事件
+     */
+    suspend fun clearAllStickyEvents() {
+        stickyEventsMutex.withLock {
+            _stickyEvents.clear()
+            stickyEventFlows.values.forEach { it.tryEmit(null) }
+        }
     }
 
     /**
@@ -106,26 +238,50 @@ object EventManager {
         CoroutineScope(Dispatchers.Main.immediate).launch {
             // 延迟发送，可用于防抖处理
             delay(delay)
-            _events.emit(event)
+            if (event.type >= EventType.STICKY_EVENT_START) {
+                sendStickyEvent(event)
+            } else {
+                _events.emit(event)
+            }
         }
     }
 
     /**
-     * 发送刷新事件的便捷方法
-     * 封装了创建刷新事件和延迟发送的逻辑
+     * 发送粘性刷新事件的便捷方法
      *
-     * @param id 刷新的目标ID，例如要刷新的数据项ID
-     * @param delay 延迟发送的时间（毫秒），默认200ms
-     *
-     * 使用示例：EventManager.sendRefreshEventDelay(itemId)
+     * @param id 刷新的目标ID
+     * @param delay 延迟发送的时间（毫秒）
      */
-    fun sendRefreshEventDelay(id: Int, delay: Long = 200L) {
-        sendEventAsyncDelay(EventEntity(EventType.REFRESH, id), delay)
+    fun sendStickyRefreshEventDelay(id: Int, delay: Long = 0L) {
+        // 为粘性刷新事件定义一个专门的类型
+        val stickyRefreshType = EventType.REFRESH_STICKY_EVENT
+        sendEventAsyncDelay(EventEntity(stickyRefreshType, id), delay)
     }
-
-    // 可以考虑添加以下功能：
-    // 1. 移除特定类型的订阅者
-    // 2. 批量发送事件
-    // 3. 事件发送失败的重试机制
-    // 4. 事件优先级支持
 }
+
+/**
+ * 扩展函数：方便在 ViewModel 或 Activity/Fragment 中收集粘性事件
+ *
+ * 使用示例：
+ * lifecycleScope.launch {
+ *     EventManager.observeStickyEvent(EventType.STICKY_EVENT_START).collect { event ->
+ *         event?.let {
+ *             // 处理粘性事件
+ *             val data = it.data as? Int
+ *             handleRefresh(data)
+ *         }
+ *     }
+ * }
+ */
+
+/**
+ * 扩展函数：一次性获取粘性事件
+ *
+ * 使用示例：
+ * lifecycleScope.launch {
+ *     val event = EventManager.getStickyEvent(EventType.STICKY_EVENT_START)
+ *     event?.let {
+ *         // 处理粘性事件
+ *     }
+ * }
+ */

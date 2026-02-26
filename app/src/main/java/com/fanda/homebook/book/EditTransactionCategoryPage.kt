@@ -171,7 +171,7 @@ import com.fanda.homebook.tools.LogUtils
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize()  // 内容变化时添加动画
+//            .animateContentSize()  // 内容变化时添加动画
     ) {
         // 布局参数
         val itemSpacing = 26.dp       // 分类项之间的间距

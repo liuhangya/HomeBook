@@ -128,7 +128,8 @@ object AppViewModelProvider {
         // 账本首页ViewModel
         initializer {
             BookViewModel(
-                homeBookApplication().appContainer.bookRepository, homeBookApplication().appContainer.transactionRepository, homeBookApplication().appContainer.quickRepository
+                homeBookApplication().appContainer.bookRepository, homeBookApplication().appContainer.transactionRepository, homeBookApplication().appContainer.quickRepository,
+                homeBookApplication().appContainer.planRepository
             )
         }
 

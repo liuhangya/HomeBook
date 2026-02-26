@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -55,8 +57,16 @@ import com.fanda.homebook.data.closet.CategoryBottomMenuEntity
 import com.fanda.homebook.data.closet.ClosetDetailGridItem
 import com.fanda.homebook.common.entity.ShowBottomSheetType
 import com.fanda.homebook.common.sheet.CategoryExpandBottomSheet
+import com.fanda.homebook.common.sheet.ListBottomSheet
+import com.fanda.homebook.data.category.SubCategoryEntity
+import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.route.RoutePath
 import com.fanda.homebook.tools.LogUtils
+import com.hjq.toast.Toaster
+
+const val SORT_TYPE = 0
+const val CATEGORY_TYPE = 1
+const val INFO_TYPE = 2
 
 /**
  * 衣橱分类详情页面
@@ -71,6 +81,7 @@ import com.fanda.homebook.tools.LogUtils
     val closets by closetViewModel.closets.collectAsState()
     val selectedItems by closetViewModel.selectedItems.collectAsState()
     val categories by closetViewModel.categories.collectAsState()
+    val subCategories by closetViewModel.subCategories.collectAsState()
 
     LogUtils.i("衣橱详细对象: $uiState")
     LogUtils.i("衣橱详细列表: $closets")
@@ -141,18 +152,40 @@ import com.fanda.homebook.tools.LogUtils
                 }
             })
     }) { padding ->
-        // 衣橱物品网格视图
-        ClosetDetailGridWidget(
-            data = closets, Modifier.padding(padding), onItemClick = { item ->
-                if (uiState.isEditState) {
-                    // 编辑模式下：切换选中状态
-                    closetViewModel.toggleSelection(item.addClosetEntity.closet.id)
-                } else {
-                    // 非编辑模式：跳转到详情页面
-                    navController.navigate("${RoutePath.WatchAndEditCloset.route}?closetId=${item.addClosetEntity.closet.id}")
-                }
-            }, isEditState = uiState.isEditState
-        )
+        Column(modifier = Modifier.padding(padding)) {
+            CategorySelectorWidget(
+                modifier = Modifier.padding(horizontal = 12.dp), onTypeClick = {
+                    if (uiState.isEditState){
+                        Toaster.show("请先退出编辑模式")
+                        return@CategorySelectorWidget
+                    }
+                    when (it) {
+                        SORT_TYPE -> {
+                            closetViewModel.updateSheetType(ShowBottomSheetType.SORT_WAY)
+                        }
+
+                        CATEGORY_TYPE -> {
+                            closetViewModel.updateSheetType(ShowBottomSheetType.CATEGORY_WAY)
+                        }
+
+                        INFO_TYPE -> {
+                            closetViewModel.updateSheetType(ShowBottomSheetType.INFO_WAY)
+                        }
+                    }
+                })
+            // 衣橱物品网格视图
+            ClosetDetailGridWidget(
+                data = closets, onItemClick = { item ->
+                    if (uiState.isEditState) {
+                        // 编辑模式下：切换选中状态
+                        closetViewModel.toggleSelection(item.addClosetEntity.closet.id)
+                    } else {
+                        // 非编辑模式：跳转到详情页面
+                        navController.navigate("${RoutePath.WatchAndEditCloset.route}?closetId=${item.addClosetEntity.closet.id}")
+                    }
+                }, isEditState = uiState.isEditState
+            )
+        }
     }
 
     // 各种确认弹窗
@@ -199,6 +232,33 @@ import com.fanda.homebook.tools.LogUtils
             LogUtils.i("选中的分类： $category, $subCategory")
             closetViewModel.updateEntityDatabase(category, subCategory)
         })
+
+    // 排序方式弹窗
+    ListBottomSheet<Pair<Int, String>>(
+        initial = uiState.sortWay,
+        title = "排序方式",
+        dataSource = LocalDataSource.sortWayData,
+        visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.SORT_WAY) },
+        displayText = { it.second },
+        onDismiss = { closetViewModel.dismissBottomSheet() }) {
+        closetViewModel.updateSortWay(it)
+    }
+    var list = mutableListOf<SubCategoryEntity>()
+    if (!subCategories.contains(SubCategoryEntity(-1, "全部", categoryId = -1))) {
+        list = subCategories.toMutableList()
+        list.add(0, SubCategoryEntity(-1, "全部", categoryId = -1))
+    }
+
+    // 分类弹窗
+    ListBottomSheet<SubCategoryEntity>(
+        initial = uiState.subCategoryEntity,
+        title = uiState.categoryName,
+        dataSource = list,
+        visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.CATEGORY_WAY) },
+        displayText = { it.name },
+        onDismiss = { closetViewModel.dismissBottomSheet() }) {
+        closetViewModel.updateCategoryWay(it)
+    }
 }
 
 /**
@@ -213,7 +273,7 @@ import com.fanda.homebook.tools.LogUtils
     data: List<ClosetDetailGridItem> = emptyList(), modifier: Modifier = Modifier, onItemClick: (ClosetDetailGridItem) -> Unit, isEditState: Boolean = false
 ) {
     LazyVerticalGrid(
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp), columns = GridCells.Fixed(3), // 固定3列
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp, top = 6.dp), columns = GridCells.Fixed(3), // 固定3列
         modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(data) { item ->
@@ -320,6 +380,70 @@ import com.fanda.homebook.tools.LogUtils
     }
 }
 
+
+@Composable fun CategorySelectorWidget(modifier: Modifier = Modifier, onTypeClick: (Int) -> Unit) {
+
+    Row(modifier = modifier) {
+        Row(
+            modifier
+                .weight(1f)
+                .padding(vertical = 6.dp)
+                .clickable {
+                    LogUtils.i("点击了排序筛选")
+                    onTypeClick(SORT_TYPE)
+                }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "排序筛选", fontWeight = FontWeight.Normal, fontSize = 12.sp, color = colorResource(R.color.color_84878C)
+            )
+            Icon(
+                painter = painterResource(id = R.mipmap.icon_arrow_down_black),
+                contentDescription = "下拉选择排序",
+                tint = colorResource(R.color.color_84878C),
+                modifier = Modifier.padding(start = 6.dp)
+            )
+        }
+        Row(
+            modifier
+                .weight(1f)
+                .padding(vertical = 6.dp)
+                .clickable {
+                    LogUtils.i("点击了分类筛选")
+                    onTypeClick(CATEGORY_TYPE)
+                }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "分类筛选", fontWeight = FontWeight.Normal, fontSize = 12.sp, color = colorResource(R.color.color_84878C)
+            )
+            Icon(
+                painter = painterResource(id = R.mipmap.icon_arrow_down_black),
+                contentDescription = "下拉选择分类",
+                tint = colorResource(R.color.color_84878C),
+                modifier = Modifier.padding(start = 6.dp)
+            )
+        }
+        Row(
+            modifier
+                .weight(1f)
+                .padding(vertical = 6.dp)
+                .clickable {
+                    LogUtils.i("点击了信息筛选")
+                    onTypeClick(INFO_TYPE)
+                }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "信息筛选", fontWeight = FontWeight.Normal, fontSize = 12.sp, color = colorResource(R.color.color_84878C)
+            )
+            Icon(
+                painter = painterResource(id = R.mipmap.icon_arrow_down_black),
+                contentDescription = "下拉选择信息",
+                tint = colorResource(R.color.color_84878C),
+                modifier = Modifier.padding(start = 6.dp)
+            )
+        }
+    }
+}
+
 /**
  * 预览函数，用于在Android Studio中预览衣橱分类详情页面
  */
@@ -329,4 +453,9 @@ import com.fanda.homebook.tools.LogUtils
             .fillMaxWidth()
             .statusBarsPadding(), navController = rememberNavController()
     )
+}
+
+
+@Composable @Preview(showBackground = true) fun CategorySelectorWidgetPreview() {
+    CategorySelectorWidget(onTypeClick = {})
 }

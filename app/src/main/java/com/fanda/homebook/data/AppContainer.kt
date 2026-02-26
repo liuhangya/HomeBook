@@ -15,6 +15,8 @@ import com.fanda.homebook.data.pay.LocalPayWayRepository
 import com.fanda.homebook.data.pay.PayWayRepository
 import com.fanda.homebook.data.period.LocalPeriodRepository
 import com.fanda.homebook.data.period.PeriodRepository
+import com.fanda.homebook.data.plan.LocalPlanRepository
+import com.fanda.homebook.data.plan.PlanRepository
 import com.fanda.homebook.data.product.LocalProductRepository
 import com.fanda.homebook.data.product.ProductRepository
 import com.fanda.homebook.data.quick.LocalQuickRepository
@@ -76,6 +78,9 @@ interface AppContainer {
 
     /** 账本数据仓库 */
     val bookRepository: BookRepository
+
+    /** 预算数据仓库 */
+    val planRepository: PlanRepository
 }
 
 /**
@@ -196,4 +201,14 @@ class AppContainerImpl(private val context: Context) : AppContainer {
     override val bookRepository: BookRepository by lazy {
         LocalBookRepository(HomeBookDatabase.getDatabase(context).bookDao())
     }
+
+    /**
+     * 预算数据仓库实例（懒加载）
+     * 当首次访问时初始化
+     */
+    override val planRepository: PlanRepository by lazy {
+        LocalPlanRepository(HomeBookDatabase.getDatabase(context).planDao())
+    }
+
+
 }

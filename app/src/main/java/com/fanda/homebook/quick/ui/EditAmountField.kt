@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,13 +23,16 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fanda.homebook.components.GradientRoundedBoxWithStroke
+import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.isValidDecimalInput
 
 /**
@@ -50,6 +54,27 @@ import com.fanda.homebook.tools.isValidDecimalInput
     // 为了解决某些输入法类型切换问题
     var refreshKeyboard by remember { mutableStateOf(true) }
 
+    // 初始化时，将 selection 设置为文本末尾
+    var textFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = price, selection = TextRange(price.length)
+            )
+        )
+    }
+
+    // 2. 同步外部价格变化
+    LaunchedEffect(price) {
+        // 只有当外部价格确实不同时才更新，避免不必要的重组
+        if (textFieldValue.text != price) {
+            textFieldValue = TextFieldValue(
+                text = price,
+                selection = TextRange(price.length)
+            )
+        }
+    }
+
+
     // 渐变圆角边框容器
     GradientRoundedBoxWithStroke(
         modifier = modifier
@@ -66,12 +91,17 @@ import com.fanda.homebook.tools.isValidDecimalInput
 
             // 自定义文本输入框
             BasicTextField(
-                value = price, onValueChange = { newText ->
-                    // 🔒 限制输入：只能输入数字和一个小数点
+                value = textFieldValue, onValueChange = { newValue ->
+                    val newText = newValue.text
+
                     if (isValidDecimalInput(newText)) {
+                        // 【关键修改 3】构造新的 TextFieldValue，强制将光标设在末尾
+                        textFieldValue = newValue.copy(
+                            text = newText,
+                            selection = TextRange(newText.length) // 强制光标在最后
+                        )
                         onValueChange(newText)
                     }
-                    // 否则忽略非法输入
                 }, singleLine = true,  // 单行输入
                 modifier = Modifier
                     .fillMaxWidth()

@@ -140,7 +140,7 @@ class DashboardViewModel(
             DashboardSubCategoryGroupData(
                 category = categoryEntity, data = list, totalAmount = categoryAmount, ratio = ratio
             )
-        }.sortedBy { it.category.sortOrder }  // 按分类排序顺序排序
+        }.sortedByDescending { it.totalAmount }  // 按金额排序倒序排序
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
     )
@@ -247,8 +247,8 @@ class DashboardViewModel(
     }.map { params ->
         // 按时间过滤
         val filteredTransactions = filterTransactions(params.third, params.first, params.second)
-        // 按交易时间升序排序
-        filteredTransactions.sortedBy { it.quick.date }
+        // 按金额倒序排序
+        filteredTransactions.sortedByDescending { it.quick.price.toDouble() }
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
     )

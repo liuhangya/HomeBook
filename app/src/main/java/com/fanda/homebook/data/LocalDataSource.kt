@@ -51,4 +51,11 @@ object LocalDataSource {
         "回购",    // 使用体验优秀，会再次购买
     )
 
+    val sortWayData = listOf(
+        Pair(1,"添加时间"),
+        Pair(2,"穿着次数"),
+        Pair(3,"服饰价格"),
+        Pair(4,"购买时间"),
+    )
+
 }

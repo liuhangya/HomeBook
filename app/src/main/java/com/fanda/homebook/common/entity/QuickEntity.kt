@@ -54,5 +54,8 @@ enum class ShowBottomSheetType {
     ALL_SELECTED,       // 全选操作
     USED_UP,            // 用完标记
     RACK,               // 货架选择
+    SORT_WAY,           // 排序方式
+    CATEGORY_WAY,       // 分类方式
+    INFO_WAY,           // 信息方式
     NONE,               // 无弹窗
 }

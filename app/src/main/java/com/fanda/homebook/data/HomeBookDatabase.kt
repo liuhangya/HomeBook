@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.fanda.homebook.data.book.BookDao
 import com.fanda.homebook.data.book.BookEntity
 import com.fanda.homebook.data.category.CategoryDao
@@ -19,6 +21,8 @@ import com.fanda.homebook.data.pay.PayWayDao
 import com.fanda.homebook.data.pay.PayWayEntity
 import com.fanda.homebook.data.period.PeriodDao
 import com.fanda.homebook.data.period.PeriodEntity
+import com.fanda.homebook.data.plan.PlanDao
+import com.fanda.homebook.data.plan.PlanEntity
 import com.fanda.homebook.data.product.ProductDao
 import com.fanda.homebook.data.product.ProductEntity
 import com.fanda.homebook.data.quick.QuickDao
@@ -63,8 +67,9 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
         TransactionSubEntity::class,   // 交易子项实体
         PayWayEntity::class,           // 支付方式实体
         QuickEntity::class,            // 快捷操作实体
-        BookEntity::class              // 账本实体
-    ], version = 17,                     // 当前数据库版本号
+        BookEntity::class,              // 账本实体
+        PlanEntity::class               // 计划金额实体
+    ], version = 18,                     // 当前数据库版本号
     exportSchema = false              // 不导出数据库模式信息
 ) abstract class HomeBookDatabase : RoomDatabase() {
 
@@ -110,6 +115,9 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
     // 账本数据访问对象
     abstract fun bookDao(): BookDao
 
+    // 计划金额数据访问对象
+    abstract fun planDao(): PlanDao
+
     companion object {
         /**
          * 数据库实例，使用volatile确保多线程可见性
@@ -127,8 +135,26 @@ import com.fanda.homebook.data.transaction.TransactionSubEntity
                 // 构建数据库实例
                 Room.databaseBuilder(
                     context.applicationContext, HomeBookDatabase::class.java, "HomeBookDatabase"  // 数据库文件名
-                ).build().also { Instance = it }  // 设置单例实例
+                ).addMigrations(MIGRATION_17_18).build().also { Instance = it }  // 设置单例实例
             }
         }
+
+        // 增加预算表功能
+         private val MIGRATION_17_18 = object : Migration(17, 18) {
+             override fun migrate(db: SupportSQLiteDatabase) {
+                 // 创建新表
+                 db.execSQL(
+                     """
+                     CREATE TABLE IF NOT EXISTS `plan_amount` (
+                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                         `bookId` INTEGER NOT NULL,
+                         `amount` REAL NOT NULL,
+                         `year` INTEGER NOT NULL,
+                         `month` INTEGER NOT NULL
+                     )
+                     """.trimIndent()
+                 )
+             }
+         }
     }
 }

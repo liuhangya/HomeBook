@@ -65,6 +65,12 @@ class CategoryDetailClosetViewModel(
         scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
     )
 
+    // 当前父分类下的所有子分类列表状态流
+    val subCategories: StateFlow<List<SubCategoryEntity>> = categoryRepository.getSubItemsById(categoryId).stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+    )
+
+
     // 原始衣橱数据流
     @OptIn(ExperimentalCoroutinesApi::class) private val rawClosets = _uiState.map {
         it.categoryId
@@ -274,5 +280,17 @@ class CategoryDetailClosetViewModel(
      */
     fun clearAllSelection() {
         _selectedIds.value = emptySet()
+    }
+
+    fun updateSortWay(sortWay: Pair<Int, String>?) {
+        _uiState.update {
+            it.copy(sortWay = sortWay)
+        }
+    }
+
+    fun updateCategoryWay(categoryWay: SubCategoryEntity?) {
+        _uiState.update {
+            it.copy(subCategoryEntity = categoryWay)
+        }
     }
 }

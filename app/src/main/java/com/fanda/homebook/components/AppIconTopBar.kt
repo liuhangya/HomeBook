@@ -70,7 +70,7 @@ import com.fanda.homebook.R
         modifier = modifier
             .height(64.dp) // 固定高度
             .background(color = backgroundColor) // 背景颜色
-            .padding(start = 12.dp, end = 12.dp) // 水平内边距
+            .padding(start = 4.dp, end = 12.dp) // 水平内边距
             .fillMaxWidth() // 填满宽度
     ) {
         // 左侧：返回按钮

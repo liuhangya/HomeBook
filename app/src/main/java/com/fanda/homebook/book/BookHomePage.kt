@@ -1,6 +1,8 @@
 package com.fanda.homebook.book
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -69,6 +71,8 @@ import com.fanda.homebook.book.entity.AmountItemEntity
 import com.fanda.homebook.common.entity.ShowBottomSheetType
 import com.fanda.homebook.common.entity.TransactionAmountType
 import com.fanda.homebook.route.RoutePath
+import com.fanda.homebook.tools.EventManager
+import com.fanda.homebook.tools.EventType
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.UserCache
 import com.fanda.homebook.tools.formatYearMonth
@@ -88,6 +92,7 @@ import kotlinx.coroutines.launch
     // 收集状态流
     val uiState by bookViewModel.uiState.collectAsState()
     val curSelectedBook by bookViewModel.curSelectedBook.collectAsState()
+    val planEntity by bookViewModel.planEntity.collectAsState()
     val books by bookViewModel.books.collectAsState()
     val categories by bookViewModel.categories.collectAsState()
     val subCategory by bookViewModel.subCategory.collectAsState()
@@ -104,10 +109,21 @@ import kotlinx.coroutines.launch
 
     val scope = rememberCoroutineScope()
 
-    // 监听生命周期变化，当页面恢复时刷新数据
+    // 监听生命周期变化，当页面恢复时刷新数据，太频繁了，不用这种方式
+//    LaunchedEffect(Unit) {
+//        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+//            bookViewModel.refresh()
+//            LogUtils.d("收到刷新数据事件")
+//        }
+//    }
+
+    // 监听事件总线，接收刷新数据事件
     LaunchedEffect(Unit) {
-        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+        val event = EventManager.getStickyEvent(EventType.REFRESH_STICKY_EVENT)
+        event?.let {
+            // 处理粘性事件
             bookViewModel.refresh()
+            LogUtils.d("收到刷新数据事件")
         }
     }
 
@@ -208,7 +224,7 @@ import kotlinx.coroutines.launch
                     totalIncome = totalIncome.toFloat(),
                     isFullYear = uiState.month <= 0,
                     totalExpense = totalExpense.toFloat(),
-                    totalPlan = UserCache.planAmount,
+                    totalPlan = planEntity?.amount ?: 0.0f,
                     onYearMonthClick = {
                         bookViewModel.updateSheetType(ShowBottomSheetType.YEAR_MONTH)
                     },
@@ -265,12 +281,12 @@ import kotlinx.coroutines.launch
 
         // 弹窗和底部弹窗
         if (uiState.sheetType == ShowBottomSheetType.MONTH_PLAN) {
-            NumberEditDialog(title = "设置本月预算", value = UserCache.planAmount.roundToString(), showSuffix = false, onDismissRequest = {
+            NumberEditDialog(title = "设置本月预算", value = planEntity?.amount?.roundToString() ?: "", showSuffix = false, onDismissRequest = {
                 bookViewModel.dismissBottomSheet()
             }, onConfirm = {
                 bookViewModel.dismissBottomSheet()
                 LogUtils.d("设置预算：$it")
-                UserCache.planAmount = it.toFloat()
+                bookViewModel.updatePlanAmount(it.toFloat())
             })
         }
 

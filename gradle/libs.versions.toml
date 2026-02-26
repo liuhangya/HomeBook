@@ -24,6 +24,7 @@ permissions = "0.37.3"
 toaster = "13.8"
 longan = "1.1.1"
 gson = "2.13.2"
+uiText = "1.6.0"
 
 
 [libraries]
@@ -58,6 +59,7 @@ chart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "chart" }
 toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
 longan = { module = "com.github.DylanCaiCoding.Longan:longan", version.ref = "longan" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

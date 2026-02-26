@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.common.sheet.SheetTitleWidget
+import com.fanda.homebook.tools.LogUtils
 
 /**
  * 年月选择底部弹窗
@@ -32,8 +34,22 @@ import com.fanda.homebook.common.sheet.SheetTitleWidget
     var selectYear by remember { mutableIntStateOf(year) }
     var selectMonth by remember { mutableIntStateOf(month) }
 
+    // 【关键修改】监听外部参数变化，当弹窗可见时同步外部传入的年份和月份
+    LaunchedEffect(visible, year, month) {
+        if (visible) {
+            selectYear = year
+            selectMonth = month
+            LogUtils.i("YearMonthBottomSheet", "弹窗打开，状态已同步: year=$year, month=$month")
+        }
+    }
+
     // 自定义底部弹窗组件
-    CustomBottomSheet(visible = visible, onDismiss = onDismiss) {
+    CustomBottomSheet(visible = visible, onDismiss = {
+        // 取消弹窗时，重置内部状态
+        selectYear = year
+        selectMonth = month
+        onDismiss()
+    }) {
         // 弹窗内容
         Column() {
             // 标题栏组件，包含标题和确认按钮

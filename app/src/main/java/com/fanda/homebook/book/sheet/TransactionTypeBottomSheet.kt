@@ -121,7 +121,7 @@ import com.fanda.homebook.common.sheet.SheetTitleWidget
         ) {
             val itemSpacing = 16.dp      // 子项之间的间距
             val maxColumns = 3           // 最大列数
-            val totalSpacing = itemSpacing * (maxColumns - 1)  // 总间距宽度
+            val totalSpacing = itemSpacing * (maxColumns - 1) + 1.dp  // 总间距宽度
             // 计算每个子项的宽度：(父容器宽度 - 总间距) / 列数
             val itemWidth = (maxWidth - totalSpacing) / maxColumns
 
