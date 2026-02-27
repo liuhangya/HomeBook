@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,9 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
-import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.R
 import com.fanda.homebook.components.ConfirmDialog
+import com.fanda.homebook.components.CustomBottomSheet
 import com.fanda.homebook.components.SelectableRoundedButton
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.ui.theme.HomeBookTheme
@@ -217,54 +218,56 @@ import java.io.File
     CustomBottomSheet(
         visible = visible, onDismiss = onDismiss
     ) {
-        Column(
+        LazyColumn(
             modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally,  // 水平居中对齐
             verticalArrangement = Arrangement.Center             // 垂直居中对齐
         ) {
-            // 拍照选项
-            Text(text = "拍照", fontSize = 16.sp, color = Color.Black, textAlign = TextAlign.Center, modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    openCamera()
-                }
-                .padding(vertical = 26.dp))
-
-            // 分割线1
-            HorizontalDivider(
-                color = colorResource(id = R.color.color_E1E9F3), modifier = Modifier
+            item {
+                // 拍照选项
+                Text(text = "拍照", fontSize = 16.sp, color = Color.Black, textAlign = TextAlign.Center, modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-            )
+                    .clickable {
+                        openCamera()
+                    }
+                    .padding(vertical = 26.dp))
 
-            // 相册选项
-            Text(text = "相册", fontSize = 16.sp, color = Color.Black, textAlign = TextAlign.Center, modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    openAlbum()
-                }
-                .padding(vertical = 26.dp))
-
-            // 分割线2
-            HorizontalDivider(
-                color = colorResource(id = R.color.color_E1E9F3), modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-            )
-
-            // 取消按钮
-            Box(
-                modifier = Modifier.padding(24.dp)
-            ) {
-                SelectableRoundedButton(
-                    text = "取消",
-                    selected = false,
-                    onClick = onDismiss,
-                    cornerSize = 27.dp,
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical = 16.dp),
-                    fontSize = 16.sp,
-                    interaction = true
+                // 分割线1
+                HorizontalDivider(
+                    color = colorResource(id = R.color.color_E1E9F3), modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
                 )
+
+                // 相册选项
+                Text(text = "相册", fontSize = 16.sp, color = Color.Black, textAlign = TextAlign.Center, modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        openAlbum()
+                    }
+                    .padding(vertical = 26.dp))
+
+                // 分割线2
+                HorizontalDivider(
+                    color = colorResource(id = R.color.color_E1E9F3), modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                )
+
+                // 取消按钮
+                Box(
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    SelectableRoundedButton(
+                        text = "取消",
+                        selected = false,
+                        onClick = onDismiss,
+                        cornerSize = 27.dp,
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 16.dp),
+                        fontSize = 16.sp,
+                        interaction = true
+                    )
+                }
             }
         }
     }

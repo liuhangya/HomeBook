@@ -1,5 +1,8 @@
 package com.fanda.homebook.closet.viewmodel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +15,17 @@ import com.fanda.homebook.data.closet.AddClosetEntity
 import com.fanda.homebook.data.closet.ClosetDetailGridItem
 import com.fanda.homebook.data.closet.ClosetRepository
 import com.fanda.homebook.common.entity.ShowBottomSheetType
+import com.fanda.homebook.data.LocalDataSource
+import com.fanda.homebook.data.SORT_WAY_ADD_TIME
+import com.fanda.homebook.data.SORT_WAY_BUY_TIME
+import com.fanda.homebook.data.SORT_WAY_CLOTH_COUNT
+import com.fanda.homebook.data.SORT_WAY_PRICE
+import com.fanda.homebook.data.color.ColorTypeEntity
+import com.fanda.homebook.data.color.ColorTypeRepository
+import com.fanda.homebook.data.plan.PlanEntity
+import com.fanda.homebook.data.quick.QueryParams
+import com.fanda.homebook.data.season.SeasonEntity
+import com.fanda.homebook.data.season.SeasonRepository
 import com.fanda.homebook.tools.LogUtils
 import com.fanda.homebook.tools.TIMEOUT_MILLIS
 import com.fanda.homebook.tools.UserCache
@@ -23,12 +37,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.collections.first
+
+
+data class ClosetQueryParams(
+    val categoryId: Int = -1,                                   // 一级分类ID
+    val sortWay: Pair<Int, String>? = LocalDataSource.sortWayData.first(),   // 排序方式
+    val subCategoryEntity: SubCategoryEntity? = SubCategoryEntity(-1, "全部", categoryId = -1),           // -1表示全部
+    val seasonEntity: SeasonEntity? = null,          // null 表示不筛选
+    val colorTypeEntity: ColorTypeEntity? = null,          // null 表示不筛选
+)
 
 /**
  * 分类详情衣橱视图模型
@@ -36,7 +61,11 @@ import kotlinx.coroutines.launch
  * 负责管理分类详情页面的业务逻辑和状态，支持多选操作
  */
 class CategoryDetailClosetViewModel(
-    savedStateHandle: SavedStateHandle, private val closetRepository: ClosetRepository, private val categoryRepository: CategoryRepository
+    savedStateHandle: SavedStateHandle,
+    private val closetRepository: ClosetRepository,
+    private val categoryRepository: CategoryRepository,
+    private val colorTypeRepository: ColorTypeRepository,
+    private val seasonRepository: SeasonRepository
 ) : ViewModel() {
 
     // 从保存状态中获取参数
@@ -51,6 +80,10 @@ class CategoryDetailClosetViewModel(
     // 公开只读状态流
     val uiState = _uiState.asStateFlow()
 
+    // 季节列表
+    var seasons by mutableStateOf(emptyList<SeasonEntity>())
+        private set
+
     init {
         // 初始化UI状态
         _uiState.update {
@@ -58,7 +91,15 @@ class CategoryDetailClosetViewModel(
                 categoryId = categoryId, categoryName = categoryName, subCategoryId = subCategoryId, moveToTrash = moveToTrash
             )
         }
+        viewModelScope.launch {
+            seasons = seasonRepository.getSeasons()
+        }
     }
+
+    // 颜色列表
+    val colorTypes: StateFlow<List<ColorTypeEntity>> = colorTypeRepository.getItems().stateIn(
+        scope = viewModelScope, SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), emptyList()
+    )
 
     // 分类列表（包含子分类）
     val categories: StateFlow<List<CategoryWithSubCategories>> = categoryRepository.getAllItemsWithSub().stateIn(
@@ -70,45 +111,85 @@ class CategoryDetailClosetViewModel(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
     )
 
+    // 核心查询参数组合
+    @OptIn(ExperimentalCoroutinesApi::class) private val queryParams = combine(
+        _uiState.map { it.categoryId },
+        _uiState.map { it.sortWay },
+        _uiState.map { it.subCategoryEntity },
+        _uiState.map { it.seasonEntity },
+        _uiState.map { it.colorTypeEntity },
+    ) { categoryId, sortWay, subCategoryEntity, seasonEntity, colorTypeEntity ->
+        ClosetQueryParams(categoryId, sortWay, subCategoryEntity, seasonEntity, colorTypeEntity)
+    }.distinctUntilChanged()
 
-    // 原始衣橱数据流
-    @OptIn(ExperimentalCoroutinesApi::class) private val rawClosets = _uiState.map {
-        it.categoryId
-    }.flatMapLatest { categoryId ->
-        // 根据不同的查询条件获取不同的数据
+    // 基础衣橱数据流 - 只根据分类条件查询
+    @OptIn(ExperimentalCoroutinesApi::class) private val baseClosetsFlow = queryParams.map { it.categoryId }.distinctUntilChanged().flatMapLatest { currentCategoryId ->
+        // 根据不同的查询条件获取基础数据
         when {
-            _uiState.value.moveToTrash -> {
+            moveToTrash -> {
                 // 垃圾桶模式：获取已删除的衣橱物品
                 closetRepository.getClosets(UserCache.ownerId, moveToTrash = true)
             }
 
-            categoryId <= 0 && subCategoryId <= 0 -> {
+            currentCategoryId <= 0 && subCategoryId <= 0 -> {
                 // 未分类模式：获取未分类的衣橱物品
                 closetRepository.getNoCategoryClosets(UserCache.ownerId)
             }
 
-            categoryId == -1 -> {
+            currentCategoryId == -1 -> {
                 // 二级分类模式：根据二级分类ID获取
-                closetRepository.getClosetsBySubCategory(
-                    UserCache.ownerId, _uiState.value.subCategoryId
-                )
+                closetRepository.getClosetsBySubCategory(UserCache.ownerId, subCategoryId)
             }
 
             else -> {
                 // 一级分类模式：根据一级分类ID获取
-                closetRepository.getClosetsByCategory(
-                    UserCache.ownerId, _uiState.value.categoryId
-                )
+                closetRepository.getClosetsByCategory(UserCache.ownerId, currentCategoryId)
             }
         }
-    }.map { items ->
-        // 转换为网格项格式
-        items.map { ClosetDetailGridItem(addClosetEntity = it) }
     }.catch { e ->
         // 错误处理
-        LogUtils.e("查询失败: ${e.message}")
+        LogUtils.e("基础数据查询失败: ${e.message}")
         emit(emptyList())
     }
+
+    // 过滤后的衣橱数据流 - 根据所有查询参数进行过滤
+    @OptIn(ExperimentalCoroutinesApi::class) private val filteredClosetsFlow = combine(
+        baseClosetsFlow, queryParams
+    ) { baseItems, params ->
+        var filteredItems = baseItems.sortedByDescending { it.closet.createDate }
+
+        // 按二级分类筛选
+        if (params.subCategoryEntity != null && params.subCategoryEntity.id != -1) {
+            filteredItems = filteredItems.filter { it.closet.subCategoryId == params.subCategoryEntity.id }
+        }
+
+        // 按季节筛选
+        if (params.seasonEntity != null) {
+            filteredItems = filteredItems.filter { it.seasons?.map { it.id }?.contains(params.seasonEntity.id) == true }
+        }
+
+        // 按颜色筛选
+        if (params.colorTypeEntity != null) {
+            filteredItems = filteredItems.filter { it.closet.colorTypeId == params.colorTypeEntity.id }
+        }
+
+        if (params.sortWay != null) {
+            filteredItems = when (params.sortWay.first) {
+                SORT_WAY_ADD_TIME -> filteredItems.sortedByDescending { it.closet.createDate }
+                SORT_WAY_CLOTH_COUNT -> filteredItems.sortedByDescending { it.closet.wearCount }
+                SORT_WAY_PRICE -> filteredItems.sortedByDescending {   it.closet.price.toFloatOrNull() ?: 0f }
+                SORT_WAY_BUY_TIME -> filteredItems.sortedByDescending { it.closet.date }
+                else -> {
+                    filteredItems
+                }
+            }
+        }
+
+        // 转换为网格项格式
+        filteredItems.map { ClosetDetailGridItem(addClosetEntity = it) }
+    }.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS), initialValue = emptyList()
+    )
 
     // 选中的衣橱ID集合
     private val _selectedIds = MutableStateFlow<Set<Int>>(emptySet())
@@ -116,7 +197,7 @@ class CategoryDetailClosetViewModel(
 
     // 合并选中状态的数据流
     val closets = combine(
-        rawClosets, _selectedIds
+        filteredClosetsFlow, _selectedIds
     ) { items, selectedIds ->
         // 更新每个项的选中状态
         items.map { item ->
@@ -291,6 +372,18 @@ class CategoryDetailClosetViewModel(
     fun updateCategoryWay(categoryWay: SubCategoryEntity?) {
         _uiState.update {
             it.copy(subCategoryEntity = categoryWay)
+        }
+    }
+
+    fun updateSeasonWay(seasonWay: SeasonEntity?) {
+        _uiState.update {
+            it.copy(seasonEntity = seasonWay)
+        }
+    }
+
+    fun updateColorTypeWay(colorTypeWay: ColorTypeEntity?) {
+        _uiState.update {
+            it.copy(colorTypeEntity = colorTypeWay)
         }
     }
 }

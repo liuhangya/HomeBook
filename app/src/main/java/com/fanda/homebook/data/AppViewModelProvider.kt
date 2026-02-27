@@ -86,7 +86,11 @@ object AppViewModelProvider {
         // 衣橱分类详情ViewModel
         initializer {
             CategoryDetailClosetViewModel(
-                this.createSavedStateHandle(), homeBookApplication().appContainer.closetRepository, homeBookApplication().appContainer.categoryRepository
+                this.createSavedStateHandle(),
+                homeBookApplication().appContainer.closetRepository,
+                homeBookApplication().appContainer.categoryRepository,
+                homeBookApplication().appContainer.colorTypeRepository,
+                homeBookApplication().appContainer.seasonRepository
             )
         }
 
@@ -128,7 +132,9 @@ object AppViewModelProvider {
         // 账本首页ViewModel
         initializer {
             BookViewModel(
-                homeBookApplication().appContainer.bookRepository, homeBookApplication().appContainer.transactionRepository, homeBookApplication().appContainer.quickRepository,
+                homeBookApplication().appContainer.bookRepository,
+                homeBookApplication().appContainer.transactionRepository,
+                homeBookApplication().appContainer.quickRepository,
                 homeBookApplication().appContainer.planRepository
             )
         }

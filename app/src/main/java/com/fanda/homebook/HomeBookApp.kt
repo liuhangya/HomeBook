@@ -49,6 +49,7 @@ import com.fanda.homebook.closet.ClosetCategoryPage
 import com.fanda.homebook.closet.ClosetHomePage
 import com.fanda.homebook.closet.EditCategoryPage
 import com.fanda.homebook.closet.EditSubCategoryPage
+import com.fanda.homebook.closet.MoneyHomePage
 import com.fanda.homebook.closet.WatchAndEditClosetPage
 import com.fanda.homebook.common.AddColorPage
 import com.fanda.homebook.common.EditColorPage
@@ -220,10 +221,13 @@ fun HomeBookApp() {
                         route = RoutePath.MoneyGraph.route // 路由：dashboard
                     ) {
                         composable(RoutePath.MoneyHome.route) {
-                            Text(
-                                "资产首页-没开发呢...", modifier = Modifier
-                                    .fillMaxSize()
-                                    .statusBarsPadding(), textAlign = TextAlign.Center
+//                            Text(
+//                                "资产首页-没开发呢...", modifier = Modifier
+//                                    .fillMaxSize()
+//                                    .statusBarsPadding(), textAlign = TextAlign.Center
+//                            )
+                            MoneyHomePage(
+                                modifier = Modifier.fillMaxSize(), navController = navController
                             )
                         }
                     }

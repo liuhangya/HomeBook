@@ -57,6 +57,7 @@ import com.fanda.homebook.data.closet.CategoryBottomMenuEntity
 import com.fanda.homebook.data.closet.ClosetDetailGridItem
 import com.fanda.homebook.common.entity.ShowBottomSheetType
 import com.fanda.homebook.common.sheet.CategoryExpandBottomSheet
+import com.fanda.homebook.common.sheet.ClosetInfoSelectBottomSheet
 import com.fanda.homebook.common.sheet.ListBottomSheet
 import com.fanda.homebook.data.category.SubCategoryEntity
 import com.fanda.homebook.data.product.ProductEntity
@@ -82,6 +83,7 @@ const val INFO_TYPE = 2
     val selectedItems by closetViewModel.selectedItems.collectAsState()
     val categories by closetViewModel.categories.collectAsState()
     val subCategories by closetViewModel.subCategories.collectAsState()
+    val colorTypes by closetViewModel.colorTypes.collectAsState()
 
     LogUtils.i("衣橱详细对象: $uiState")
     LogUtils.i("衣橱详细列表: $closets")
@@ -155,7 +157,7 @@ const val INFO_TYPE = 2
         Column(modifier = Modifier.padding(padding)) {
             CategorySelectorWidget(
                 modifier = Modifier.padding(horizontal = 12.dp), onTypeClick = {
-                    if (uiState.isEditState){
+                    if (uiState.isEditState) {
                         Toaster.show("请先退出编辑模式")
                         return@CategorySelectorWidget
                     }
@@ -258,6 +260,18 @@ const val INFO_TYPE = 2
         displayText = { it.name },
         onDismiss = { closetViewModel.dismissBottomSheet() }) {
         closetViewModel.updateCategoryWay(it)
+    }
+
+    // 信息弹窗
+    ClosetInfoSelectBottomSheet(
+        color = uiState.colorTypeEntity,
+        seasonList = closetViewModel.seasons,
+        season = uiState.seasonEntity,
+        colorList = colorTypes,
+        visible = { closetViewModel.showBottomSheet(ShowBottomSheetType.INFO_WAY) },
+        onDismiss = { closetViewModel.dismissBottomSheet() }) { color, season ->
+        closetViewModel.updateColorTypeWay(color)
+        closetViewModel.updateSeasonWay(season)
     }
 }
 
@@ -388,7 +402,7 @@ const val INFO_TYPE = 2
             modifier
                 .weight(1f)
                 .padding(vertical = 6.dp)
-                .clickable {
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                     LogUtils.i("点击了排序筛选")
                     onTypeClick(SORT_TYPE)
                 }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center
@@ -407,7 +421,7 @@ const val INFO_TYPE = 2
             modifier
                 .weight(1f)
                 .padding(vertical = 6.dp)
-                .clickable {
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                     LogUtils.i("点击了分类筛选")
                     onTypeClick(CATEGORY_TYPE)
                 }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center
@@ -426,7 +440,7 @@ const val INFO_TYPE = 2
             modifier
                 .weight(1f)
                 .padding(vertical = 6.dp)
-                .clickable {
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                     LogUtils.i("点击了信息筛选")
                     onTypeClick(INFO_TYPE)
                 }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center

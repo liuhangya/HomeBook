@@ -140,7 +140,7 @@ import com.fanda.homebook.components.SelectableRoundedButton
                 verticalArrangement = Arrangement.spacedBy(13.dp),
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(
-                    start = 24.dp, top = 10.dp, end = 24.dp, bottom = 28.dp
+                    start = 24.dp, top = 10.dp, end = 24.dp, bottom = 32.dp
                 ),
             ) {
                 items(dataSource, key = { it.hashCode() }) { item ->

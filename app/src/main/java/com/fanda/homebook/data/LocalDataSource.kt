@@ -5,6 +5,8 @@ import com.fanda.homebook.common.entity.ShowBottomSheetType
 import com.fanda.homebook.data.closet.CategoryBottomMenuEntity
 import com.fanda.homebook.data.stock.StockMenuEntity
 
+
+
 /**
  * 本地数据源
  * 包含应用中使用的静态数据和配置
@@ -52,10 +54,15 @@ object LocalDataSource {
     )
 
     val sortWayData = listOf(
-        Pair(1,"添加时间"),
-        Pair(2,"穿着次数"),
-        Pair(3,"服饰价格"),
-        Pair(4,"购买时间"),
+        Pair(SORT_WAY_ADD_TIME,"添加时间"),
+        Pair(SORT_WAY_CLOTH_COUNT,"穿着次数"),
+        Pair(SORT_WAY_PRICE,"服饰价格"),
+        Pair(SORT_WAY_BUY_TIME,"购买时间"),
     )
 
 }
+
+const val SORT_WAY_ADD_TIME = 1
+const val SORT_WAY_CLOTH_COUNT = 2
+const val SORT_WAY_PRICE = 3
+const val SORT_WAY_BUY_TIME = 4

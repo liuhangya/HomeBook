@@ -3,6 +3,8 @@ package com.fanda.homebook.closet.state
 import com.fanda.homebook.common.entity.ShowBottomSheetType
 import com.fanda.homebook.data.LocalDataSource
 import com.fanda.homebook.data.category.SubCategoryEntity
+import com.fanda.homebook.data.color.ColorTypeEntity
+import com.fanda.homebook.data.season.SeasonEntity
 
 /**
  * 衣橱分类详情界面状态类
@@ -24,5 +26,7 @@ data class CategoryDetailClosetUiState(
     val moveToTrash: Boolean = false,                           // 移动到回收站状态
     val sheetType: ShowBottomSheetType = ShowBottomSheetType.NONE, // 弹窗类型
     val sortWay: Pair<Int, String>? = LocalDataSource.sortWayData.first(),   // 排序方式
-    val subCategoryEntity: SubCategoryEntity? = SubCategoryEntity(-1, "全部", categoryId = -1)            // -1表示全部
+    val subCategoryEntity: SubCategoryEntity? = SubCategoryEntity(-1, "全部", categoryId = -1),           // -1表示全部
+    val seasonEntity: SeasonEntity? = null,          // null 表示不筛选
+    val colorTypeEntity: ColorTypeEntity? = null,          // null 表示不筛选
 )
